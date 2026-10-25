@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>運動 · 大小豬的小空間</title>
+<meta name="theme-color" content="#FFF5F2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="../common/style.css">
+<style>
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel h2{font-size:1.1rem;margin-bottom:12px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.head h2{margin:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 12px;min-width:0;width:100%}
+input:focus,select:focus{border-color:var(--accent);outline:none}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.sm{padding:4px 12px;font-size:.85rem}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.warn-text{color:var(--warn)}
+.empty{text-align:center;color:var(--muted);padding:14px 0}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.field > span{font-size:.85rem;font-weight:700;color:var(--muted)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.unit{position:relative}
+.unit input{padding-right:3em}
+.unit i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--muted);font-size:.85rem;pointer-events:none}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;cursor:pointer;font-family:var(--f-round);font-weight:700;font-size:.88rem}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep)}
+.seg.small button{padding:3px 10px;font-size:.8rem}
+
+/* 本週 */
+.week{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.week.one{grid-template-columns:1fr}
+.wk{background:var(--sunk);border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;min-width:0}
+.wk b{display:block;font-size:.9rem}
+.wk .nums{display:flex;gap:12px;flex-wrap:wrap;font-size:.78rem;color:var(--muted)}
+.wk .nums span b{display:inline;font-family:var(--f-num);font-size:1.15rem;color:var(--ink);margin-right:2px}
+.heat{display:grid;grid-template-columns:auto repeat(12,1fr);gap:3px;margin-top:14px;max-width:340px;font-size:.68rem;color:var(--muted);align-items:center}
+.heat i{display:block;aspect-ratio:1;border-radius:4px;background:var(--sunk)}
+.heat i.l1{background:color-mix(in srgb,var(--accent) 35%,var(--sunk))}
+.heat i.l2{background:color-mix(in srgb,var(--accent) 65%,var(--sunk))}
+.heat i.l3{background:var(--accent)}
+.heat i.today{outline:2px solid var(--ink);outline-offset:-2px}
+.streak{margin-top:8px;font-size:.85rem}
+
+/* 重訓組數 */
+.sets{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.set{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto;gap:6px;align-items:center}
+.set input{padding:6px 8px}
+.set .x,.list .x{border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px}
+.sethead{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto;gap:6px;font-size:.75rem;color:var(--muted);padding:0 2px}
+.sethead span:last-child{width:22px}
+.link{background:none;border:0;padding:0;color:var(--accent-deep);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
+.actions{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* 紀錄 */
+.day{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 4px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.list li{display:flex;gap:10px;align-items:flex-start;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
+.list .tag{flex:none;font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep);margin-top:2px}
+.list .main{flex:1;min-width:0}
+.list .main b{display:block}
+.list .main span{display:block;font-size:.8rem;color:var(--muted)}
+.list .kc{font-family:var(--f-num);font-weight:700;white-space:nowrap}
+.list .x.armed{color:var(--warn);font-size:.8rem;font-weight:700}
+
+/* 圖表 */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart .axis{stroke:var(--line);stroke-width:1}
+.chart text{fill:var(--muted);font-size:10px;font-family:var(--f-num)}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .pt{fill:var(--surface);stroke:var(--accent);stroke-width:2}
+.chart .last{fill:var(--accent)}
+.prs{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
+.prs li{display:grid;grid-template-columns:1fr auto auto;gap:10px;font-size:.88rem;padding:6px 10px;border-radius:12px;cursor:pointer}
+.prs li[aria-selected="true"]{background:var(--accent-soft)}
+.prs li span{font-family:var(--f-num);font-weight:700}
+.prs li small{color:var(--muted);font-size:.75rem}
+.wform{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;margin-bottom:12px;align-items:end}
+@media (max-width:420px){.wform{grid-template-columns:1fr 1fr}}
+.wform label{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.wsum{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:6px}
+.wsum b{font-family:var(--f-num);color:var(--ink);font-size:1rem}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="brand" href="../">
+      <span class="pigs" id="brandPigs"></span>
+      <span><span class="back">‹ 大小豬的小空間</span><h1>運動</h1></span>
+    </a>
+    <label class="small muted" id="profBox" hidden>記錄對象 <select id="prof" style="width:auto;padding:4px 10px"></select></label>
+  </header>
+
+  <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
+
+  <section class="panel" id="noProfile" hidden>
+    <h2>先建立個人資料</h2>
+    <p>運動紀錄跟飲食頁共用同一份個人資料（體重、年齡），消耗的熱量也會自動加進飲食頁當天可以吃的量。請先到 <a href="../food/">飲食</a> 建立個人資料，再回來這裡。</p>
+  </section>
+
+  <main class="grid" id="app" hidden>
+    <div class="col">
+      <section class="panel" aria-labelledby="wkTitle">
+        <h2 id="wkTitle">這週</h2>
+        <div class="week" id="week"></div>
+        <div class="heat" id="heat" aria-label="最近 12 週有運動的日子"></div>
+        <p class="streak" id="streak"></p>
+      </section>
+
+      <section class="panel" aria-labelledby="fTitle">
+        <h2 id="fTitle">記一筆運動</h2>
+        <form id="form" autocomplete="off" novalidate>
+          <div class="field"><span>種類</span><div class="seg" id="fType"></div></div>
+          <div class="field"><span>內容</span><input id="fName" maxlength="40" placeholder="例如：慢跑、腿部訓練"></div>
+          <div id="setsBox" hidden>
+            <div class="sethead"><span>動作</span><span>重量 kg</span><span>次數</span><span>組數</span><span></span></div>
+            <div class="sets" id="sets"></div>
+            <p style="margin:-2px 0 10px"><button class="link" type="button" id="addSet">＋ 再加一個動作</button></p>
+          </div>
+          <div class="row3">
+            <div class="field"><span>日期</span><input id="fDate" type="date"></div>
+            <div class="field"><span>時間</span><div class="unit"><input id="fMin" type="number" inputmode="numeric" min="0" step="1"><i>分鐘</i></div></div>
+            <div class="field"><span>消耗</span><div class="unit"><input id="fKcal" type="number" inputmode="numeric" min="0" step="1" placeholder="AI 估"><i>大卡</i></div></div>
+          </div>
+          <div class="actions">
+            <span class="small muted" id="fMsg">知道消耗多少就直接填；不填的話由 AI 依體重估算。</span>
+            <button class="btn primary" type="submit" id="fSave">記下來</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="lTitle">
+        <h2 id="lTitle">最近的紀錄</h2>
+        <div id="logs"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="wTitle">
+        <div class="head"><h2 id="wTitle">體重</h2><div class="seg small" id="wRange"></div></div>
+        <form class="wform" id="wForm" autocomplete="off" novalidate>
+          <label>體重<div class="unit"><input id="wKg" type="number" inputmode="decimal" step="0.1" min="20" max="300"><i>kg</i></div></label>
+          <label>腰圍<div class="unit"><input id="wWaist" type="number" inputmode="decimal" step="0.1" min="0"><i>cm</i></div></label>
+          <label>體脂<div class="unit"><input id="wFat" type="number" inputmode="decimal" step="0.1" min="0" max="80"><i>%</i></div></label>
+          <button class="btn primary" type="submit">記錄今天</button>
+        </form>
+        <div id="wChart"></div>
+        <div class="wsum" id="wSum"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="sTitle">
+        <h2 id="sTitle">重訓進步</h2>
+        <div id="liftChart"></div>
+        <ul class="prs" id="prs"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
+    <span>運動和體重跟飲食頁是同一份紀錄：在這裡記的，飲食頁也看得到；有分享給另一半的話，對方也看得到。</span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../common/config.js"></script>
+<script src="../common/auth.js"></script>
+<script src="../common/mascot.js"></script>
+<script>window.CLAUDE_SHIM = { module: "fitness", prefix: "" };</script>
+<script src="../common/claude-shim.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
+const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const iso = d => d.toISOString().slice(0, 10);
+const addDays = (s, n) => { const d = parse(s); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
+const dayText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日（${WEEK[d.getUTCDay()]}）`; };
+const mondayOf = s => addDays(s, -((parse(s).getUTCDay() + 6) % 7));
+const r0 = n => Math.round(+n || 0), r1 = n => Math.round((+n || 0) * 10) / 10;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+             set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+
+// 跟飲食頁同一套集合（舊食記的命名）
+const TYPES = ["重訓", "跑步", "快走", "騎車", "游泳", "瑜伽", "球類", "其他"];
+const S = { db: null, sample: null, me: null, partner: null, profiles: [], pid: null,
+            exercise: [], weights: [], pShare: null, pExercise: [],
+            type: "重訓", sets: [], range: LS.get("fit.range", 90), lift: null, armed: null };
+const col = sub => S.db.collection(`data/users/${S.me.id}/${sub}/list`);
+const shareCol = sub => S.db.collection(`shared/${S.me.id}/${sub}`);
+const prof = () => S.profiles.find(p => p.id === S.pid);
+const mineEx = () => S.exercise.filter(x => x.profileId === S.pid);
+const mineW = () => S.weights.filter(x => x.profileId === S.pid).sort((a, b) => a.date < b.date ? -1 : 1);
+
+// ---------- 本週、熱度圖 ----------
+function weekStats(list) {
+  const mon = mondayOf(today());
+  const wk = list.filter(x => x.date >= mon && x.date <= today());
+  return { n: new Set(wk.map(x => x.date)).size, min: wk.reduce((s, x) => s + (+x.minutes || 0), 0), kcal: wk.reduce((s, x) => s + (+x.kcal || 0), 0) };
+}
+function renderWeek() {
+  const cards = [[S.me, prof()?.name, mineEx()]];
+  const pp = S.pShare?.profiles?.[0];
+  if (S.partner && pp) cards.push([S.partner, pp.name, S.pExercise.filter(x => x.profileId === pp.id)]);
+  $("week").className = "week" + (cards.length === 1 ? " one" : "");
+  $("week").innerHTML = cards.map(([u, name, list]) => {
+    const w = weekStats(list);
+    return `<div class="wk">${FiveJS.lollipop(u.theme, w.n ? "sparkle" : "sleep", 44)}<div><b>${esc(name || u.name)}</b>
+      <div class="nums"><span><b>${w.n}</b>天</span><span><b>${r0(w.min)}</b>分鐘</span><span><b>${r0(w.kcal)}</b>大卡</span></div></div></div>`;
+  }).join("");
+
+  // 12 週 × 7 天，一欄一週，最右邊是這週
+  const byDay = {};
+  mineEx().forEach(x => { byDay[x.date] = (byDay[x.date] || 0) + (+x.minutes || 30); });
+  const start = addDays(mondayOf(today()), -7 * 11);
+  let html = "";
+  for (let r = 0; r < 7; r++) {
+    html += `<span>${r % 2 === 0 ? WEEK[(r + 1) % 7] : ""}</span>`;
+    for (let c = 0; c < 12; c++) {
+      const d = addDays(start, c * 7 + r);
+      const m = byDay[d] || 0, lv = d > today() ? "" : m >= 60 ? "l3" : m >= 30 ? "l2" : m > 0 ? "l1" : "";
+      html += d > today() ? `<span></span>` : `<i class="${lv}${d === today() ? " today" : ""}" title="${esc(dayText(d))}${m ? ` ${r0(m)} 分鐘` : ""}"></i>`;
+    }
+  }
+  $("heat").innerHTML = html;
+  // 連續有運動的週數（這週還沒動不算斷）
+  const weeks = new Set(mineEx().map(x => mondayOf(x.date)));
+  let w = mondayOf(today()), n = 0;
+  if (!weeks.has(w)) w = addDays(w, -7);
+  while (weeks.has(w)) { n++; w = addDays(w, -7); }
+  $("streak").innerHTML = n >= 2 ? `已經連續 <b>${n}</b> 週都有運動，繼續保持！` : n === 1 ? "這週有動起來了 👍" : `<span class="muted">這週還沒有運動紀錄。</span>`;
+}
+
+// ---------- 表單 ----------
+function renderType() {
+  $("fType").innerHTML = TYPES.map(t => `<button type="button" data-v="${t}" aria-pressed="${t === S.type}">${t}</button>`).join("");
+  $("setsBox").hidden = S.type !== "重訓";
+  if (S.type === "重訓" && !S.sets.length) S.sets = [{ lift: "", kg: "", reps: "", n: 3 }];
+  renderSets();
+}
+$("fType").onclick = e => {
+  const b = e.target.closest("[data-v]"); if (!b) return;
+  const prev = S.type; S.type = b.dataset.v;
+  if (!$("fName").value || $("fName").value === prev) $("fName").value = S.type === "其他" ? "" : S.type;
+  renderType();
+};
+function renderSets() {
+  const lifts = [...new Set(mineEx().flatMap(x => (x.sets || []).map(s => s.lift)).filter(Boolean))];
+  $("sets").innerHTML = S.sets.map((s, i) => `<div class="set" data-i="${i}">
+    <input data-k="lift" list="liftList" maxlength="30" placeholder="例如：深蹲" value="${esc(s.lift)}" aria-label="動作">
+    <input data-k="kg" type="number" inputmode="decimal" step="0.5" min="0" value="${esc(s.kg)}" aria-label="重量">
+    <input data-k="reps" type="number" inputmode="numeric" min="1" step="1" value="${esc(s.reps)}" aria-label="次數">
+    <input data-k="n" type="number" inputmode="numeric" min="1" step="1" value="${esc(s.n)}" aria-label="組數">
+    <button class="x" type="button" data-del="${i}" aria-label="刪除這個動作">×</button></div>`).join("") +
+    `<datalist id="liftList">${lifts.map(l => `<option value="${esc(l)}">`).join("")}</datalist>`;
+}
+$("sets").oninput = e => { const row = e.target.closest("[data-i]"); if (row) S.sets[+row.dataset.i][e.target.dataset.k] = e.target.value; };
+$("sets").onclick = e => { const b = e.target.closest("[data-del]"); if (b) { S.sets.splice(+b.dataset.del, 1); renderSets(); } };
+$("addSet").onclick = () => { S.sets.push({ lift: "", kg: "", reps: "", n: 3 }); renderSets(); };
+
+function cleanSets() {
+  return S.sets.map(s => ({ lift: String(s.lift || "").trim().slice(0, 30), kg: r1(s.kg), reps: r0(s.reps), n: Math.max(1, r0(s.n) || 1) }))
+    .filter(s => s.lift && s.reps > 0);
+}
+const setsText = sets => sets.map(s => `${s.lift} ${s.kg ? s.kg + "kg×" : ""}${s.reps}下×${s.n}組`).join("、");
+
+$("form").onsubmit = async e => {
+  e.preventDefault();
+  const p = prof(), msg = $("fMsg");
+  const sets = S.type === "重訓" ? cleanSets() : [];
+  let name = $("fName").value.trim() || (sets.length ? "重量訓練" : S.type === "其他" ? "" : S.type);
+  const minutes = r0($("fMin").value), date = $("fDate").value || today();
+  let kcal = r0($("fKcal").value);
+  const warn = t => { msg.textContent = t; msg.className = "small warn-text"; };
+  if (!name) return warn("請寫做了什麼運動。");
+  if (!minutes && !sets.length && !kcal) return warn("請填運動時間，AI 才能估算消耗。");
+  const btn = $("fSave");
+  if (!kcal) {
+    btn.disabled = true; btn.textContent = "AI 估算中…";
+    try {
+      const res = await S.sample.json(`使用者體重 ${p.weight} 公斤、${p.age} 歲、${p.sex === "F" ? "女" : "男"}。運動：「${name}」${minutes ? `，${minutes} 分鐘` : "（沒寫時間，用最常見的長度）"}${sets.length ? `，內容：${setsText(sets)}` : ""}。
+請用 MET 值 × 體重 × 小時估算消耗熱量（大卡），數值寧可保守一點。只回傳 JSON：{"kcal":250,"minutes":45}`, { modelTier: "quick" });
+      kcal = r0(res?.kcal);
+      if (!minutes && res?.minutes > 0) $("fMin").value = r0(res.minutes);
+    } catch (err) { kcal = 0; }
+    btn.disabled = false; btn.textContent = "記下來";
+    if (!(kcal > 0)) return warn("AI 估算失敗，請直接填消耗的大卡數。");
+    $("fKcal").value = kcal;
+    msg.textContent = `AI 估算約 ${kcal} 大卡，可以修改後再按一次「記下來」。`; msg.className = "small";
+    return;
+  }
+  const ex = { profileId: p.id, date, name: name.slice(0, 40), minutes: r0($("fMin").value), kcal, ts: Date.now(), type: S.type };
+  if (sets.length) ex.sets = sets;
+  const id = uid();
+  try {
+    await col("exercise").doc(id).set(ex);
+    if (p.shared) await shareCol("exercise").doc(id).set(ex).catch(() => {});
+  } catch (err) { return warn(err?.message || "儲存失敗，請再試一次。"); }
+  toast("記下來了，飲食頁今天可以多吃一點");
+  $("fName").value = S.type === "其他" ? "" : S.type; $("fMin").value = ""; $("fKcal").value = ""; $("fDate").value = today();
+  S.sets = []; renderType();
+  msg.textContent = "知道消耗多少就直接填；不填的話由 AI 依體重估算。"; msg.className = "small muted";
+};
+
+// ---------- 紀錄列表 ----------
+function renderLogs() {
+  const list = mineEx().slice().sort((a, b) => a.date === b.date ? b.ts - a.ts : a.date < b.date ? 1 : -1).slice(0, 40);
+  if (!list.length) { $("logs").innerHTML = `<p class="empty">還沒有運動紀錄</p>`; return; }
+  let html = "", last = "";
+  for (const x of list) {
+    if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}</div><ul class="list">`; last = x.date; }
+    html += `<li><span class="tag">${esc(x.type || "運動")}</span><div class="main"><b>${esc(x.name)}</b>
+      <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
+      <span class="kc">${r0(x.kcal)} 大卡</span><button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button></li>`;
+  }
+  $("logs").innerHTML = html + "</ul>";
+}
+$("logs").onclick = async e => {
+  const b = e.target.closest("[data-del]"); if (!b) return;
+  const id = b.dataset.del;
+  if (S.armed !== id) { S.armed = id; renderLogs(); setTimeout(() => { if (S.armed === id) { S.armed = null; renderLogs(); } }, 4000); return; }
+  S.armed = null;
+  try { await col("exercise").doc(id).delete(); if (prof()?.shared) await shareCol("exercise").doc(id).delete().catch(() => {}); toast("已刪除"); }
+  catch (err) { toast(err?.message || "刪除失敗"); }
+};
+
+// ---------- 折線圖 ----------
+function lineChart(points, { unit = "", digits = 1 } = {}) {
+  if (points.length < 2) return `<p class="empty small">${points.length ? "再多記一天就能看到曲線" : "還沒有紀錄"}</p>`;
+  const W = 320, H = 150, L = 34, R = 10, T = 12, B = 22;
+  const t0 = parse(points[0].date).getTime(), t1 = parse(points[points.length - 1].date).getTime();
+  let lo = Math.min(...points.map(p => p.v)), hi = Math.max(...points.map(p => p.v));
+  const pad = Math.max((hi - lo) * 0.15, 0.5); lo -= pad; hi += pad;
+  const x = d => L + (W - L - R) * (t1 === t0 ? 0.5 : (parse(d).getTime() - t0) / (t1 - t0));
+  const y = v => T + (H - T - B) * (1 - (v - lo) / (hi - lo));
+  const ticks = [lo + pad, (lo + hi) / 2, hi - pad];
+  const fmt = v => v.toFixed(digits);
+  const lastP = points[points.length - 1];
+  const md = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="從 ${fmt(points[0].v)}${unit} 到 ${fmt(lastP.v)}${unit}">
+    ${ticks.map(t => `<line class="axis" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke-dasharray="2 4"/><text x="${L - 4}" y="${y(t) + 3}" text-anchor="end">${fmt(t)}</text>`).join("")}
+    <polyline class="ln" points="${points.map(p => `${x(p.date).toFixed(1)},${y(p.v).toFixed(1)}`).join(" ")}"/>
+    ${points.length <= 40 ? points.slice(0, -1).map(p => `<circle class="pt" cx="${x(p.date)}" cy="${y(p.v)}" r="2.5"><title>${md(p.date)} ${fmt(p.v)}${unit}</title></circle>`).join("") : ""}
+    <circle class="last" cx="${x(lastP.date)}" cy="${y(lastP.v)}" r="4"><title>${md(lastP.date)} ${fmt(lastP.v)}${unit}</title></circle>
+    <text x="${L}" y="${H - 6}">${md(points[0].date)}</text><text x="${W - R}" y="${H - 6}" text-anchor="end">${md(lastP.date)}</text>
+  </svg>`;
+}
+
+// ---------- 體重 ----------
+function renderWeight() {
+  $("wRange").innerHTML = [[30, "1 個月"], [90, "3 個月"], [365, "1 年"]].map(([v, t]) => `<button type="button" data-v="${v}" aria-pressed="${v === S.range}">${t}</button>`).join("");
+  const all = mineW();
+  const from = addDays(today(), -S.range);
+  const pts = all.filter(w => w.date >= from).map(w => ({ date: w.date, v: +w.weight }));
+  $("wChart").innerHTML = lineChart(pts, { unit: " kg" });
+  const t = all.find(w => w.date === today());
+  if (document.activeElement?.closest("#wForm") == null) {
+    $("wKg").value = t?.weight ?? ""; $("wWaist").value = t?.waist ?? ""; $("wFat").value = t?.fat ?? "";
+    $("wKg").placeholder = all.length ? all[all.length - 1].weight : prof()?.weight || "";
+  }
+  const lastW = all[all.length - 1];
+  if (!lastW) { $("wSum").innerHTML = ""; return; }
+  const first = pts[0], diff = first ? r1(lastW.weight - first.v) : 0;
+  const p = prof(), bmi = p?.height ? r1(lastW.weight / ((p.height / 100) ** 2)) : null;
+  $("wSum").innerHTML = `<span>最近 <b>${r1(lastW.weight)}</b> kg</span>` +
+    (pts.length >= 2 ? `<span>這段期間 <b>${diff > 0 ? "+" : ""}${diff}</b> kg</span>` : "") +
+    (bmi ? `<span>BMI <b>${bmi}</b></span>` : "") +
+    (lastW.fat ? `<span>體脂 <b>${lastW.fat}</b>%</span>` : "") + (lastW.waist ? `<span>腰圍 <b>${lastW.waist}</b> cm</span>` : "");
+}
+$("wRange").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; S.range = +b.dataset.v; LS.set("fit.range", S.range); renderWeight(); };
+$("wForm").onsubmit = async e => {
+  e.preventDefault();
+  const kg = r1($("wKg").value);
+  if (!(kg >= 20 && kg <= 300)) { toast("請填正確的體重"); return; }
+  const p = prof(), date = today(), id = `${p.id}_${date}`;
+  const w = { profileId: p.id, date, weight: kg, ts: Date.now() };
+  const waist = $("wWaist").value, fat = $("wFat").value;
+  if (waist) w.waist = r1(waist); if (fat) w.fat = r1(fat);
+  try {
+    await col("weights").doc(id).set(w);
+    if (p.shared) await shareCol("weights").doc(id).set(w).catch(() => {});
+    // 飲食頁用個人資料裡的體重算熱量目標：今天是最新的一筆就一起更新
+    const latest = mineW().filter(x => x.id !== id).concat({ ...w, id }).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+    if (latest.id === id && p.weight !== kg) { const { id: _, ...body } = { ...p, weight: kg }; await col("profiles").doc(p.id).set(body); }
+    document.activeElement?.blur(); toast("已記錄體重");
+  } catch (err) { toast(err?.message || "儲存失敗"); }
+};
+
+// ---------- 重訓進步 ----------
+function renderLifts() {
+  const by = {};
+  for (const x of mineEx()) for (const s of x.sets || []) {
+    if (!s.lift) continue;
+    const o = by[s.lift] = by[s.lift] || { best: 0, bestReps: 0, last: "", days: {} };
+    if (+s.kg > o.best || (+s.kg === o.best && s.reps > o.bestReps)) { o.best = +s.kg; o.bestReps = s.reps; }
+    if (x.date > o.last) o.last = x.date;
+    o.days[x.date] = Math.max(o.days[x.date] || 0, +s.kg);
+  }
+  const lifts = Object.entries(by).sort((a, b) => a[1].last < b[1].last ? 1 : -1);
+  if (!lifts.length) { $("liftChart").innerHTML = `<p class="empty small">記錄重訓時填上動作、重量、次數，這裡會畫出每個動作的重量變化。</p>`; $("prs").innerHTML = ""; return; }
+  if (!S.lift || !by[S.lift]) S.lift = lifts[0][0];
+  const pts = Object.entries(by[S.lift].days).sort().map(([date, v]) => ({ date, v }));
+  $("liftChart").innerHTML = `<p class="small muted" style="margin-bottom:4px">${esc(S.lift)}：每次訓練的最大重量</p>` + lineChart(pts, { unit: " kg", digits: 1 });
+  $("prs").innerHTML = lifts.map(([l, o]) => `<li data-l="${esc(l)}" aria-selected="${l === S.lift}"><b>${esc(l)}</b><span>${o.best ? `${o.best} kg × ${o.bestReps}` : `${o.bestReps} 下`}</span><small>${esc(o.last.slice(5).replace("-", "/"))}</small></li>`).join("");
+}
+$("prs").onclick = e => { const li = e.target.closest("[data-l]"); if (li) { S.lift = li.dataset.l; renderLifts(); } };
+
+function renderAll() { if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); }
+
+// ---------- 啟動 ----------
+async function boot() {
+  const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
+  let info = null;
+  for (let i = 0; i < 12 && !info; i++) {
+    try { info = await FiveJS.requireLogin("fitness"); }
+    catch (e) { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; await new Promise(r => setTimeout(r, 5000)); }
+  }
+  clearTimeout(slow);
+  if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
+  S.me = info.user; S.partner = info.partner;
+  $("brandPigs").innerHTML = FiveJS.lollipop(S.me.theme, "happy", 44) + (S.partner ? FiveJS.lollipop(S.partner.theme, "wave", 35) : "");
+  [S.db, S.sample] = await Promise.all([window.claude.use("db"), window.claude.use("sample")]);
+  $("fDate").value = today(); $("fName").value = S.type;
+  renderType();
+
+  let first = true;
+  const docs = snap => snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  col("profiles").onSnapshot(snap => {
+    S.profiles = docs(snap);
+    const keep = LS.get("fit.pid", null);
+    S.pid = S.profiles.some(p => p.id === S.pid) ? S.pid : S.profiles.some(p => p.id === keep) ? keep
+      : (S.profiles.find(p => p.sex === (S.me.theme === "pink" ? "F" : "M")) || S.profiles[0])?.id || null;
+    $("prof").innerHTML = S.profiles.map(p => `<option value="${esc(p.id)}"${p.id === S.pid ? " selected" : ""}>${esc(p.name)}</option>`).join("");
+    $("profBox").hidden = S.profiles.length < 2;
+    if (first) { first = false; $("booting").hidden = true; }
+    $("noProfile").hidden = !!prof(); $("app").hidden = !prof();
+    renderAll();
+  }, () => toast("讀取個人資料失敗"));
+  col("exercise").onSnapshot(snap => { S.exercise = docs(snap); renderAll(); }, () => {});
+  col("weights").onSnapshot(snap => { S.weights = docs(snap); renderAll(); }, () => {});
+  if (S.partner) {
+    S.db.collection("shared").doc(String(S.partner.id)).onSnapshot(d => { S.pShare = d.exists ? d.data() : null; renderAll(); }, () => {});
+    S.db.collection(`shared/${S.partner.id}/exercise`).where("date", ">=", addDays(today(), -14)).onSnapshot(snap => { S.pExercise = docs(snap); renderAll(); }, () => {});
+  }
+  $("prof").onchange = () => { S.pid = $("prof").value; LS.set("fit.pid", S.pid); S.sets = []; renderType(); renderAll(); };
+}
+boot();
+})();
+</script>
+</body>
+</html>
