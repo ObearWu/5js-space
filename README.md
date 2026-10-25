@@ -31,7 +31,8 @@ common/claude-shim.js 把舊 Artifact 用的 window.claude（資料庫、AI、�
 food/index.html       飲食（舊「大小豬健康食記」整個搬進來，幾乎原封不動）
 split/index.html      分帳：記花費與還錢、目前誰欠誰、每月統計
 period/index.html     經期（舊「小豬經期日記」整個搬進來）
-together/ fitness/    其他功能（做好一個加一個）
+together/index.html   互動：每日一問（兩人答完才揭曉）、心情打卡、照片牆、紀念日倒數
+fitness/              運動（下一個做）
 ```
 
 ### 飲食：舊食記怎麼搬進來

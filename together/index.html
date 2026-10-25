@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>互動 · 大小豬的小空間</title>
+<meta name="theme-color" content="#FFF5F2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="../common/style.css">
+<style>
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel h2{font-size:1.1rem;margin-bottom:12px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.head h2{margin:0}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 12px;min-width:0;width:100%}
+input:focus,textarea:focus{border-color:var(--accent);outline:none}
+textarea{resize:vertical;min-height:84px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn.sm{padding:4px 12px;font-size:.85rem}
+.btn.danger{color:var(--warn);border-color:var(--warn-soft)}
+.link{background:none;border:0;padding:0;color:var(--accent-deep);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.empty{text-align:center;color:var(--muted);padding:14px 0}
+
+/* 在一起第幾天 */
+.days{display:flex;align-items:center;gap:14px}
+.days .n{font-family:var(--f-num);font-size:2.4rem;font-weight:700;line-height:1;color:var(--accent-deep)}
+.days .t{font-family:var(--f-round)}
+.dlist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.dlist li{display:flex;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
+.dlist .main{flex:1;min-width:0}
+.dlist .main b{display:block}
+.dlist .main span{font-size:.8rem;color:var(--muted)}
+.dlist .cd{font-family:var(--f-num);font-weight:700;white-space:nowrap;text-align:right}
+.dlist .cd small{display:block;font-family:var(--f-body,inherit);font-weight:400;font-size:.72rem;color:var(--muted)}
+.dlist li.soon{border-color:var(--accent);background:var(--accent-soft)}
+.dform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--line)}
+.dform .full{grid-column:1/-1}
+.dform label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.dform .chk{flex-direction:row;align-items:center;gap:6px}
+.dform .chk input{width:auto}
+.dform .acts{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px}
+
+/* 每日一問 */
+.q{font-family:var(--f-round);font-size:1.2rem;line-height:1.5;margin-bottom:12px}
+.ans{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
+.ans .pig{flex:none}
+.ans .bubble{flex:1;min-width:0;background:var(--sunk);border-radius:4px 16px 16px 16px;padding:8px 12px;white-space:pre-wrap;word-break:break-word}
+.ans .bubble.locked{color:var(--muted);font-style:italic}
+.qacts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.hist{margin-top:14px;border-top:2px dashed var(--line);padding-top:10px}
+.hist details{border-bottom:1px solid var(--line);padding:6px 0}
+.hist summary{cursor:pointer;font-size:.9rem}
+.hist summary span{color:var(--muted);font-size:.8rem;margin-right:6px}
+
+/* 心情 */
+.moods{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.moods button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:6px 2px;cursor:pointer;font-family:var(--f-round);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+.moods button i{font-style:normal;font-size:1.5rem;line-height:1}
+.moods button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.mnote{display:flex;gap:8px;margin-top:8px}
+.today2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.today2 .who{background:var(--sunk);border-radius:14px;padding:8px 10px;display:flex;gap:8px;align-items:center;min-width:0}
+.today2 .who i{font-style:normal;font-size:1.7rem}
+.today2 .who div{min-width:0}
+.today2 .who b{display:block;font-size:.85rem}
+.today2 .who span{font-size:.8rem;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strip{display:grid;grid-template-columns:auto repeat(14,1fr);gap:2px;margin-top:12px;font-size:.7rem;align-items:center;text-align:center}
+.strip .nm{text-align:left;padding-right:4px;color:var(--muted);white-space:nowrap}
+.strip .c{font-size:1rem;line-height:1.4;border-radius:6px}
+.strip .c.today{background:var(--accent-soft)}
+
+/* 照片牆 */
+.wall{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.wall button{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:var(--sunk)}
+.wall img{width:100%;height:100%;object-fit:cover;display:block}
+.wall button span{position:absolute;left:0;right:0;bottom:0;font-size:.7rem;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:10px 6px 4px;text-align:left}
+.upl{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.upl .prev{display:flex;gap:8px;align-items:center}
+.upl .prev img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.upl .row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:10px}
+.lb img{max-width:100%;max-height:68vh;border-radius:12px;object-fit:contain}
+.lb .box{background:var(--surface);border-radius:16px;padding:10px 12px;width:min(520px,100%);display:flex;flex-direction:column;gap:8px}
+.lb .row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.lb .acts{display:flex;justify-content:space-between;gap:8px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="brand" href="../">
+      <span class="pigs" id="brandPigs"></span>
+      <span><span class="back">‹ 大小豬的小空間</span><h1>互動</h1></span>
+    </a>
+  </header>
+
+  <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
+
+  <main class="grid" id="app" hidden>
+    <div class="col">
+      <section class="panel" aria-labelledby="qTitle">
+        <div class="head"><h2 id="qTitle">每日一問</h2><span class="small muted" id="qDate"></span></div>
+        <div id="qBody"></div>
+        <div class="hist" id="hist"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="mTitle">
+        <h2 id="mTitle">今天的心情</h2>
+        <div class="today2" id="mToday"></div>
+        <div class="moods" id="mPick"></div>
+        <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
+        <div class="strip" id="mStrip" aria-label="最近兩週的心情"></div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="dTitle">
+        <div class="head"><h2 id="dTitle">我們的日子</h2><button class="btn sm" type="button" id="dAdd">新增紀念日</button></div>
+        <div id="dDays"></div>
+        <ul class="dlist" id="dList"></ul>
+        <form class="dform" id="dForm" hidden autocomplete="off">
+          <label class="full">名稱<input id="dName" maxlength="40" placeholder="例如：第一次約會、小豬生日" required></label>
+          <label>日期<input id="dDate" type="date" required></label>
+          <label>種類<select id="dKind">
+            <option value="start">在一起的日子</option><option value="anniversary">紀念日</option>
+            <option value="birthday">生日</option><option value="other">其他</option></select></label>
+          <label class="chk full"><input type="checkbox" id="dYearly" checked>每年都會重複（例如生日、週年）</label>
+          <div class="acts"><button class="btn danger sm" type="button" id="dDel" hidden>刪除</button><span></span>
+            <span><button class="btn ghost sm" type="button" id="dCancel">取消</button> <button class="btn primary sm" type="submit">儲存</button></span></div>
+        </form>
+      </section>
+
+      <section class="panel" aria-labelledby="pTitle">
+        <div class="head"><h2 id="pTitle">照片牆</h2><label class="btn sm" for="pFile">上傳照片</label></div>
+        <input type="file" id="pFile" accept="image/*" hidden>
+        <div class="upl" id="pUpl" hidden>
+          <div class="prev"><img id="pPrev" alt=""><span class="small muted" id="pInfo"></span></div>
+          <div class="row"><input id="pCap" maxlength="200" placeholder="說明（選填）"><input id="pDate" type="date" style="width:auto"></div>
+          <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost sm" type="button" id="pCancel">取消</button><button class="btn primary sm" type="button" id="pSend">放上照片牆</button></div>
+        </div>
+        <div class="wall" id="wall"></div>
+        <p style="text-align:center;margin-top:10px" id="pMoreBox" hidden><button class="link" type="button" id="pMore">看更早的照片</button></p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
+    <span>每日一問要兩個人都回答才會看到對方的答案。日期以台灣時間計。</span>
+  </footer>
+</div>
+<div class="lb" id="lb" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../common/config.js"></script>
+<script src="../common/auth.js"></script>
+<script src="../common/mascot.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const taipeiToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
+const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
+const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+const iso = d => d.toISOString().slice(0, 10);
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
+const addDays = (s, n) => { const d = parse(s); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
+const dayText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日（${WEEK[d.getUTCDay()]}）`; };
+const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
+const MOOD_ICON = { "超開心": "🥰", "開心": "😊", "平靜": "😌", "累": "😪", "有點煩": "😣", "難過": "😢", "生氣": "😠", "想你": "🥺" };
+
+const state = { me: null, partner: null, q: null, moods: null, pickMood: null, dates: [], editDate: null,
+                photos: [], photosDone: false, upload: null, histBefore: null };
+const people = () => [state.me, state.partner].filter(Boolean);
+const person = id => people().find(p => p.id === +id);
+const pig = (p, mood, size) => p ? FiveJS.lollipop(p.theme, mood, size) : "";
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+async function call(path, opts) {
+  try { return await FiveJS.api(path, opts); }
+  catch (e) { if (e instanceof FiveJS.AuthError) { location.href = "../?next=together"; } throw e; }
+}
+
+// ---------- 每日一問 ----------
+function answersHtml(item) {
+  const me = state.me, pa = state.partner;
+  const mine = `<div class="ans"><span class="pig">${pig(me, "happy", 36)}</span><div class="bubble">${esc(item.mine)}</div></div>`;
+  if (!pa) return mine;
+  const theirs = item.partner != null
+    ? `<div class="ans"><span class="pig">${pig(pa, "sparkle", 36)}</span><div class="bubble">${esc(item.partner)}</div></div>`
+    : `<div class="ans"><span class="pig">${pig(pa, item.partner_answered ? "wave" : "sleep", 36)}</span><div class="bubble locked">${
+        item.partner_answered ? (item.mine ? "" : `${esc(pa.name)}已經回答了，你回答後就能看到`) : `${esc(pa.name)}還沒回答`}</div></div>`;
+  return (item.mine ? mine : "") + theirs;
+}
+
+function renderQuestion(editing = false) {
+  const q = state.q; if (!q) return;
+  $("qDate").textContent = dayText(q.date);
+  const box = $("qBody");
+  if (!q.mine || editing) {
+    box.innerHTML = `<p class="q">${esc(q.question)}</p>
+      <textarea id="qInput" maxlength="500" placeholder="寫下你的答案…">${esc(q.mine || "")}</textarea>
+      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="qCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="qSend">送出</button></div>
+      ${answersHtml({ ...q, mine: null })}`;
+    $("qSend").onclick = sendAnswer;
+    if (editing) $("qCancel").onclick = () => renderQuestion(false);
+    return;
+  }
+  box.innerHTML = `<p class="q">${esc(q.question)}</p>${answersHtml(q)}
+    <div class="qacts"><button class="link" type="button" id="qEdit">修改我的答案</button></div>`;
+  $("qEdit").onclick = () => renderQuestion(true);
+}
+
+async function sendAnswer() {
+  const answer = $("qInput").value.trim();
+  if (!answer) { toast("先寫下你的答案"); return; }
+  $("qSend").disabled = true;
+  try {
+    state.q = await call("/api/together/question", { method: "PUT", body: { date: state.q.date, answer } });
+    renderQuestion();
+    toast(state.q.partner != null ? "揭曉！看看對方怎麼說" : "送出了，等對方回答就能互相看到");
+  } catch (e) { toast(e.message); $("qSend").disabled = false; }
+}
+
+async function loadHistory(more = false) {
+  const before = more ? state.histBefore : null;
+  const data = await call("/api/together/history" + (before ? `?before=${before}` : ""));
+  state.histBefore = data.next_before;
+  const el = $("hist");
+  if (!more) el.innerHTML = "";
+  el.querySelector(".more")?.remove();
+  if (!more && !data.items.length) { el.innerHTML = `<p class="small muted">過去回答過的題目會留在這裡。</p>`; return; }
+  el.insertAdjacentHTML("beforeend", data.items.map(it => `<details><summary><span>${esc(dayText(it.date))}</span>${esc(it.question)}</summary>${answersHtml(it)}</details>`).join(""));
+  if (data.items.length) {
+    el.insertAdjacentHTML("beforeend", `<p class="more" style="text-align:center;margin-top:8px"><button class="link" type="button">再往前看</button></p>`);
+    el.querySelector(".more button").onclick = () => loadHistory(true).catch(e => toast(e.message));
+  }
+}
+
+// ---------- 心情 ----------
+function renderMoods() {
+  const m = state.moods; if (!m) return;
+  const today = m.today;
+  const todayOf = id => m.items.find(x => x.date === today && x.user_id === id);
+  $("mToday").innerHTML = people().map(p => {
+    const t = todayOf(p.id);
+    return `<div class="who"><i>${t ? MOOD_ICON[t.mood] || "🙂" : "·"}</i><div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></div>`;
+  }).join("");
+  const mine = todayOf(state.me.id);
+  if (state.pickMood == null) { state.pickMood = mine?.mood || null; $("mNote").value = mine?.note || ""; }
+  $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}"><i>${MOOD_ICON[o] || "🙂"}</i>${esc(o)}</button>`).join("");
+  $("mSave").textContent = mine ? "更新" : "打卡";
+  const days = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
+  $("mStrip").innerHTML = `<span></span>` + days.map(d => `<span class="muted">${+d.slice(8)}</span>`).join("") +
+    people().map(p => `<span class="nm">${esc(p.name)}</span>` + days.map(d => {
+      const x = m.items.find(i => i.date === d && i.user_id === p.id);
+      return `<span class="c${d === today ? " today" : ""}" title="${esc(x ? `${dayText(d)} ${x.mood}${x.note ? "・" + x.note : ""}` : dayText(d))}">${x ? MOOD_ICON[x.mood] || "🙂" : ""}</span>`;
+    }).join("")).join("");
+}
+$("mPick").onclick = e => {
+  const b = e.target.closest("[data-v]"); if (!b) return;
+  state.pickMood = state.pickMood === b.dataset.v ? null : b.dataset.v; renderMoods();
+};
+$("mSave").onclick = async () => {
+  if (!state.pickMood) { toast("先選一個心情"); return; }
+  $("mSave").disabled = true;
+  try { state.moods = await call("/api/together/moods", { method: "PUT", body: { mood: state.pickMood, note: $("mNote").value } }); renderMoods(); toast("打卡完成"); }
+  catch (e) { toast(e.message); }
+  $("mSave").disabled = false;
+};
+
+// ---------- 紀念日 ----------
+// 下一次的日子：每年重複的找今年或明年；不重複的就是那一天本身
+function nextOf(d, today) {
+  if (!d.yearly) return { date: d.date, days: diffDays(today, d.date), years: null };
+  const [, mo, da] = d.date.split("-");
+  const y = +today.slice(0, 4);
+  const fit = yy => { const s = `${yy}-${mo}-${da}`; return iso(parse(s)).slice(5) === `${mo}-${da}` ? s : `${yy}-02-28`; };  // 2/29 在平年算 2/28
+  let next = fit(y);
+  if (next < today) next = fit(y + 1);
+  return { date: next, days: diffDays(today, next), years: +next.slice(0, 4) - +d.date.slice(0, 4) };
+}
+
+const KIND_TEXT = { start: "在一起", anniversary: "紀念日", birthday: "生日", other: "" };
+function renderDates() {
+  const today = state.datesToday || taipeiToday();
+  const start = state.dates.find(d => d.kind === "start");
+  if (start && start.date <= today) {
+    const n = diffDays(start.date, today) + 1;
+    $("dDays").innerHTML = `<div class="days"><span class="pigs">${pig(state.me, "sparkle", 52)}${pig(state.partner, "happy", 44)}</span>
+      <div><div class="t">我們在一起第</div><div><span class="n">${n.toLocaleString("en-US")}</span> <span class="t">天</span></div><div class="small muted">從 ${+start.date.slice(0, 4)} 年 ${+start.date.slice(5, 7)} 月 ${+start.date.slice(8)} 日開始</div></div></div>`;
+  } else {
+    $("dDays").innerHTML = `<p class="small muted">新增一個「在一起的日子」，這裡就會顯示在一起第幾天。</p>`;
+  }
+  const rows = state.dates.map(d => ({ d, nx: nextOf(d, today) }))
+    .sort((a, b) => (a.nx.days < 0) - (b.nx.days < 0) || (a.nx.days < 0 ? b.nx.days - a.nx.days : a.nx.days - b.nx.days));
+  $("dList").innerHTML = rows.length ? rows.map(({ d, nx }) => {
+    let sub = KIND_TEXT[d.kind];
+    if (d.yearly && nx.years > 0) sub = d.kind === "birthday" ? `${nx.years} 歲生日` : `${nx.years} 週年`;
+    const when = nx.days === 0 ? `<span>就是今天</span>` : nx.days > 0 ? `<span>還有 ${nx.days} 天</span>` : `<span>${-nx.days} 天前</span>`;
+    return `<li class="${nx.days >= 0 && nx.days <= 7 ? "soon" : ""}" data-id="${d.id}" style="cursor:pointer">
+      <div class="main"><b>${esc(d.title)}</b><span>${esc(dayText(nx.date))}${sub ? "・" + esc(sub) : ""}${d.yearly ? "" : "・不重複"}</span></div>
+      <div class="cd">${when}<small>${esc(d.date)}</small></div></li>`;
+  }).join("") : `<li class="empty" style="border:0">還沒有紀念日</li>`;
+}
+$("dList").onclick = e => { const li = e.target.closest("[data-id]"); if (li) openDateForm(state.dates.find(d => d.id === +li.dataset.id)); };
+$("dAdd").onclick = () => openDateForm(null);
+$("dCancel").onclick = () => { $("dForm").hidden = true; };
+function openDateForm(d) {
+  state.editDate = d?.id || null;
+  $("dName").value = d?.title || "";
+  $("dDate").value = d?.date || taipeiToday();
+  $("dKind").value = d?.kind || (state.dates.some(x => x.kind === "start") ? "anniversary" : "start");
+  $("dYearly").checked = d ? d.yearly : true;
+  $("dDel").hidden = !d; $("dDel").textContent = "刪除"; $("dDel").dataset.armed = "";
+  $("dForm").hidden = false; $("dName").focus();
+}
+$("dForm").onsubmit = async e => {
+  e.preventDefault();
+  const body = { title: $("dName").value, date: $("dDate").value, kind: $("dKind").value, yearly: $("dYearly").checked };
+  try {
+    if (state.editDate) await call(`/api/together/dates/${state.editDate}`, { method: "PUT", body });
+    else await call("/api/together/dates", { method: "POST", body });
+    $("dForm").hidden = true; await loadDates(); toast("已儲存");
+  } catch (err) { toast(err.message); }
+};
+$("dDel").onclick = async () => {
+  const b = $("dDel");
+  if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "確定刪除？"; return; }
+  try { await call(`/api/together/dates/${state.editDate}`, { method: "DELETE" }); $("dForm").hidden = true; await loadDates(); toast("已刪除"); }
+  catch (err) { toast(err.message); }
+};
+async function loadDates() { const r = await call("/api/together/dates"); state.dates = r.items; state.datesToday = r.today; renderDates(); }
+
+// ---------- 照片牆 ----------
+function compress(file, maxSide, quality) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement("canvas");
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve(c.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("這個檔案打不開，換一張試試")); };
+    img.src = url;
+  });
+}
+const kb = dataUrl => Math.round(dataUrl.length * 0.75 / 1024);
+
+$("pFile").onchange = async () => {
+  const f = $("pFile").files[0]; $("pFile").value = "";
+  if (!f) return;
+  try {
+    let full = await compress(f, 1600, 0.82);
+    if (kb(full) > 850) full = await compress(f, 1280, 0.72);
+    const thumb = await compress(f, 480, 0.75);
+    state.upload = { full, thumb };
+    $("pPrev").src = thumb; $("pInfo").textContent = `壓縮後約 ${kb(full)} KB`;
+    $("pCap").value = ""; $("pDate").value = taipeiToday();
+    $("pUpl").hidden = false;
+  } catch (e) { toast(e.message); }
+};
+$("pCancel").onclick = () => { state.upload = null; $("pUpl").hidden = true; };
+$("pSend").onclick = async () => {
+  if (!state.upload) return;
+  $("pSend").disabled = true; $("pSend").textContent = "上傳中…";
+  try {
+    const r = await call("/api/together/photos", { method: "POST", body: { ...state.upload, caption: $("pCap").value, taken_on: $("pDate").value } });
+    state.photos.unshift(r.photo);
+    state.photos.sort((a, b) => b.taken_on.localeCompare(a.taken_on) || b.id - a.id);
+    state.upload = null; $("pUpl").hidden = true; renderWall(); toast("放上去了");
+  } catch (e) { toast(e.message); }
+  $("pSend").disabled = false; $("pSend").textContent = "放上照片牆";
+};
+
+function renderWall() {
+  $("wall").innerHTML = state.photos.length ? state.photos.map(p =>
+    `<button type="button" data-id="${p.id}" aria-label="${esc(p.caption || p.taken_on)}"><img loading="lazy" src="${photoUrl(p.thumb)}" alt=""><span>${esc(p.taken_on.slice(5).replace("-", "/"))}${p.caption ? " " + esc(p.caption) : ""}</span></button>`
+  ).join("") : `<p class="empty" style="grid-column:1/-1">還沒有照片，上傳第一張吧</p>`;
+  $("pMoreBox").hidden = state.photosDone;
+}
+async function loadPhotos(more = false) {
+  const last = more ? state.photos[state.photos.length - 1] : null;
+  const r = await call("/api/together/photos" + (last ? `?before_id=${last.id}` : ""));
+  state.photos = more ? state.photos.concat(r.items) : r.items;
+  state.photosDone = r.items.length < 60;
+  renderWall();
+}
+$("pMore").onclick = () => loadPhotos(true).catch(e => toast(e.message));
+$("wall").onclick = e => { const b = e.target.closest("[data-id]"); if (b) openPhoto(state.photos.find(p => p.id === +b.dataset.id)); };
+
+function openPhoto(p) {
+  const lb = $("lb"), mine = p.user_id === state.me.id;
+  lb.innerHTML = `<img src="${photoUrl(p.full)}" alt="${esc(p.caption)}">
+    <div class="box"><div class="small muted">${esc(person(p.user_id)?.name || "")} 上傳</div>
+      <div class="row"><input id="lbCap" maxlength="200" value="${esc(p.caption)}" placeholder="說明"><input id="lbDate" type="date" value="${p.taken_on}" style="width:auto"></div>
+      <div class="acts"><span>${mine ? `<button class="btn danger sm" type="button" id="lbDel">刪除</button>` : ""}</span>
+        <span><button class="btn ghost sm" type="button" id="lbClose">關閉</button> <button class="btn primary sm" type="button" id="lbSave">儲存</button></span></div></div>`;
+  lb.hidden = false;
+  const close = () => { lb.hidden = true; lb.innerHTML = ""; document.removeEventListener("keydown", onKey); };
+  const onKey = e => { if (e.key === "Escape") close(); };
+  document.addEventListener("keydown", onKey);
+  lb.onclick = e => { if (e.target === lb) close(); };
+  $("lbClose").onclick = close;
+  $("lbSave").onclick = async () => {
+    try {
+      const r = await call(`/api/together/photos/${p.id}`, { method: "PATCH", body: { caption: $("lbCap").value, taken_on: $("lbDate").value } });
+      Object.assign(p, r.photo); state.photos.sort((a, b) => b.taken_on.localeCompare(a.taken_on) || b.id - a.id);
+      renderWall(); close(); toast("已儲存");
+    } catch (e) { toast(e.message); }
+  };
+  if (mine) $("lbDel").onclick = async () => {
+    const b = $("lbDel");
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "確定刪除？"; return; }
+    try { await call(`/api/together/photos/${p.id}`, { method: "DELETE" }); state.photos = state.photos.filter(x => x.id !== p.id); renderWall(); close(); toast("已刪除"); }
+    catch (e) { toast(e.message); }
+  };
+}
+
+// ---------- 啟動 ----------
+async function refresh() {
+  const [q, m] = await Promise.all([call("/api/together/question"), call("/api/together/moods")]);
+  const dayChanged = state.q && state.q.date !== q.date;
+  // 正在寫答案時不要把輸入框洗掉
+  const typing = document.activeElement?.id === "qInput";
+  state.q = q; state.moods = m;
+  if (!typing || dayChanged) renderQuestion();
+  if (dayChanged) { state.pickMood = null; loadHistory().catch(() => {}); loadDates().catch(() => {}); }
+  renderMoods();
+}
+
+async function boot() {
+  const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
+  let info = null;
+  for (let i = 0; i < 12 && !info; i++) {
+    try { info = await FiveJS.requireLogin("together"); }
+    catch (e) { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; await new Promise(r => setTimeout(r, 5000)); }
+  }
+  clearTimeout(slow);
+  if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
+  state.me = info.user; state.partner = info.partner;
+  $("brandPigs").innerHTML = pig(state.me, "happy", 44) + pig(state.partner, "wave", 35);
+  try {
+    await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory()]);
+  } catch (e) { toast(e.message); }
+  $("booting").hidden = true; $("app").hidden = false;
+  // 對方回答或打卡後：每分鐘、或回到這個分頁時更新
+  setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh().catch(() => {}); });
+}
+boot();
+})();
+</script>
+</body>
+</html>
