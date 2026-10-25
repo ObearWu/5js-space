@@ -3,7 +3,7 @@
 window.FIVEJS_CONFIG = {
   API_BASE: /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
     ? "http://127.0.0.1:5001"
-    : "https://5js-space-backend.onrender.com",
+    : "https://fivejs-space-backend.onrender.com",
   // Google Cloud 專案 5js-space 的 OAuth 用戶端（跟後端 GOOGLE_CLIENT_ID 同一組）
   GOOGLE_CLIENT_ID: "734030888137-4806og41rmasu7hc2gseponrtgedd5ug.apps.googleusercontent.com",
 };
