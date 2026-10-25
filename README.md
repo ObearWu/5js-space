@@ -30,7 +30,8 @@ icons/                主畫面圖示
 food/                 飲食（舊「大小豬健康食記」整個搬進來）
   ├── index.html        舊食記本體，幾乎原封不動
   └── claude-shim.js    把舊程式用的 window.claude（資料庫、AI、下載）換成呼叫我們的後端
-split/ period/ together/ fitness/   其他功能（做好一個加一個）
+split/index.html      分帳：記花費與還錢、目前誰欠誰、每月統計
+period/ together/ fitness/   其他功能（做好一個加一個）
 ```
 
 ### 飲食：舊食記怎麼搬進來

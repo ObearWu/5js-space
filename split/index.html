@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>分帳 · 大小豬的小空間</title>
+<meta name="theme-color" content="#FFF5F2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="../common/style.css">
+<style>
+.back{font-size:.82rem;color:var(--muted);text-decoration:none}
+.back:hover{color:var(--accent)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
+@media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel h2{font-size:1.1rem;margin-bottom:12px}
+
+.balance{display:flex;align-items:center;gap:14px}
+.balance .pigs .lollipop{width:64px;height:64px}
+.balance .who{font-family:var(--f-round);font-size:1rem}
+.balance .amt{font-family:var(--f-num);font-size:2.1rem;font-weight:700;line-height:1.1;color:var(--accent-deep)}
+.balance .even{font-family:var(--f-round);font-size:1.25rem}
+.balance .act{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field > span{font-size:.85rem;font-weight:700;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:8px 12px;min-width:0;width:100%}
+input:focus,textarea:focus{border-color:var(--accent);outline:none}
+.money{position:relative}
+.money::before{content:"$";position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:var(--f-num);font-weight:700;color:var(--muted);font-size:1.3rem}
+.money input{padding-left:32px;font-family:var(--f-num);font-size:1.5rem;font-weight:700}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:2px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 13px;cursor:pointer;font-family:var(--f-round);font-weight:700;font-size:.9rem}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-deep)}
+.custom{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.custom label{font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.preview{font-size:.88rem;color:var(--muted);margin:-4px 0 12px}
+.actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.btn.danger{color:var(--warn);border-color:var(--warn-soft)}
+.btn:disabled{opacity:.55;cursor:default}
+
+.monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.monthbar h2{margin:0}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);background:var(--surface);cursor:pointer;font-size:1.1rem;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--sunk);border-radius:14px;padding:8px 10px}
+.stat b{display:block;font-family:var(--f-num);font-size:1.15rem}
+.stat span{font-size:.78rem;color:var(--muted)}
+.cats{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.cat{display:grid;grid-template-columns:3.2em 1fr auto;gap:8px;align-items:center;font-size:.85rem}
+.cat .bar{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.cat .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.cat .num{color:var(--muted)}
+.day{font-size:.8rem;font-weight:700;color:var(--muted);margin:12px 0 4px}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:16px;cursor:pointer;background:var(--surface);text-align:left;width:100%}
+.item:hover{border-color:var(--accent)}
+.item.settle{background:var(--sunk);border-style:dashed}
+.item .tag{flex:none;font-size:.72rem;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent-deep)}
+.item .main{flex:1;min-width:0}
+.item .main b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .main span{font-size:.8rem;color:var(--muted)}
+.item .amt{font-family:var(--f-num);font-weight:700;font-size:1.05rem;white-space:nowrap}
+.empty{text-align:center;color:var(--muted);padding:18px 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:10;max-width:calc(100% - 32px)}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <a class="brand" href="../">
+      <span class="pigs" id="brandPigs"></span>
+      <span><span class="back">‹ 大小豬的小空間</span><h1>分帳</h1></span>
+    </a>
+  </header>
+
+  <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
+
+  <main class="grid" id="app" hidden>
+    <div class="col">
+      <section class="panel" aria-label="目前餘額"><div class="balance" id="balance"></div></section>
+
+      <section class="panel" aria-labelledby="formTitle">
+        <h2 id="formTitle">記一筆</h2>
+        <form id="form" autocomplete="off">
+          <div class="field money"><input id="fAmount" type="number" inputmode="numeric" min="1" step="1" placeholder="0" aria-label="金額（元）" required></div>
+          <div class="field" id="titleField"><span>品項</span><input id="fTitle" maxlength="60" placeholder="例如：晚餐火鍋" required></div>
+          <div class="field" id="catField"><span>分類</span><div class="seg" id="fCats"></div></div>
+          <div class="field"><span id="payLabel">誰付的</span><div class="seg" id="fPaid"></div></div>
+          <div class="field" id="splitField"><span>怎麼分</span><div class="seg" id="fMode"></div>
+            <div class="custom" id="customBox" hidden></div></div>
+          <p class="preview" id="preview"></p>
+          <div class="row2">
+            <div class="field"><span>日期</span><input id="fDate" type="date" required></div>
+            <div class="field"><span>備註（選填）</span><input id="fNote" maxlength="300"></div>
+          </div>
+          <div class="actions">
+            <div><button class="btn danger" type="button" id="delBtn" hidden>刪除</button></div>
+            <div><button class="btn ghost" type="button" id="cancelBtn" hidden>取消</button>
+              <button class="btn primary" type="submit" id="saveBtn">記下來</button></div>
+          </div>
+          <p class="msg err" id="formErr" hidden></p>
+        </form>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="panel" aria-labelledby="monthTitle">
+        <div class="monthbar">
+          <button class="icon-btn" type="button" id="prevMonth" aria-label="上個月">‹</button>
+          <h2 id="monthTitle"></h2>
+          <button class="icon-btn" type="button" id="nextMonth" aria-label="下個月">›</button>
+        </div>
+        <div id="monthBody"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
+    <span>金額以新台幣整數元計。兩個人都可以修改或刪除任何一筆。</span>
+  </footer>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="../common/config.js"></script>
+<script src="../common/auth.js"></script>
+<script src="../common/mascot.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const taipeiToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
+const shiftMonth = (m, n) => { const [y, mo] = m.split("-").map(Number); const d = new Date(y, mo - 1 + n, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; };
+const monthText = m => { const [y, mo] = m.split("-").map(Number); return `${y} 年 ${mo} 月`; };
+const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
+const dayText = s => { const [y, m, d] = s.split("-").map(Number); return `${m}月${d}日（${WEEK[new Date(y, m - 1, d).getDay()]}）`; };
+
+const state = { me: null, partner: null, month: taipeiToday().slice(0, 7), data: null, editing: null,
+                kind: "expense", paid: null, mode: "half", cat: "餐飲", categories: ["餐飲", "日用", "交通", "居家", "娛樂", "旅行", "禮物", "其他"] };
+const people = () => [state.me, state.partner].filter(Boolean);
+const nameOf = id => people().find(p => p.id === +id)?.name || "?";
+const other = id => people().find(p => p.id !== +id);
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+
+// ---------- 餘額 ----------
+function renderBalance() {
+  const bal = state.data?.balance || {};
+  const me = state.me, pa = state.partner;
+  const mine = +(bal[me.id] || 0);
+  const box = $("balance");
+  const art = (a, am, b, bm) => `<span class="pigs">${FiveJS.lollipop(a.theme, am, 64)}${b ? FiveJS.lollipop(b.theme, bm, 52) : ""}</span>`;
+  if (!pa) { box.innerHTML = `${art(me, "happy")}<div class="even">還沒有另一半的帳號</div>`; return; }
+  if (mine === 0) {
+    box.innerHTML = `${art(me, "sparkle", pa, "sparkle")}<div><div class="even">目前兩清，誰也不欠誰</div><div class="small muted">新增花費後這裡會算出誰該給誰多少</div></div>`;
+    return;
+  }
+  const debtor = mine > 0 ? pa : me, creditor = mine > 0 ? me : pa, amt = Math.abs(mine);
+  box.innerHTML = `${art(debtor, "over", creditor, "happy")}<div>
+    <div class="who"><b>${esc(debtor.name)}</b> 要給 <b>${esc(creditor.name)}</b></div>
+    <div class="amt num">${money(amt)}</div>
+    <div class="act"><button class="btn" type="button" id="settleBtn">記一筆還錢</button></div></div>`;
+  $("settleBtn").onclick = () => startSettle(debtor, creditor, amt);
+}
+
+// ---------- 表單 ----------
+function seg(el, items, current, onPick) {
+  el.innerHTML = items.map(([v, label]) => `<button type="button" data-v="${esc(v)}" aria-pressed="${String(v) === String(current)}">${esc(label)}</button>`).join("");
+  el.onclick = e => { const b = e.target.closest("[data-v]"); if (b) onPick(b.dataset.v); };
+}
+function amount() { return Math.round(+$("fAmount").value || 0); }
+
+// 依目前的選擇算出每個人該負擔多少：{id: 元}
+function shares() {
+  const a = amount(), me = state.me, pa = state.partner;
+  if (state.kind === "settle") return { [other(state.paid).id]: a };
+  if (!pa) return { [me.id]: a };
+  const [x, y] = people();
+  if (state.mode === "half") {
+    // 除不盡的 1 元算付錢的人，避免付錢的人還倒欠
+    const half = Math.floor(a / 2), rest = a - half * 2;
+    const r = { [x.id]: half, [y.id]: half }; r[state.paid] += rest; return r;
+  }
+  if (state.mode === "all-" + x.id) return { [x.id]: a, [y.id]: 0 };
+  if (state.mode === "all-" + y.id) return { [x.id]: 0, [y.id]: a };
+  const cx = Math.max(0, Math.min(a, Math.round(+$("c" + x.id)?.value || 0)));
+  return { [x.id]: cx, [y.id]: a - cx };
+}
+
+function renderForm() {
+  const ps = people(), [x, y] = ps;
+  const settle = state.kind === "settle";
+  $("formTitle").textContent = state.editing ? (settle ? "修改還錢紀錄" : "修改這筆") : (settle ? "記一筆還錢" : "記一筆");
+  $("titleField").hidden = settle; $("catField").hidden = settle; $("splitField").hidden = settle;
+  $("fTitle").required = !settle;
+  $("payLabel").textContent = settle ? "誰還錢" : "誰付的";
+  seg($("fCats"), state.categories.map(c => [c, c]), state.cat, v => { state.cat = v; renderForm(); });
+  seg($("fPaid"), ps.map(p => [p.id, p.name]), state.paid, v => { state.paid = +v; renderForm(); });
+  if (y) {
+    seg($("fMode"), [["half", "平分"], ["all-" + x.id, `全算${x.name}`], ["all-" + y.id, `全算${y.name}`], ["custom", "自訂"]], state.mode, v => {
+      state.mode = v; renderForm();
+      if (v === "custom") $("c" + x.id)?.focus();
+    });
+  } else $("fMode").innerHTML = "";
+  const cb = $("customBox");
+  cb.hidden = state.mode !== "custom" || settle || !y;
+  if (!cb.hidden && !cb.dataset.ready) {
+    cb.innerHTML = ps.map(p => `<label>${esc(p.name)}負擔<input id="c${p.id}" type="number" inputmode="numeric" min="0" step="1"></label>`).join("");
+    cb.dataset.ready = "1";
+    // 填一邊，另一邊自動補成剩下的金額
+    ps.forEach(p => $("c" + p.id).addEventListener("input", () => {
+      const o = other(p.id); const v = Math.max(0, Math.round(+$("c" + p.id).value || 0));
+      $("c" + o.id).value = Math.max(0, amount() - v); renderPreview();
+    }));
+  }
+  if (cb.hidden) { cb.innerHTML = ""; delete cb.dataset.ready; }
+  $("delBtn").hidden = !state.editing; $("cancelBtn").hidden = !state.editing && !settle;
+  $("saveBtn").textContent = state.editing ? "儲存修改" : "記下來";
+  renderPreview();
+}
+function renderPreview() {
+  const a = amount(), el = $("preview");
+  if (!a) { el.textContent = ""; return; }
+  if (state.kind === "settle") { el.textContent = `${nameOf(state.paid)} 還給 ${other(state.paid)?.name || ""} ${money(a)}`; return; }
+  const s = shares();
+  el.textContent = `${nameOf(state.paid)} 付 ${money(a)}：` + people().map(p => `${p.name}負擔 ${money(s[p.id] || 0)}`).join("、");
+}
+$("fAmount").addEventListener("input", () => {
+  if (state.mode === "custom") { const [x, y] = people(); const cx = $("c" + x.id); if (cx && cx.value !== "") $("c" + y.id).value = Math.max(0, amount() - Math.round(+cx.value || 0)); }
+  renderPreview();
+});
+
+function resetForm() {
+  state.editing = null; state.kind = "expense"; state.mode = "half"; state.cat = "餐飲"; state.paid = state.me.id;
+  $("form").reset(); $("fDate").value = taipeiToday(); $("formErr").hidden = true;
+  renderForm();
+}
+function startSettle(debtor, creditor, amt) {
+  resetForm();
+  state.kind = "settle"; state.paid = debtor.id;
+  $("fAmount").value = amt; $("fDate").value = taipeiToday();
+  renderForm();
+  $("form").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function startEdit(e) {
+  state.editing = e.id; state.kind = e.kind; state.paid = e.paid_by; state.cat = e.category || "其他";
+  $("fAmount").value = e.amount; $("fTitle").value = e.kind === "settle" ? "" : e.title; $("fDate").value = e.date; $("fNote").value = e.note || "";
+  const [x, y] = people();
+  const s = e.shares;
+  if (e.kind === "expense" && y) {
+    const sx = +(s[x.id] || 0), sy = +(s[y.id] || 0);
+    const half = Math.floor(e.amount / 2);
+    if ((sx === half || sx === e.amount - half) && sx + sy === e.amount && Math.abs(sx - sy) <= 1) state.mode = "half";
+    else if (sx === e.amount) state.mode = "all-" + x.id;
+    else if (sy === e.amount) state.mode = "all-" + y.id;
+    else state.mode = "custom";
+  } else state.mode = "half";
+  $("formErr").hidden = true;
+  renderForm();
+  if (state.mode === "custom") { $("c" + x.id).value = s[x.id] || 0; $("c" + y.id).value = s[y.id] || 0; renderPreview(); }
+  $("form").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+$("cancelBtn").onclick = resetForm;
+
+$("form").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const a = amount();
+  const err = m => { $("formErr").textContent = m; $("formErr").hidden = false; };
+  if (!(a > 0)) return err("請填金額。");
+  if (state.kind === "expense" && !$("fTitle").value.trim()) return err("請填品項。");
+  const s = shares();
+  if (Object.values(s).reduce((t, v) => t + v, 0) !== a) return err("兩個人負擔的金額加起來要等於總金額。");
+  const body = { kind: state.kind, date: $("fDate").value || taipeiToday(), title: $("fTitle").value.trim(), category: state.cat,
+                 amount: a, paid_by: state.paid, shares: s, note: $("fNote").value.trim() };
+  const btn = $("saveBtn"); btn.disabled = true;
+  try {
+    if (state.editing) await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "PUT", body });
+    else await FiveJS.api("/api/split/entries", { method: "POST", body });
+    toast(state.editing ? "已儲存修改" : state.kind === "settle" ? "已記下還錢" : "記好了");
+    const m = body.date.slice(0, 7);
+    resetForm();
+    state.month = m; await load();
+  } catch (e) { err(e.message); }
+  finally { btn.disabled = false; }
+});
+$("delBtn").addEventListener("click", async () => {
+  const b = $("delBtn");
+  if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再按一次確定刪除"; return; }
+  try { await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "DELETE" }); toast("已刪除"); resetForm(); await load(); }
+  catch (e) { $("formErr").textContent = e.message; $("formErr").hidden = false; }
+  finally { b.classList.remove("armed"); b.textContent = "刪除"; }
+});
+
+// ---------- 月份 ----------
+function renderMonth() {
+  $("monthTitle").textContent = monthText(state.month);
+  const list = state.data?.entries || [];
+  const exp = list.filter(e => e.kind === "expense");
+  const total = exp.reduce((t, e) => t + e.amount, 0);
+  const owe = id => exp.reduce((t, e) => t + (+(e.shares[id] || 0)), 0);
+  const byCat = {}; exp.forEach(e => { byCat[e.category || "其他"] = (byCat[e.category || "其他"] || 0) + e.amount; });
+  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const max = cats[0]?.[1] || 1;
+  let html = `<div class="stats"><div class="stat"><b>${money(total)}</b><span>這個月花費</span></div>` +
+    people().map(p => `<div class="stat"><b>${money(owe(p.id))}</b><span>${esc(p.name)}負擔</span></div>`).join("") + `</div>`;
+  if (cats.length) html += `<div class="cats">${cats.map(([c, v]) => `<div class="cat"><span>${esc(c)}</span><span class="bar"><i style="width:${Math.max(3, v / max * 100)}%"></i></span><span class="num">${money(v)}</span></div>`).join("")}</div>`;
+  if (!list.length) html += `<p class="empty">這個月還沒有紀錄。</p>`;
+  let lastDay = "";
+  html += list.map(e => {
+    const head = e.date !== lastDay ? `<p class="day">${dayText(e.date)}</p>` : ""; lastDay = e.date;
+    const sub = e.kind === "settle"
+      ? `${esc(nameOf(e.paid_by))} 還給 ${esc(nameOf(Object.keys(e.shares)[0]))}`
+      : `${esc(nameOf(e.paid_by))}付 · ` + people().map(p => `${esc(p.name)} ${money(e.shares[p.id] || 0)}`).join(" / ");
+    return `${head}<button class="item${e.kind === "settle" ? " settle" : ""}" type="button" data-id="${e.id}">
+      <span class="tag">${e.kind === "settle" ? "還錢" : esc(e.category || "其他")}</span>
+      <span class="main"><b>${esc(e.title)}</b><span>${sub}${e.note ? " · " + esc(e.note) : ""}</span></span>
+      <span class="amt">${money(e.amount)}</span></button>`;
+  }).join("");
+  $("monthBody").innerHTML = html;
+}
+$("monthBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-id]"); if (!b) return;
+  const entry = state.data.entries.find(x => x.id === +b.dataset.id); if (entry) startEdit(entry);
+});
+$("prevMonth").onclick = () => { state.month = shiftMonth(state.month, -1); load(); };
+$("nextMonth").onclick = () => { state.month = shiftMonth(state.month, 1); load(); };
+
+async function load() {
+  try {
+    state.data = await FiveJS.api(`/api/split/entries?month=${state.month}`);
+    if (Array.isArray(state.data.categories)) state.categories = state.data.categories;
+    renderBalance(); renderMonth();
+  } catch (e) {
+    if (e instanceof FiveJS.AuthError) { location.href = "../?next=split"; return; }
+    toast(e.message);
+  }
+}
+
+async function boot() {
+  const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
+  let info = null;
+  for (let i = 0; i < 12 && !info; i++) {
+    try { info = await FiveJS.requireLogin("split"); }
+    catch (e) { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; await new Promise(r => setTimeout(r, 5000)); }
+  }
+  clearTimeout(slow);
+  if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
+  state.me = info.user; state.partner = info.partner;
+  $("brandPigs").innerHTML = FiveJS.lollipop(state.me.theme, "happy", 44) + (state.partner ? FiveJS.lollipop(state.partner.theme, "wave", 35) : "");
+  $("booting").hidden = true; $("app").hidden = false;
+  resetForm();
+  await load();
+  // 另一半新增的紀錄：回到這個分頁時重新整理
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+}
+boot();
+})();
+</script>
+</body>
+</html>
