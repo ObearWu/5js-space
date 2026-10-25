@@ -27,8 +27,17 @@ common/mascot.js      吉祥物：藍色／粉紅色棒棒糖（沿用舊的大�
 common/style.css      共用樣式與藍／粉兩套配色、深色模式
 manifest.webmanifest  加到手機主畫面當 App 用
 icons/                主畫面圖示
-food/ split/ period/ together/ fitness/   各功能（做好一個加一個）
+food/                 飲食（舊「大小豬健康食記」整個搬進來）
+  ├── index.html        舊食記本體，幾乎原封不動
+  └── claude-shim.js    把舊程式用的 window.claude（資料庫、AI、下載）換成呼叫我們的後端
+split/ period/ together/ fitness/   其他功能（做好一個加一個）
 ```
+
+### 飲食：舊食記怎麼搬進來
+
+舊的「大小豬健康食記」是 Claude Artifact，資料庫、AI、下載都透過 `window.claude.use(...)` 取得。`food/claude-shim.js` 用同樣的介面重做這幾樣，底層改成呼叫後端（細節見後端 README），所以 `food/index.html` 的畫面、計算、提示詞幾乎沒動。改過的地方只有：網站標頭與回入口頁的連結、照片小圖放大到 480px、分享對象改成「另一半」且新使用者預設分享、還原備份時可以勾選要匯入哪幾位使用者。
+
+**搬舊資料**：在舊食記按「備份與還原 → 下載備份」，再到新網站 `/food` 按「備份與還原 → 選擇備份檔還原」。備份裡有兩個人時，各自登入後只勾自己那位，紀錄才會算在自己名下；另一半在畫面上方「另一半」那排就看得到對方。
 
 入口頁的功能卡片清單在 `index.html` 的 `MODULES`。還沒做好的功能 `ready: false`，卡片顯示「製作中」、不能點；做好一個就改成 `true`。
 
