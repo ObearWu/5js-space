@@ -1,0 +1,1081 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<title>經期 · 大小豬的小空間</title>
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: one-column phone app — a cycle dial on top, cards below, tab bar fixed to the bottom. */
+:root{
+  --bg:#FBF3F2; --surface:#FFFFFF; --sunk:#F5E9E8; --ink:#3B292E; --muted:#866C72; --line:#EADADA;
+  --rose:#DE5A7A; --rose-ink:#FFFFFF; --rose-soft:#F9DCE3; --berry:#A8375A;
+  --lav:#8A72CC; --lav-soft:#ECE5FA; --mint:#2F9C7E; --mint-soft:#DAF1E8;
+  --amber:#B46F1C; --amber-soft:#FBEBD2; --pop:#F5A8BB; --pop-line:#FFF3F6; --stick:#E7D2BE;
+  --f-display:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1C1417; --surface:#281E22; --sunk:#221A1D; --ink:#F5E7EA; --muted:#B89DA4; --line:#3C2E33;
+  --rose:#EE7C98; --rose-ink:#2A0F18; --rose-soft:#4A2532; --berry:#FF9EB6;
+  --lav:#B6A2F0; --lav-soft:#322849; --mint:#69CDAA; --mint-soft:#1D3A31;
+  --amber:#EBA75C; --amber-soft:#3E2D19; --pop:#E98AA2; --pop-line:#FBD3DD; --stick:#8E7865; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1C1417; --surface:#281E22; --sunk:#221A1D; --ink:#F5E7EA; --muted:#B89DA4; --line:#3C2E33;
+  --rose:#EE7C98; --rose-ink:#2A0F18; --rose-soft:#4A2532; --berry:#FF9EB6;
+  --lav:#B6A2F0; --lav-soft:#322849; --mint:#69CDAA; --mint-soft:#1D3A31;
+  --amber:#EBA75C; --amber-soft:#3E2D19; --pop:#E98AA2; --pop-line:#FBD3DD; --stick:#8E7865; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:12px calc(92px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--f-display);font-weight:400;margin:0;text-wrap:balance;line-height:1.3}
+h1{font-size:22px} h2{font-size:18px} h3{font-size:16px}
+p{margin:0}
+.muted{color:var(--muted)} .small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.top{display:flex;align-items:center;gap:10px;padding-top:4px}
+.top .pop{width:34px;height:44px;flex:none}
+.top h1{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .ttl{flex:1;min-width:0;display:flex;flex-direction:column}
+.hub-link{font-size:12px;color:var(--muted);text-decoration:none}
+.hub-link:hover{color:var(--berry)}
+.btn.login{min-height:32px;padding:4px 12px;font-size:13px;border-radius:99px}
+ol.steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+a{color:var(--berry)}
+.mode-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.mode{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:2px 10px;white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card.flat{background:transparent;border-style:dashed}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 14px;min-height:44px;font-weight:500}
+.btn.primary{background:var(--rose);border-color:var(--rose);color:var(--rose-ink)}
+.btn.soft{background:var(--rose-soft);border-color:transparent;color:var(--berry)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--berry);border-color:var(--rose-soft)}
+.btn.block{width:100%}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:14px}
+.btn[disabled]{opacity:.5;cursor:default}
+input[type=date],input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:42px;max-width:100%}
+textarea{width:100%;min-height:70px;resize:vertical}
+label.fld{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+/* hero */
+.hero{display:grid;grid-template-columns:1fr;justify-items:center;gap:6px;padding:18px 16px 16px}
+.dial{position:relative;width:min(240px,72vw);aspect-ratio:1;max-width:100%}
+.dial svg{width:100%;height:100%;display:block}
+.dial .center{position:absolute;inset:18%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:2px}
+.center .big{font-family:var(--f-display);font-size:30px;line-height:1.15}
+.center .sub{font-size:13px;color:var(--muted)}
+.phase{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;border-radius:99px;padding:3px 12px}
+.ph-period{background:var(--rose-soft);color:var(--berry)} .ph-pms{background:var(--lav-soft);color:var(--lav)}
+.ph-fertile{background:var(--mint-soft);color:var(--mint)} .ph-late{background:var(--amber-soft);color:var(--amber)}
+.ph-calm{background:var(--sunk);color:var(--muted)}
+.alert{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:12px 14px;background:var(--amber-soft);color:var(--ink)}
+.alert b{color:var(--amber)} .alert.rose{background:var(--rose-soft)} .alert.rose b{color:var(--berry)}
+.alert .ic{font-family:var(--f-display);font-size:18px;line-height:1.3;color:var(--amber);flex:none}
+.alert.rose .ic{color:var(--berry)}
+.alert .body{display:flex;flex-direction:column;gap:8px;min-width:0}
+/* chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:14px;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--rose);border-color:var(--rose);color:var(--rose-ink)}
+.chip.lav[aria-pressed="true"]{background:var(--lav);border-color:var(--lav);color:var(--surface)}
+.seg{display:flex;gap:4px;background:var(--sunk);border-radius:12px;padding:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:9px;padding:6px 4px;font-size:14px;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--berry);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* calendar */
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cal-head .t{font-family:var(--f-display);font-size:18px}
+.grid7{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.wd{text-align:center;font-size:12px;color:var(--muted)}
+.day{position:relative;aspect-ratio:1;border:0;border-radius:12px;background:transparent;display:flex;align-items:center;justify-content:center;font-variant-numeric:tabular-nums;font-size:15px;max-width:100%;padding:0}
+.day.out{visibility:hidden}
+.day.pms{background:var(--lav-soft)} .day.fer{background:var(--mint-soft)}
+.day.ovu::before{content:"";position:absolute;inset:5px;border:2px solid var(--mint);border-radius:50%}
+.day.pred{background:transparent;border:2px dashed var(--rose);color:var(--berry)}
+.day.per{background:var(--rose);color:var(--rose-ink);font-weight:700}
+.day.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.day.logged::after{content:"";position:absolute;bottom:5px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:currentColor;opacity:.7}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-1px;margin-right:4px}
+.year{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:420px){.year{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mini{border:0;background:transparent;padding:4px;text-align:left;border-radius:10px;min-width:0}
+.mini .mt{font-size:13px;font-weight:700;margin-bottom:4px}
+.mini .g{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.mini .g span{aspect-ratio:1;border-radius:3px;background:var(--sunk)}
+.mini .g span.o{background:transparent}
+.mini .g span.per{background:var(--rose)} .mini .g span.pred{background:var(--rose-soft)}
+.mini .g span.pms{background:var(--lav-soft)} .mini .g span.fer{background:var(--mint-soft)}
+.mini .g span.today{outline:1.5px solid var(--ink)}
+/* stats */
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{background:var(--sunk);border-radius:14px;padding:12px}
+.tile .v{font-family:var(--f-display);font-size:24px;line-height:1.2}
+.tile .v small{font-size:14px;color:var(--muted)}
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar{display:grid;grid-template-columns:62px 1fr 44px;gap:8px;align-items:center;font-size:13px}
+.bar .track{position:relative;height:12px;background:var(--sunk);border-radius:99px}
+.bar .fill{position:absolute;inset:0 auto 0 0;background:var(--rose);border-radius:99px}
+.bar .avg{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+.hist{display:flex;flex-direction:column}
+.hrow{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.hrow:first-child{border-top:0}
+.hrow .d{font-variant-numeric:tabular-nums}
+.cmp{display:grid;grid-template-columns:72px 1fr 70px;gap:8px;align-items:center;font-size:13px}
+.cmp .track{height:14px;background:var(--sunk);border-radius:99px;overflow:hidden}
+.cmp .fill{height:100%;border-radius:99px}
+/* toggles */
+.tg{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.tg:first-of-type{border-top:0}
+.tg .txt{display:flex;flex-direction:column;min-width:0}
+.sw{position:relative;flex:none;width:50px;height:30px;border-radius:99px;border:0;background:var(--line);transition:background .2s}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+.sw[aria-checked="true"]{background:var(--rose)} .sw[aria-checked="true"]::after{transform:translateX(20px)}
+.stepper{display:flex;align-items:center;gap:6px}
+.stepper button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
+.stepper span{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}
+/* tabs */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+nav.tabs .in{max-width:560px;margin:0 auto;display:flex}
+nav.tabs button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:12px;color:var(--muted);min-height:52px;border-radius:12px}
+nav.tabs button[aria-current="page"]{color:var(--berry);font-weight:700}
+nav.tabs svg{width:22px;height:22px}
+/* sheet */
+.scrim{position:fixed;inset:0;z-index:30;background:rgba(30,15,20,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet .grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:0 auto}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 16px;font-size:14px;max-width:calc(100% - 32px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:24px 8px}
+.empty .pop{width:72px;height:94px}
+.loading{text-align:center;padding:60px 0;color:var(--muted)}
+.partner .who{display:flex;align-items:center;gap:10px}
+.partner .who img{width:32px;height:32px;border-radius:50%}
+.guide{display:flex;flex-direction:column;gap:12px}
+.gi{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;background:var(--sunk)}
+.gi.warn{background:var(--amber-soft)} .gi.good{background:var(--mint-soft)} .gi.phase{background:var(--rose-soft)} .gi.pmsx{background:var(--lav-soft)}
+.gi h3{font-size:15px} .gi p{font-size:14px}
+.gi .src{font-size:12px;color:var(--muted)}
+.tip{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:14px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head><body>
+
+<div class="wrap" id="app"><div class="loading">讀取中…</div></div>
+<nav class="tabs" id="tabs" hidden><div class="in" id="tabsIn"></div></nav>
+<div id="sheetRoot"></div>
+<div class="toast" id="toast" hidden role="status"></div>
+<input type="file" id="dietFile" accept=".json,application/json" hidden>
+<input type="file" id="periodFile" accept=".json,application/json" hidden>
+<script src="../common/config.js"></script>
+<script src="../common/auth.js"></script>
+<script>window.CLAUDE_SHIM = { module: "period", prefix: "period/" };</script>
+<script src="../common/claude-shim.js"></script>
+
+<script>
+(function(){
+'use strict';
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const D = {
+  t(s){ const [y,m,d] = s.split('-').map(Number); return Date.UTC(y, m-1, d); },
+  s(t){ const x = new Date(t); return x.getUTCFullYear() + '-' + pad(x.getUTCMonth()+1) + '-' + pad(x.getUTCDate()); },
+  add(s, n){ return D.s(D.t(s) + n * 864e5); },
+  diff(a, b){ return Math.round((D.t(b) - D.t(a)) / 864e5); },
+  today(){ const n = new Date(); return n.getFullYear() + '-' + pad(n.getMonth()+1) + '-' + pad(n.getDate()); },
+  md(s){ const [,m,d] = s.split('-'); return (+m) + '/' + (+d); },
+  wk(s){ return '日一二三四五六'[new Date(D.t(s)).getUTCDay()]; },
+  long(s){ return D.md(s) + '（' + D.wk(s) + '）'; },
+  ok(s){ return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s); }
+};
+const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+const uid8 = () => Math.random().toString(36).slice(2, 10);
+
+const FLOW = ['沒有', '點狀', '少', '中', '多'];
+const PAIN = ['不痛', '微痛', '會痛', '很痛'];
+const SYM = ['脹氣', '胸部脹痛', '腰痠', '頭痛', '長痘痘', '疲倦', '嘴饞', '情緒起伏', '易怒', '失眠', '腹瀉', '便祕', '噁心', '分泌物變多'];
+const PMS_SYM = new Set(['脹氣', '胸部脹痛', '腰痠', '頭痛', '長痘痘', '疲倦', '嘴饞', '情緒起伏', '易怒', '失眠']);
+const MOOD = ['開心', '平靜', '敏感', '低落', '焦慮', '煩躁'];
+const SHARE_ITEMS = [
+  ['status', '經期狀態與倒數', '目前是經期第幾天、離下次還有幾天'],
+  ['pms', 'PMS 期', '只告訴他現在是不是 PMS 期'],
+  ['late', '晚來提醒', '預計日過了還沒來時，他也會看到'],
+  ['calendar', '經期日曆', '過去與預測的經期日期'],
+  ['symptoms', '經痛與症狀', '最近 7 天的經痛程度、經血量和症狀'],
+  ['mood', '心情', '最近 7 天的心情'],
+  ['diet', '飲食對照', '匯入的飲食熱量與糖分（最近 14 天）']
+];
+
+/* ---------- state ---------- */
+const S = {
+  mode: 'loading', db: null, user: null, uid: null, isOwner: false, readOnly: false,
+  profile: null, logDocs: {}, diet: null, dsync: null, shared: [], names: {},
+  view: 'today', calMode: 'month', calMonth: D.today().slice(0, 7), sheet: null, pendingRender: false, loaded: false
+};
+const DEFAULT_SETTINGS = { pmsDays: 7, lateDays: 3, share: {} };
+function settings(){ return Object.assign({}, DEFAULT_SETTINGS, S.profile?.settings || {}, { share: Object.assign({}, S.profile?.settings?.share || {}) }); }
+function logOf(date){ return S.logDocs['log-' + date.slice(0, 7)]?.days?.[date] || null; }
+function dietSrc(){
+  const a = S.diet?.days || {}, b = S.dsync?.days || {};
+  if (!Object.keys(a).length && !Object.keys(b).length) return null;
+  return { days: Object.assign({}, a, b), synced: !!Object.keys(b).length, syncedAt: S.dsync?.updated || null, importedAt: S.diet?.importedAt || null, profileName: S.dsync?.profileName || S.diet?.profileName || '' };
+}
+function allLogs(){ const o = {}; for (const k in S.logDocs) Object.assign(o, S.logDocs[k].days || {}); return o; }
+
+/* ---------- cycle math ---------- */
+function sortedPeriods(p){ return (p?.periods || []).filter(x => D.ok(x.start)).slice().sort((a, b) => a.start < b.start ? -1 : 1); }
+function compute(p, today){
+  today = today || D.today();
+  const ps = sortedPeriods(p);
+  const setup = p?.setup || { cycle: 28, period: 5 };
+  const cycles = [];
+  for (let i = 1; i < ps.length; i++){ const d = D.diff(ps[i-1].start, ps[i].start); if (d >= 15 && d <= 90) cycles.push({ start: ps[i-1].start, len: d }); }
+  const recent = cycles.slice(-6).map(c => c.len);
+  const avgCycle = recent.length ? Math.round(mean(recent)) : (+setup.cycle || 28);
+  const lens = ps.filter(x => D.ok(x.end)).map(x => D.diff(x.start, x.end) + 1).filter(n => n >= 1 && n <= 15).slice(-6);
+  const avgPeriod = lens.length ? Math.round(mean(lens)) : (+setup.period || 5);
+  let sd = null;
+  if (recent.length >= 3){ const m = mean(recent); sd = Math.sqrt(mean(recent.map(x => (x - m) ** 2))); }
+  const last = ps[ps.length - 1] || null;
+  const st = { ps, cycles, avgCycle, avgPeriod, sd, last, today };
+  if (!last) return st;
+  st.nextStart = D.add(last.start, avgCycle);
+  st.cycleDay = D.diff(last.start, today) + 1;
+  st.open = !last.end;
+  st.inPeriod = last.end ? (today >= last.start && today <= last.end) : (st.cycleDay >= 1 && st.cycleDay <= 15);
+  st.periodDay = st.inPeriod ? st.cycleDay : null;
+  st.untilNext = D.diff(today, st.nextStart);
+  st.late = st.untilNext < 0 ? -st.untilNext : 0;
+  st.ovu = D.add(st.nextStart, -14);
+  return st;
+}
+function phaseOf(st, s){
+  if (!st.last) return null;
+  if (st.inPeriod) return { k: 'period', label: '經期第 ' + st.periodDay + ' 天', cls: 'ph-period' };
+  if (st.untilNext <= 0) return { k: 'late', label: st.late ? '晚了 ' + st.late + ' 天' : '預計今天來', cls: 'ph-late' };
+  if (st.untilNext <= s.pmsDays) return { k: 'pms', label: 'PMS 期', cls: 'ph-pms' };
+  const fromOvu = D.diff(st.ovu, st.today);
+  if (fromOvu === 0) return { k: 'fertile', label: '預測排卵日', cls: 'ph-fertile' };
+  if (fromOvu >= -5 && fromOvu <= 1) return { k: 'fertile', label: '易孕期', cls: 'ph-fertile' };
+  return { k: 'calm', label: fromOvu < 0 ? '濾泡期' : '黃體期', cls: 'ph-calm' };
+}
+/* classify every day for the calendar */
+function dayMap(p, s, from, to){
+  const st = compute(p);
+  const m = {};
+  const mark = (d, k) => { if (d >= from && d <= to) (m[d] = m[d] || {})[k] = true; };
+  const ps = st.ps;
+  let lastActual = null;
+  ps.forEach((x, i) => {
+    let end = x.end;
+    if (!end){
+      end = D.add(x.start, 14); if (end > st.today) end = st.today;
+      const guess = D.add(x.start, st.avgPeriod - 1);
+      for (let d = D.add(st.today, 1); d <= guess; d = D.add(d, 1)) mark(d, 'pred');
+    }
+    for (let d = x.start; d <= end; d = D.add(d, 1)) mark(d, 'per');
+    if (!lastActual || end > lastActual) lastActual = end;
+    if (i > 0){
+      for (let k = 1; k <= s.pmsDays; k++) mark(D.add(x.start, -k), 'pms');
+      const ov = D.add(x.start, -14); mark(ov, 'ovu');
+      for (let k = -5; k <= 1; k++) mark(D.add(ov, k), 'fer');
+    }
+  });
+  if (st.last){
+    for (let c = 0; c < 14; c++){
+      const start = D.add(st.nextStart, c * st.avgCycle);
+      if (D.add(start, st.avgCycle) < from) continue;
+      if (start > to) break;
+      for (let k = 0; k < st.avgPeriod; k++){ const d = D.add(start, k); if (d > lastActual && d > st.today) mark(d, 'pred'); }
+      for (let k = 1; k <= s.pmsDays; k++){ const d = D.add(start, -k); if (d > lastActual) mark(d, 'pms'); }
+      const ov = D.add(start, -14);
+      if (ov > lastActual) mark(ov, 'ovu');
+      for (let k = -5; k <= 1; k++){ const d = D.add(ov, k); if (d > lastActual) mark(d, 'fer'); }
+    }
+  }
+  for (const d in m){ if (m[d].per || m[d].pred){ delete m[d].pms; delete m[d].fer; delete m[d].ovu; } else if (m[d].pms){ delete m[d].fer; delete m[d].ovu; } }
+  return m;
+}
+function pmsSuggestion(p){
+  const ps = sortedPeriods(p), logs = allLogs(), offs = [];
+  ps.forEach((x, i) => {
+    if (i === 0 && !logs[D.add(x.start, -1)] && !logs[D.add(x.start, -3)]) return;
+    let far = 0;
+    for (let k = 1; k <= 14; k++){ const l = logs[D.add(x.start, -k)]; if (l && ((l.sym || []).some(y => PMS_SYM.has(y)) || ['敏感', '低落', '焦慮', '煩躁'].includes(l.mood))) far = k; }
+    if (far) offs.push(far);
+  });
+  if (offs.length < 2) return null;
+  offs.sort((a, b) => a - b);
+  return { days: Math.min(14, Math.max(2, offs[Math.floor(offs.length / 2)])), n: offs.length };
+}
+
+/* ---------- storage ---------- */
+const LKEY = 'ptk.local.v1';
+function localLoad(){
+  try { const d = JSON.parse(localStorage.getItem(LKEY) || 'null'); if (d){ S.profile = d.profile || null; S.logDocs = d.logDocs || {}; S.diet = d.diet || null; } } catch (e) {}
+}
+function localSave(){ try { localStorage.setItem(LKEY, JSON.stringify({ profile: S.profile, logDocs: S.logDocs, diet: S.diet })); } catch (e) { toast('這台裝置的瀏覽器無法儲存資料。'); } }
+const Q = {};
+const DEL = {};
+function writeDoc(name, data){
+  if (S.mode !== 'cloud'){ localSave(); return; }
+  const path = name.startsWith('share/') ? name : 'data/users/' + S.uid + '/' + name;
+  const q = Q[path] || (Q[path] = { busy: false, next: null });
+  q.next = data;
+  if (!q.busy) flush(path);
+}
+async function flush(path){
+  const q = Q[path]; q.busy = true;
+  while (q.next !== null){
+    const d = q.next; q.next = null;
+    try { if (d === DEL) await S.db.doc(path).delete(); else await S.db.doc(path).set(d); }
+    catch (e){ writeError(e); }
+  }
+  q.busy = false;
+}
+let errShown = 0;
+function writeError(e){
+  if (Date.now() - errShown < 4000) return; errShown = Date.now();
+  const c = e?.code;
+  if (c === 'invalid_argument'){ S.readOnly = true; toast('沒有存進去：沒有修改這筆紀錄的權限。', 8000); }
+  else if (c === 'quota_exceeded') toast('雲端空間已滿，請先刪除一些舊紀錄。', 6000);
+  else if (c === 'revoked') toast('這個頁面的存取權已變更，請重新開啟。', 6000);
+  else toast('網路不穩，剛剛的變更可能沒存到，請稍後再試一次。', 6000);
+}
+function saveProfile(){ S.profile.updated = Date.now(); writeDoc('profile', JSON.parse(JSON.stringify(S.profile))); scheduleShare(); render(); }
+function saveLog(date, entry){
+  const k = 'log-' + date.slice(0, 7);
+  const doc = S.logDocs[k] ? JSON.parse(JSON.stringify(S.logDocs[k])) : { days: {} };
+  doc.days = doc.days || {};
+  if (entry) doc.days[date] = entry; else delete doc.days[date];
+  S.logDocs[k] = doc;
+  if (!Object.keys(doc.days).length){ delete S.logDocs[k]; writeDoc(k, DEL); } else writeDoc(k, doc);
+  scheduleShare(); render();
+}
+
+/* ---------- sharing ---------- */
+let shareT = null, lastShare;
+function scheduleShare(){ if (S.mode !== 'cloud') return; clearTimeout(shareT); shareT = setTimeout(pushShare, 700); }
+function buildShare(){
+  const s = settings(), sh = s.share, on = SHARE_ITEMS.map(x => x[0]).filter(k => sh[k]);
+  if (!on.length || !S.profile) return null;
+  const st = compute(S.profile);
+  const doc = { v: 1, fields: on, updated: Date.now() };
+  if (st.last && (sh.status || sh.pms || sh.late)) doc.cycle = { lastStart: st.last.start, lastEnd: st.last.end || null, avgCycle: st.avgCycle, avgPeriod: st.avgPeriod, pmsDays: s.pmsDays, lateDays: s.lateDays };
+  if (sh.calendar) doc.periods = st.ps.slice(-12).map(x => ({ start: x.start, end: x.end || null }));
+  if (sh.symptoms || sh.mood){
+    const r = {};
+    for (let k = 0; k < 7; k++){ const d = D.add(D.today(), -k), l = logOf(d); if (!l) continue;
+      const o = {};
+      if (sh.symptoms){ o.flow = l.flow ?? null; o.pain = l.pain ?? null; o.sym = l.sym || []; }
+      if (sh.mood && l.mood) o.mood = l.mood;
+      if (Object.keys(o).length) r[d] = o; }
+    doc.recent = r;
+  }
+  const ds = dietSrc(); if (sh.diet && ds){ const r = {}; for (let k = 0; k < 14; k++){ const d = D.add(D.today(), -k); if (ds.days[d]) r[d] = ds.days[d]; } doc.diet = r; }
+  return doc;
+}
+const stable = v => Array.isArray(v) ? '[' + v.map(stable).join(',') + ']' : (v && typeof v === 'object') ? '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + stable(v[k])).join(',') + '}' : JSON.stringify(v ?? null);
+const sigOf = doc => stable(doc ? Object.assign({}, doc, { updated: 0 }) : null);
+function pushShare(){
+  if (S.mode !== 'cloud' || S.readOnly || !S.loaded || lastShare === undefined) return;
+  const doc = buildShare();
+  const sig = sigOf(doc);
+  if (sig === lastShare) return;
+  lastShare = sig;
+  writeDoc('share/' + S.uid, doc || DEL);
+}
+
+/* ---------- toast & sheet ---------- */
+function toast(msg, ms){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, ms || 3200); }
+function openSheet(sheet){ S.sheet = sheet; renderSheet(); }
+function closeSheet(){ S.sheet = null; renderSheet(); if (S.pendingRender) render(); }
+
+/* ---------- lollipop ---------- */
+const SPIRAL = (() => { let d = ''; for (let a = 0; a <= 6 * Math.PI; a += 0.25){ const r = 3 + a * 1.75; d += (d ? 'L' : 'M') + (50 + r * Math.cos(a)).toFixed(1) + ' ' + (46 + r * Math.sin(a)).toFixed(1); } return d; })();
+function pop(expr){
+  const mouth = { happy: '<path d="M43 60 Q50 67 57 60" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/>',
+    tired: '<path d="M45 62 Q50 60 55 62" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/>',
+    worried: '<ellipse cx="50" cy="62" rx="3.4" ry="4" fill="var(--ink)"/>',
+    meh: '<path d="M44 62 L56 62" stroke="var(--ink)" stroke-width="2.6" stroke-linecap="round"/>' }[expr] || '';
+  const eyes = expr === 'tired'
+    ? '<path d="M33 52 Q37 55 41 52M59 52 Q63 55 67 52" stroke="var(--ink)" stroke-width="2.6" fill="none" stroke-linecap="round"/>'
+    : '<circle cx="37" cy="52" r="3.4" fill="var(--ink)"/><circle cx="63" cy="52" r="3.4" fill="var(--ink)"/>';
+  return '<svg class="pop" viewBox="0 0 100 130" aria-hidden="true"><rect x="46" y="84" width="8" height="44" rx="4" fill="var(--stick)"/><circle cx="50" cy="46" r="42" fill="var(--pop)"/><path d="' + SPIRAL + '" stroke="var(--pop-line)" stroke-width="4" fill="none" stroke-linecap="round" opacity=".75"/>' + eyes + '<ellipse cx="29" cy="62" rx="5" ry="3" fill="var(--rose)" opacity=".55"/><ellipse cx="71" cy="62" rx="5" ry="3" fill="var(--rose)" opacity=".55"/>' + mouth + '</svg>';
+}
+const EXPR = { period: 'tired', pms: 'meh', late: 'worried', fertile: 'happy', calm: 'happy' };
+
+/* ---------- dial ---------- */
+function dial(st, s){
+  const total = Math.max(st.avgCycle, st.cycleDay || 0);
+  const R = 92, C = 110, g = total > 40 ? 0.6 : 1.2;
+  const ov = D.diff(st.last.start, st.ovu) + 1;
+  const pl = st.last.end ? D.diff(st.last.start, st.last.end) + 1 : st.avgPeriod;
+  let segs = '';
+  for (let i = 1; i <= total; i++){
+    let col = 'var(--line)';
+    if (i <= pl) col = 'var(--rose)';
+    else if (i > st.avgCycle) col = 'var(--amber)';
+    else if (i > st.avgCycle - s.pmsDays) col = 'var(--lav)';
+    else if (i >= ov - 5 && i <= ov + 1) col = 'var(--mint)';
+    const a0 = (-90 + (i - 1) * 360 / total + g / 2) * Math.PI / 180, a1 = (-90 + i * 360 / total - g / 2) * Math.PI / 180;
+    const x0 = C + R * Math.cos(a0), y0 = C + R * Math.sin(a0), x1 = C + R * Math.cos(a1), y1 = C + R * Math.sin(a1);
+    segs += '<path d="M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A' + R + ' ' + R + ' 0 0 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + '" stroke="' + col + '" stroke-width="14" fill="none"/>';
+  }
+  const cd = Math.min(Math.max(st.cycleDay, 1), total);
+  const am = (-90 + (cd - 0.5) * 360 / total) * Math.PI / 180;
+  const mx = C + R * Math.cos(am), my = C + R * Math.sin(am);
+  return '<svg viewBox="0 0 220 220" role="img" aria-label="本週期第 ' + st.cycleDay + ' 天，共約 ' + st.avgCycle + ' 天">' + segs +
+    '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="11" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/></svg>';
+}
+
+/* ---------- views ---------- */
+const ICON = {
+  today: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8"/></svg>',
+  cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  stats: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 20V11M12 20V5M19 20v-6"/></svg>',
+  set: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>',
+  partner: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>'
+};
+function tabsList(){
+  const t = [];
+  if (S.profile) t.push(['today', '今天'], ['cal', '日曆'], ['stats', '統計'], ['set', '設定']);
+  if (S.shared.length) t.push(['partner', '她的狀態']);
+  return t;
+}
+function render(){
+  const ae = document.activeElement;
+  if (ae && ae.closest && ae.closest('#app') && /INPUT|TEXTAREA|SELECT/.test(ae.tagName) && ae.type !== 'file' && ae.type !== 'button'){ S.pendingRender = true; return; }
+  S.pendingRender = false;
+  const app = $('#app');
+  if (S.mode === 'loading' || !S.loaded){ app.innerHTML = '<div class="loading">讀取中…</div>'; return; }
+  const tabs = tabsList();
+  if (!tabs.find(x => x[0] === S.view)) S.view = tabs[0]?.[0] || 'setup';
+  const nav = $('#tabs');
+  nav.hidden = tabs.length < 2;
+  $('#tabsIn').innerHTML = tabs.map(([k, l]) => '<button data-act="tab" data-v="' + k + '"' + (S.view === k ? ' aria-current="page"' : '') + '>' + ICON[k] + '<span>' + l + '</span></button>').join('');
+  const st = S.profile ? compute(S.profile) : null;
+  const ph = st && st.last ? phaseOf(st, settings()) : null;
+  const head = '<header class="top">' + pop(ph ? EXPR[ph.k] : 'happy') + '<div class="ttl"><a class="hub-link" href="../">‹ 大小豬的小空間</a><h1>小豬經期日記</h1></div><div class="mode-wrap"><span class="mode">' + (S.mode === 'cloud' ? '雲端同步中' : '未同步') + '</span></div></header>';
+  let body = '';
+  if (!S.profile && S.view !== 'partner') body = vSetup();
+  else body = ({ today: vToday, cal: vCal, stats: vStats, set: vSet, partner: vPartner }[S.view] || vSetup)(st);
+  app.innerHTML = head + body;
+}
+
+function vSetup(){
+  const t = D.today();
+  return '<section class="card"><div class="empty">' + pop('happy') + '<h2>先告訴我上次經期</h2><p class="muted">填一次就能開始預測，之後每次記錄都會讓預測更準。</p></div>' +
+    '<label class="fld">最近一次月經的第一天<input type="date" id="su-start" max="' + t + '" value="' + D.add(t, -14) + '"></label>' +
+    '<div class="row"><label class="fld" style="flex:1">平常週期大約幾天<input type="number" id="su-cycle" min="18" max="60" value="28" inputmode="numeric"></label>' +
+    '<label class="fld" style="flex:1">每次經期大約幾天<input type="number" id="su-period" min="2" max="12" value="5" inputmode="numeric"></label></div>' +
+    '<p class="small muted">不確定的話就用預設值，之後可以在「設定」修改。</p>' +
+    '<button class="btn primary block" data-act="setup">開始記錄</button>' +
+    (S.mode === 'cloud' ? '<button class="btn soft block" data-act="periodImport">我有舊「小豬經期日記」的備份，直接匯入</button>' : '') +
+    (S.isOwner && S.mode === 'cloud' ? '<p class="small muted">如果你是要看她分享的狀態：等她開始使用並開啟分享後，這裡會出現「她的狀態」分頁。</p>' : '') +
+    (S.mode !== 'cloud' ? '<p class="small muted">目前沒有登入雲端，資料只會存在這台裝置。</p>' : '') + '</section>';
+}
+
+function vToday(st){
+  const s = settings();
+  if (!st.last) return '<section class="card"><p>還沒有任何經期紀錄。</p><button class="btn primary" data-act="addPast">新增一次經期</button></section>';
+  const ph = phaseOf(st, s);
+  let big, sub;
+  if (st.inPeriod){ big = '第 ' + st.periodDay + ' 天'; sub = '經期中 · ' + D.md(st.last.start) + ' 開始'; }
+  else if (st.untilNext > 0){ big = '還有 ' + st.untilNext + ' 天'; sub = '預計 ' + D.long(st.nextStart) + ' 來'; }
+  else if (st.late){ big = '晚了 ' + st.late + ' 天'; sub = '原本預計 ' + D.long(st.nextStart); }
+  else { big = '預計今天'; sub = '有來的話記得按下方按鈕'; }
+  let alerts = '';
+  if (st.open && st.cycleDay > 10)
+    alerts += alert('rose', '!', '<b>這次經期還沒記錄結束日</b><span>已經第 ' + st.cycleDay + ' 天了。如果已經結束，補記結束日，天數統計才會準。</span><div class="row"><button class="btn sm soft" data-act="endSheet">補記結束日</button></div>');
+  else if (!st.inPeriod && st.late >= s.lateDays){
+    const lt = st.late >= 7 ? '已經晚了一週以上。如果有性行為，可以考慮驗孕；如果身體不舒服或持續沒來，建議找婦產科醫師聊聊。' : '壓力、作息、旅行都可能讓經期晚幾天，先觀察就好。';
+    alerts += alert('', '!', '<b>這次晚了 ' + st.late + ' 天</b><span>' + lt + '</span><div class="row"><button class="btn sm soft" data-act="startSheet">已經來了，補記第一天</button></div>');
+  }
+  const ph2 = st.inPeriod
+    ? '<button class="btn primary block" data-act="endSheet">月經結束了</button>'
+    : '<button class="btn primary block" data-act="startSheet">月經來了</button>';
+  const today = D.today(), l = logOf(today);
+  const sum = l ? [l.flow ? '經血量：' + FLOW[l.flow] : '', l.pain ? '經痛：' + PAIN[l.pain] : '', (l.sym || []).join('、'), l.mood ? '心情：' + l.mood : '', l.note ? '「' + esc(l.note) + '」' : ''].filter(Boolean).join(' · ') : '';
+  const pmsLeft = st.untilNext > s.pmsDays ? st.untilNext - s.pmsDays : null;
+  return '<section class="card hero"><span class="phase ' + ph.cls + '">' + ph.label + '</span><div class="dial">' + dial(st, s) +
+    '<div class="center"><div class="big num">' + big + '</div><div class="sub">' + sub + '</div></div></div>' +
+    '<div class="legend"><span><i style="background:var(--rose)"></i>經期</span><span><i style="background:var(--mint)"></i>易孕期</span><span><i style="background:var(--lav)"></i>PMS 期</span><span class="num">週期約 ' + st.avgCycle + ' 天</span></div></section>' +
+    alerts + ph2 +
+    '<section class="card"><div class="row between"><h2>今天的身體狀況</h2><button class="btn sm soft" data-act="day" data-d="' + today + '">' + (l ? '修改' : '記錄今天') + '</button></div>' +
+    (sum ? '<p>' + sum + '</p>' : '<p class="muted">經痛、經血量、症狀或心情，記下來可以找出自己的規律。</p>') + '</section>' +
+    guide(st) +
+    '<section class="card"><h3>接下來</h3><dl class="kv num">' +
+    (pmsLeft ? '<dt>PMS 期</dt><dd>' + pmsLeft + ' 天後（' + D.md(D.add(st.nextStart, -s.pmsDays)) + ' 起）</dd>' : '') +
+    (D.diff(today, st.ovu) > 0 ? '<dt>預測排卵日</dt><dd>' + D.long(st.ovu) + '</dd>' : '') +
+    '<dt>下次經期</dt><dd>' + D.long(st.nextStart) + (st.late ? '（已晚 ' + st.late + ' 天）' : '') + '</dd>' +
+    '<dt>再下一次</dt><dd>' + D.long(D.add(st.nextStart, st.avgCycle)) + '</dd></dl>' +
+    '<p class="small muted">預測用你最近幾次的平均週期推算，只供生活規劃參考，不能用來避孕。</p></section>';
+}
+const SRC = {
+  hpaSalt: ['國健署〈減鹽秘笈〉', 'https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=1161&pid=6648'],
+  whoDiet: ['世界衛生組織〈健康飲食〉', 'https://www.who.int/news-room/fact-sheets/detail/healthy-diet'],
+  hpaWater: ['國健署新版每日飲食指南草案（中央社報導）', 'https://www.cna.com.tw/news/ahel/202603050164.aspx'],
+  ntuhIron: ['臺大醫院營養室〈飲食大補鐵〉', 'https://health.ntuh.gov.tw/health/NTUH_e_Net/NTUH_e_Net_no224/%E9%A3%B2%E9%A3%9F%E5%A4%A7%E8%A3%9C%E9%90%B5.pdf'],
+  nihPms: ['美國國家醫學圖書館 MedlinePlus〈經前症候群自我照顧〉', 'https://medlineplus.gov/ency/patientinstructions/000556.htm'],
+  ginger: ['Xu 等，2020，《Journal of International Medical Research》系統性回顧', 'https://doaj.org/article/16dfb239e4ca4d02a9e90a637c97abc6']
+};
+function guide(st){
+  const s = settings(), ph = phaseOf(st, s), DS = dietSrc(), out = [];
+  const today = D.today();
+  let days = [], fe = null;
+  if (DS){
+    for (let k = 1; k <= 7 && days.length < 3; k++){ const d = D.add(today, -k), v = DS.days[d]; if (v && v.kcal > 0) days.push([d, v]); }
+  }
+  const range = days.length ? D.md(days[days.length - 1][0]) + (days.length > 1 ? '–' + D.md(days[0][0]) : '') : '';
+  if (days.length){
+    const avg = k => mean(days.map(x => +x[1][k] || 0));
+    const na = Math.round(avg('sodium')), sug = Math.round(avg('sugar')), kc = avg('kcal');
+    const wd = days.filter(x => x[1].water > 0), wa = wd.length ? Math.round(mean(wd.map(x => x[1].water))) : null;
+    const pms = ph && ph.k === 'pms', per = ph && ph.k === 'period';
+    const fd = days.filter(x => typeof x[1].iron === 'number'); fe = fd.length ? Math.round(mean(fd.map(x => x[1].iron)) * 10) / 10 : null;
+    if (fe !== null && fe < 15) out.push({ cls: per ? 'phase' : 'warn', t: per ? '經期中鐵質可能不夠' : '鐵質可能不夠', p: '有估算鐵質的 ' + fd.length + ' 天，平均每天約 ' + fe + ' 毫克，低於 19 到 50 歲女性建議的 15 毫克。' + (per ? '經期會隨經血流失鐵，這幾天更要注意。' : '') + '紅肉、魚和海鮮、豬血鴨血的鐵比較好吸收；深綠色蔬菜和豆類也有鐵，搭配芭樂、奇異果、柚子這類維生素 C 高的水果一起吃效果更好。茶和咖啡避免飯後馬上喝。數字是 AI 依照片或描述估算的，只供參考。', src: ['ntuhIron'] });
+    if (na > 2400) out.push({ cls: 'warn', t: '最近鹽分偏高', p: '平均每天鈉 ' + na.toLocaleString() + ' 毫克，超過國健署建議的每日上限 2,400 毫克（約 6 克鹽）。' + (pms ? '經前少吃鹹，比較不容易水腫、脹氣。' : '') + '外食可以請店家少放醬料，少點醃、燻、醬、滷的菜，湯少喝幾口；買包裝食品先看營養標示的鈉含量。', src: pms ? ['hpaSalt', 'nihPms'] : ['hpaSalt'] });
+    if (sug > 50 || (kc > 0 && sug * 4 / kc > 0.1)) out.push({ cls: 'warn', t: '最近糖分偏高', p: '平均每天 ' + sug + ' 克糖。世界衛生組織建議游離糖（額外加的糖、果汁、蜂蜜）少於總熱量 10%，以一天 2,000 大卡來算約 50 克。這裡的數字也包含水果和牛奶的天然糖，實際的添加糖可能少一些，手搖飲改微糖或無糖最有感。' + (pms ? '經前保持低糖、改吃全穀和蔬果，有助穩定精神和情緒。' : ''), src: pms ? ['whoDiet', 'nihPms'] : ['whoDiet'] });
+    if (wa !== null && wa < 1500) out.push({ cls: 'warn', t: '水喝得比較少', p: '有記錄的日子平均每天喝 ' + wa.toLocaleString() + ' 毫升。國健署新版每日飲食指南草案建議成年女性每天約 2,100 毫升液體，湯和無糖飲料也算。' + (per ? '經期多補充溫開水也比較舒服。' : '') + '可以在桌上放一個水壺，每小時喝幾口。', src: ['hpaWater'] });
+    if (!out.length) out.push({ cls: 'good', t: '最近吃得很平衡', p: '鈉、糖分' + (wa !== null ? '、喝水量' : '') + (fe !== null ? '和鐵質' : '') + '都在建議範圍內，繼續保持。', src: fe !== null ? ['hpaSalt', 'whoDiet', 'ntuhIron'] : ['hpaSalt', 'whoDiet'] });
+  }
+  if (ph && ph.k === 'period'){
+    if (typeof fe === 'undefined' || fe === null) out.push({ cls: 'phase', t: '經期記得補鐵', p: '19 到 50 歲女性每天建議攝取 15 毫克鐵。紅肉、魚和海鮮、豬血鴨血的鐵比較好吸收；深綠色蔬菜和豆類也有鐵，搭配芭樂、奇異果、草莓這類維生素 C 高的水果一起吃，吸收會更好。茶和咖啡會降低鐵的吸收，避免飯後馬上喝。', src: ['ntuhIron'] });
+    const l0 = logOf(today), l1 = logOf(D.add(today, -1));
+    if ((l0 && l0.pain >= 2) || (l1 && l1.pain >= 2)) out.push({ cls: 'phase', t: '經痛時可以試試薑', p: '一篇整合 9 個臨床試驗的系統性回顧發現，薑能減輕原發性經痛的疼痛程度，但研究規模都不大。可以喝一杯薑茶當作輔助，熱敷也有幫助；痛到影響生活或吃止痛藥也沒改善，請找婦產科醫師。', src: ['ginger'] });
+  } else if (ph && ph.k === 'pms'){
+    out.push({ cls: 'pmsx', t: 'PMS 期這樣吃比較舒服', p: '多吃全穀、蔬菜和水果，少量多餐（大約每 3 小時吃一點，但不要吃撐），鹽和糖都少一點，咖啡因、酒精和汽水先避開，多喝水。規律運動也能減輕經前不適。', src: ['nihPms'] });
+  }
+  const head = '<div class="row between"><h2>健康指南</h2></div><p class="small muted">' + (days.length ? '依據你最近 ' + days.length + ' 天（' + range + '）的飲食紀錄' + (ph ? '和目前的' + (ph.k === 'period' ? '經期' : ph.k === 'pms' ? 'PMS 期' : '週期階段') : '') + '整理。' : '目前還沒有最近的飲食紀錄。在飲食頁記錄三餐，隔天就會依你的飲食給建議。') + '</p>';
+  if (!out.length) return '<section class="card">' + head + '</section>';
+  const items = out.slice(0, 4).map(g => '<div class="gi ' + g.cls + '"><h3>' + g.t + '</h3><p>' + g.p + '</p><span class="src">依據：' + g.src.map(k => '<a href="' + SRC[k][1] + '" target="_blank" rel="noopener">' + SRC[k][0] + '</a>').join('、') + '</span></div>').join('');
+  return '<section class="card">' + head + '<div class="guide">' + items + '</div><p class="small muted">以上是一般衛教資訊，不能取代醫師或營養師的個別建議。</p></section>';
+}
+function alert(cls, ic, html){ return '<div class="alert ' + cls + '" role="alert"><span class="ic">' + ic + '</span><div class="body">' + html + '</div></div>'; }
+
+function vCal(){
+  const s = settings();
+  const seg = '<div class="seg" role="group" aria-label="檢視"><button data-act="calMode" data-v="month" aria-pressed="' + (S.calMode === 'month') + '">月曆</button><button data-act="calMode" data-v="year" aria-pressed="' + (S.calMode === 'year') + '">年曆</button></div>';
+  const legend = '<div class="legend"><span><i style="background:var(--rose)"></i>經期</span><span><i style="border:2px dashed var(--rose)"></i>預測經期</span><span><i style="background:var(--lav-soft)"></i>PMS 期</span><span><i style="background:var(--mint-soft)"></i>易孕期</span><span><i style="border:2px solid var(--mint);border-radius:50%"></i>排卵日</span></div>';
+  if (S.calMode === 'year'){
+    const y = +S.calMonth.slice(0, 4);
+    const m = dayMap(S.profile, s, y + '-01-01', y + '-12-31');
+    let html = '';
+    for (let mo = 1; mo <= 12; mo++){
+      const first = y + '-' + pad(mo) + '-01', lead = new Date(D.t(first)).getUTCDay();
+      const days = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+      let g = '';
+      for (let i = 0; i < lead; i++) g += '<span class="o"></span>';
+      for (let d = 1; d <= days; d++){ const ds = y + '-' + pad(mo) + '-' + pad(d), c = m[ds] || {};
+        g += '<span class="' + [c.per ? 'per' : c.pred ? 'pred' : c.pms ? 'pms' : c.fer ? 'fer' : '', ds === D.today() ? 'today' : ''].join(' ') + '"></span>'; }
+      html += '<button class="mini" data-act="goMonth" data-v="' + y + '-' + pad(mo) + '"><div class="mt">' + mo + ' 月</div><div class="g">' + g + '</div></button>';
+    }
+    return '<section class="card">' + seg + '<div class="cal-head"><button class="btn sm ghost" data-act="yr" data-v="-1" aria-label="上一年">‹</button><span class="t num">' + y + ' 年</span><button class="btn sm ghost" data-act="yr" data-v="1" aria-label="下一年">›</button></div><div class="year">' + html + '</div>' + legend + '</section>';
+  }
+  const [y, mo] = S.calMonth.split('-').map(Number);
+  const first = S.calMonth + '-01', lead = new Date(D.t(first)).getUTCDay(), days = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+  const m = dayMap(S.profile, s, D.add(first, -1), D.add(first, 42));
+  let g = '日一二三四五六'.split('').map(w => '<div class="wd">' + w + '</div>').join('');
+  for (let i = 0; i < lead; i++) g += '<span class="day out"></span>';
+  for (let d = 1; d <= days; d++){
+    const ds = S.calMonth + '-' + pad(d), c = m[ds] || {};
+    const cls = ['day', c.per ? 'per' : c.pred ? 'pred' : c.pms ? 'pms' : c.fer ? 'fer' : '', c.ovu ? 'ovu' : '', ds === D.today() ? 'today' : '', logOf(ds) ? 'logged' : ''].join(' ');
+    g += '<button class="' + cls + '" data-act="day" data-d="' + ds + '" aria-label="' + mo + '月' + d + '日">' + d + '</button>';
+  }
+  return '<section class="card">' + seg + '<div class="cal-head"><button class="btn sm ghost" data-act="mon" data-v="-1" aria-label="上個月">‹</button><span class="t num">' + y + ' 年 ' + mo + ' 月</span><button class="btn sm ghost" data-act="mon" data-v="1" aria-label="下個月">›</button></div>' +
+    '<div class="grid7">' + g + '</div>' + legend + '<p class="small muted">點任何一天可以記錄症狀，或把那天設成經期第一天、最後一天。</p></section>';
+}
+
+function vStats(st){
+  const s = settings();
+  const n = st.ps.length;
+  let reg = '還需要更多紀錄', regNote = '記滿 4 次經期後會評估';
+  if (st.sd !== null){ const r = Math.round(st.sd * 10) / 10; reg = r <= 3 ? '很規律' : r <= 7 ? '有些變動' : '變動較大'; regNote = '週期相差約 ±' + r + ' 天'; }
+  const tiles = '<div class="tiles">' +
+    '<div class="tile"><div class="small muted">平均週期</div><div class="v num">' + st.avgCycle + ' <small>天</small></div></div>' +
+    '<div class="tile"><div class="small muted">平均經期</div><div class="v num">' + st.avgPeriod + ' <small>天</small></div></div>' +
+    '<div class="tile"><div class="small muted">規律度</div><div class="v">' + reg + '</div><div class="small muted">' + regNote + '</div></div>' +
+    '<div class="tile"><div class="small muted">已記錄</div><div class="v num">' + n + ' <small>次經期</small></div></div></div>';
+  let bars = '';
+  const cyc = st.cycles.slice(-8);
+  if (cyc.length){
+    const mx = Math.max(40, ...cyc.map(c => c.len));
+    bars = '<div class="bars">' + cyc.map(c => '<div class="bar"><span class="num muted">' + D.md(c.start) + '</span><div class="track"><div class="fill" style="width:' + (c.len / mx * 100).toFixed(1) + '%"></div><div class="avg" style="left:' + (st.avgCycle / mx * 100).toFixed(1) + '%"></div></div><span class="num">' + c.len + ' 天</span></div>').join('') + '</div><p class="small muted">直線是平均週期 ' + st.avgCycle + ' 天。21 到 35 天、每次相差 7 天以內都算常見範圍。</p>';
+  } else bars = '<p class="muted">記錄兩次以上經期，就能看到每次的週期長度。</p>';
+  const sug = pmsSuggestion(S.profile);
+  const pmsCard = '<section class="card"><h2>PMS 期</h2><p>目前設定為經期前 <b class="num">' + s.pmsDays + '</b> 天。</p>' +
+    (sug ? (sug.days !== s.pmsDays ? '<p class="small muted">根據最近 ' + sug.n + ' 次經期前記錄的症狀，你的經前不適大約從前 ' + sug.days + ' 天開始。</p><button class="btn sm soft" data-act="usePms" data-v="' + sug.days + '">改成 ' + sug.days + ' 天</button>' : '<p class="small muted">跟你最近記錄的經前症狀吻合。</p>')
+      : '<p class="small muted">經期前幾天有記錄症狀或心情，累積兩次以上就會幫你算出適合的天數。</p>') + '</section>';
+  const hist = st.ps.slice().reverse().map(p => {
+    const len = p.end ? D.diff(p.start, p.end) + 1 : null;
+    return '<div class="hrow"><div><div class="d">' + p.start.replace(/-/g, '/') + (p.end ? ' – ' + D.md(p.end) : ' – 進行中') + '</div><div class="small muted num">' + (len ? len + ' 天' : '尚未記錄結束日') + '</div></div><button class="btn sm" data-act="editPeriod" data-id="' + p.id + '">修改</button></div>';
+  }).join('');
+  return '<section class="card"><h2>我的週期</h2>' + tiles + '</section>' +
+    '<section class="card"><h2>每次週期長度</h2>' + bars + '</section>' + pmsCard + dietCard(st) +
+    '<section class="card"><div class="row between"><h2>經期紀錄</h2><button class="btn sm soft" data-act="addPast">新增過去的經期</button></div><div class="hist">' + (hist || '<p class="muted">還沒有紀錄。</p>') + '</div></section>';
+}
+function dietCard(){
+  const DS = dietSrc();
+  if (!DS)
+    return '<section class="card flat"><h2>飲食對照</h2><p class="muted">在飲食頁記錄三餐後，這裡會自動比較經期、PMS 期和平常的熱量與糖分。</p></section>';
+  const s = settings(), dates = Object.keys(DS.days).sort();
+  const m = dayMap(S.profile, s, dates[0], dates[dates.length - 1]);
+  const g = { per: [], pms: [], other: [] };
+  dates.forEach(d => { const c = m[d] || {}, v = DS.days[d]; if (!v || !(v.kcal > 0)) return; (c.per ? g.per : c.pms ? g.pms : g.other).push(v); });
+  const avg = (a, k) => a.length ? Math.round(mean(a.map(x => +x[k] || 0))) : null;
+  const rows = [['經期', g.per, 'var(--rose)'], ['PMS 期', g.pms, 'var(--lav)'], ['平常', g.other, 'var(--muted)']];
+  const mk = k => { const vals = rows.map(r => avg(r[1], k)); const mx = Math.max(1, ...vals.filter(v => v != null));
+    return rows.map((r, i) => '<div class="cmp"><span>' + r[0] + '</span><div class="track"><div class="fill" style="width:' + (vals[i] == null ? 0 : vals[i] / mx * 100).toFixed(1) + '%;background:' + r[2] + '"></div></div><span class="num">' + (vals[i] == null ? '沒有資料' : vals[i] + (k === 'kcal' ? ' 大卡' : ' 克')) + '</span></div>').join(''); };
+  return '<section class="card"><h2>飲食對照</h2><p class="small muted">每日平均，資料來自飲食頁' + (DS.profileName ? '的「' + esc(DS.profileName) + '」' : '') + '（' + D.md(dates[0]) + '–' + D.md(dates[dates.length - 1]) + '，共 ' + dates.length + ' 天）。</p>' +
+    '<h3>熱量</h3>' + mk('kcal') + '<h3>糖分</h3>' + mk('sugar') +
+    '<p class="small muted">天數少的時候差異不一定有意義，累積幾個週期後再看比較準。</p></section>';
+}
+
+function vSet(){
+  const s = settings(), sh = s.share, cloud = S.mode === 'cloud';
+  const shareRows = SHARE_ITEMS.map(([k, t, d]) => '<div class="tg"><div class="txt"><span>' + t + '</span><span class="small muted">' + d + '</span></div><button class="sw" role="switch" aria-checked="' + !!sh[k] + '" aria-label="分享' + t + '" data-act="share" data-k="' + k + '"' + (cloud ? '' : ' disabled') + '></button></div>').join('');
+  const stepper = (k, v, min, max, unit) => '<div class="stepper"><button data-act="step" data-k="' + k + '" data-v="-1" aria-label="減少"' + (v <= min ? ' disabled' : '') + '>−</button><span>' + v + ' ' + unit + '</span><button data-act="step" data-k="' + k + '" data-v="1" aria-label="增加"' + (v >= max ? ' disabled' : '') + '>＋</button></div>';
+  const st = compute(S.profile);
+  return '<section class="card"><h2>分享給另一半</h2><p class="small muted">你勾選的項目，另一半打開經期頁時會在「她的狀態」看到。沒勾的項目只有你自己看得到，隨時可以關掉。</p>' +
+    (cloud ? '' : '<p class="small muted">目前沒有登入雲端，無法分享。</p>') + shareRows + '</section>' +
+    '<section class="card"><h2>提醒</h2>' +
+    '<div class="tg"><div class="txt"><span>PMS 期</span><span class="small muted">經期前幾天算 PMS 期</span></div>' + stepper('pmsDays', s.pmsDays, 2, 14, '天') + '</div>' +
+    '<div class="tg"><div class="txt"><span>晚來提醒</span><span class="small muted">超過預計日幾天還沒來就提醒</span></div>' + stepper('lateDays', s.lateDays, 1, 14, '天') + '</div>' +
+    '<p class="small muted">網頁沒打開時無法主動通知。下載行事曆檔加到手機行事曆，就會在 PMS 期開始、預計經期日，以及晚 ' + s.lateDays + ' 天時跳出提醒。</p>' +
+    (st.last ? '<button class="btn soft" data-act="ics">加到手機行事曆</button><p class="small muted">每次經期來了之後，記得再下載一次，日期才會更新。</p>' : '') + '</section>' +
+    '<section class="card"><h2>飲食對照</h2><p class="small muted">直接讀取你在飲食頁的紀錄（熱量、糖分、鈉、鐵和喝水量），記完一餐這裡就會更新。</p>' +
+    '<p class="small">' + (S.dsync ? '目前讀到' + (S.dsync.profileName ? '「' + esc(S.dsync.profileName) + '」' : '') + ' ' + Object.keys(S.dsync.days || {}).length + ' 天的飲食紀錄' : '飲食頁還沒有你的紀錄。') + '</p>' +
+    '<p class="small muted">也可以匯入舊「大小豬健康食記」的備份檔，補上還沒搬到飲食頁的舊紀錄。</p>' +
+    (S.diet ? '<p class="small">已匯入：' + esc(S.diet.profileName || '') + '，' + Object.keys(S.diet.days || {}).length + ' 天（' + new Date(S.diet.importedAt).toLocaleDateString('zh-TW') + '）</p>' : '') +
+    '<div class="row"><button class="btn soft" data-act="dietImport">' + (S.diet ? '重新匯入' : '匯入備份檔') + '</button>' + (S.diet ? '<button class="btn ghost danger" data-act="dietClear">刪除飲食資料</button>' : '') + '</div></section>' +
+    '<section class="card"><h2>預設值</h2><p class="small muted">紀錄還不到兩次時，用這裡的數字預測。</p><div class="row">' +
+    '<label class="fld" style="flex:1">平常週期（天）<input type="number" id="cfg-cycle" min="18" max="60" value="' + (S.profile.setup?.cycle || 28) + '"></label>' +
+    '<label class="fld" style="flex:1">經期長度（天）<input type="number" id="cfg-period" min="2" max="12" value="' + (S.profile.setup?.period || 5) + '"></label></div>' +
+    '<button class="btn" data-act="saveSetup">儲存預設值</button></section>' +
+    '<section class="card"><h2>資料</h2><p class="small muted">' + (cloud ? '紀錄存在你的帳號裡，預設只有你看得到；換手機登入同一個帳號也能看到。' : '紀錄只存在這台裝置的瀏覽器裡。') + '</p>' +
+    '<div class="row"><button class="btn" data-act="export">下載備份</button><button class="btn soft" data-act="periodImport">匯入舊網頁的備份</button></div>' +
+    '<p class="small muted">在舊的「小豬經期日記」按「下載備份」得到的 .json 檔，可以從這裡匯入；會跟現在的紀錄合併，不會刪掉任何一筆。</p>' +
+    '<p class="small muted">本網頁的預測依你自己的紀錄推算，只供生活規劃參考，不能用來避孕，也不能取代醫師診斷。經期長期不規律、經痛嚴重或超過 3 個月沒來，請找婦產科醫師。</p></section>';
+}
+
+function vPartner(){
+  if (!S.shared.length) return '<section class="card"><p class="muted">還沒有人分享狀態給你。</p></section>';
+  return S.shared.map(({ id, data }) => partnerCard(id, data)).join('');
+}
+function partnerCard(id, d){
+  const f = new Set(d.fields || []), name = S.names[id] || '她';
+  let html = '<section class="card partner"><div class="who"><h2>' + esc(name) + '的狀態</h2></div>';
+  let tip = '';
+  if (d.cycle){
+    const pseudo = { setup: { cycle: d.cycle.avgCycle, period: d.cycle.avgPeriod }, periods: (d.periods && d.periods.length ? d.periods : [{ start: d.cycle.lastStart, end: d.cycle.lastEnd }]).map((p, i) => ({ id: 'p' + i, start: p.start, end: p.end })) };
+    const st = compute(pseudo); st.avgCycle = d.cycle.avgCycle; st.avgPeriod = d.cycle.avgPeriod;
+    st.nextStart = D.add(st.last.start, st.avgCycle); st.untilNext = D.diff(st.today, st.nextStart); st.late = st.untilNext < 0 ? -st.untilNext : 0; st.ovu = D.add(st.nextStart, -14);
+    const ps = { pmsDays: d.cycle.pmsDays || 7 };
+    const ph = phaseOf(st, ps);
+    if (f.has('status')){
+      let line = st.inPeriod ? '經期第 ' + st.periodDay + ' 天' : st.untilNext > 0 ? '離下次經期還有 ' + st.untilNext + ' 天（預計 ' + D.long(st.nextStart) + '）' : st.late ? '比預計晚了 ' + st.late + ' 天' : '預計今天來';
+      html += '<div class="row"><span class="phase ' + ph.cls + '">' + ph.label + '</span></div><p class="num">' + line + '</p>';
+      tip = ph.k === 'period' ? '經期中容易累和腹痛。可以幫她準備熱敷袋或溫熱飲，行程排輕鬆一點。' : ph.k === 'pms' ? 'PMS 期情緒和身體都比較敏感，多一點耐心，少一點說教。' : '';
+    } else if (f.has('pms')){
+      const inPms = !st.inPeriod && st.untilNext > 0 && st.untilNext <= ps.pmsDays;
+      html += '<p>' + (inPms ? '<span class="phase ph-pms">目前在 PMS 期</span>' : '目前不在 PMS 期') + '</p>';
+      if (inPms) tip = 'PMS 期情緒和身體都比較敏感，多一點耐心，少一點說教。';
+    }
+    if (f.has('late') && !st.inPeriod && st.late >= (d.cycle.lateDays || 3)){
+      html += alert('', '!', '<b>這次晚了 ' + st.late + ' 天</b><span>先關心她的感受，再一起決定要不要驗孕或看醫生。</span>');
+    }
+  }
+  if (tip) html += '<p class="tip">' + tip + '</p>';
+  if (d.periods && d.periods.length && f.has('calendar')){
+    html += '<h3>最近的經期</h3><div class="hist">' + d.periods.slice(-4).reverse().map(p => '<div class="hrow"><span class="d">' + p.start.replace(/-/g, '/') + (p.end ? ' – ' + D.md(p.end) : ' – 進行中') + '</span></div>').join('') + '</div>';
+  }
+  if (d.recent && (f.has('symptoms') || f.has('mood'))){
+    const ks = Object.keys(d.recent).sort().reverse();
+    html += '<h3>最近 7 天</h3>' + (ks.length ? '<dl class="kv">' + ks.map(k => { const r = d.recent[k];
+      const parts = [r.flow ? '經血' + FLOW[r.flow] : '', r.pain ? PAIN[r.pain] : '', (r.sym || []).join('、'), r.mood ? '心情' + r.mood : ''].filter(Boolean);
+      return '<dt class="num">' + D.md(k) + '</dt><dd>' + esc(parts.join('，') || '沒有不適') + '</dd>'; }).join('') + '</dl>' : '<p class="muted small">最近沒有記錄。</p>');
+  }
+  if (d.diet && f.has('diet')){
+    const ks = Object.keys(d.diet).sort().reverse().slice(0, 7);
+    if (ks.length) html += '<h3>最近飲食</h3><dl class="kv num">' + ks.map(k => '<dt>' + D.md(k) + '</dt><dd>' + Math.round(d.diet[k].kcal || 0) + ' 大卡 · 糖 ' + Math.round(d.diet[k].sugar || 0) + ' 克</dd>').join('') + '</dl>';
+  }
+  html += '<p class="small muted">更新於 ' + (d.updated ? new Date(d.updated).toLocaleString('zh-TW', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—') + '。她可以隨時調整分享哪些項目。</p></section>';
+  return html;
+}
+
+/* ---------- sheets ---------- */
+function renderSheet(){
+  const root = $('#sheetRoot');
+  if (!S.sheet){ root.innerHTML = ''; return; }
+  const sh = S.sheet;
+  let inner = '';
+  if (sh.type === 'day') inner = sheetDay(sh);
+  else if (sh.type === 'start' || sh.type === 'end') inner = sheetMark(sh);
+  else if (sh.type === 'period') inner = sheetPeriod(sh);
+  else if (sh.type === 'dietPick') inner = sheetDietPick(sh);
+  else if (sh.type === 'login') inner = sheetLogin();
+  else if (sh.type === 'migrate') inner = '<h2>把這台裝置的紀錄上傳到雲端？</h2><p>這台裝置上有 ' + (sh.local.profile?.periods?.length || 0) + ' 次經期紀錄，雲端目前還沒有資料。上傳後換手機也看得到，也可以開啟分享。</p><div class="row"><button class="btn primary" data-act="migrateYes">上傳到雲端</button><button class="btn ghost" data-act="close">先不要</button></div>';
+  else if (sh.type === 'confirm') inner = '<h2>' + sh.title + '</h2><p>' + sh.text + '</p><div class="row"><button class="btn ' + (sh.danger ? 'danger' : 'primary') + '" data-act="confirmYes">' + sh.yes + '</button><button class="btn ghost" data-act="close">取消</button></div>';
+  root.innerHTML = '<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>' + inner + '</div></div>';
+  const f = root.querySelector('[autofocus]'); if (f) f.focus();
+}
+function dayStatus(date){
+  const m = dayMap(S.profile, settings(), date, date)[date] || {};
+  const st = compute(S.profile);
+  const inP = st.ps.find(p => date >= p.start && date <= (p.end || D.add(p.start, 14)) && (p.end || date <= st.today));
+  if (inP) return { txt: '經期第 ' + (D.diff(inP.start, date) + 1) + ' 天', p: inP };
+  if (m.pred) return { txt: '預測經期' };
+  if (m.pms) return { txt: 'PMS 期' };
+  if (m.ovu) return { txt: '預測排卵日' };
+  if (m.fer) return { txt: '易孕期' };
+  return { txt: '' };
+}
+function sheetDay(sh){
+  const d = sh.date, dr = sh.draft, ds = dayStatus(d), future = d > D.today();
+  const st = compute(S.profile);
+  let acts = '';
+  if (!future){
+    if (ds.p){
+      acts += '<button class="btn sm" data-act="editPeriod" data-id="' + ds.p.id + '">修改這次經期</button>';
+      if (!ds.p.end || ds.p.end !== d) acts += '<button class="btn sm soft" data-act="markEnd" data-d="' + d + '">這天是最後一天</button>';
+    } else {
+      acts += '<button class="btn sm soft" data-act="markStart" data-d="' + d + '">這天是月經第一天</button>';
+      const open = st.ps.filter(p => p.start < d && D.diff(p.start, d) <= 15).pop();
+      if (open) acts += '<button class="btn sm" data-act="markEnd" data-d="' + d + '">這天是最後一天</button>';
+    }
+  }
+  const diet = dietSrc()?.days?.[d];
+  const seg = (k, arr) => '<div class="seg" role="group">' + arr.map((t, i) => '<button data-act="dset" data-k="' + k + '" data-v="' + i + '" aria-pressed="' + ((dr[k] || 0) === i) + '">' + t + '</button>').join('') + '</div>';
+  return '<div class="row between"><h2>' + d.replace(/-/g, '/') + '（' + D.wk(d) + '）</h2><button class="btn sm ghost" data-act="close">關閉</button></div>' +
+    (ds.txt ? '<p class="muted">' + ds.txt + '</p>' : '') +
+    (acts ? '<div class="row">' + acts + '</div>' : '') +
+    (future ? '<p class="small muted">未來的日子還不能記錄。</p>' :
+    '<h3>經血量</h3>' + seg('flow', FLOW) + '<h3>經痛</h3>' + seg('pain', PAIN) +
+    '<h3>症狀</h3><div class="chips">' + SYM.map(x => '<button class="chip" data-act="dsym" data-v="' + x + '" aria-pressed="' + (dr.sym || []).includes(x) + '">' + x + '</button>').join('') + '</div>' +
+    '<h3>心情</h3><div class="chips">' + MOOD.map(x => '<button class="chip lav" data-act="dmood" data-v="' + x + '" aria-pressed="' + (dr.mood === x) + '">' + x + '</button>').join('') + '</div>' +
+    '<label class="fld">備註<textarea id="d-note" maxlength="300" placeholder="例如：吃了止痛藥、睡不好">' + esc(dr.note || '') + '</textarea></label>' +
+    (diet ? '<p class="small muted num">這天飲食：' + Math.round(diet.kcal || 0) + ' 大卡、糖 ' + Math.round(diet.sugar || 0) + ' 克' + (typeof diet.iron === 'number' ? '、鐵 ' + diet.iron + ' 毫克' : '') + (diet.water ? '、水 ' + Math.round(diet.water) + ' ml' : '') + '</p>' : '') +
+    '<div class="row"><button class="btn primary" data-act="dsave">儲存</button>' + (logOf(d) ? '<button class="btn ghost danger" data-act="dclear">清除這天的紀錄</button>' : '') + '</div>');
+}
+function sheetMark(sh){
+  const st = compute(S.profile);
+  const t = D.today();
+  const isStart = sh.type === 'start';
+  const min = isStart ? '' : (st.last ? st.last.start : '');
+  return '<h2>' + (isStart ? '月經哪一天來的？' : '月經哪一天結束的？') + '</h2>' +
+    '<p class="small muted">' + (isStart ? '預設是今天；如果是前幾天就來了，改成實際的第一天。' : '選最後一天有出血的日子。') + '</p>' +
+    '<label class="fld">' + (isStart ? '第一天' : '最後一天') + '<input type="date" id="mk-date" max="' + t + '"' + (min ? ' min="' + min + '"' : '') + ' value="' + t + '"></label>' +
+    '<div class="row"><button class="btn primary" data-act="' + (isStart ? 'doStart' : 'doEnd') + '">儲存</button><button class="btn ghost" data-act="close">取消</button></div>';
+}
+function sheetPeriod(sh){
+  const p = sh.id ? S.profile.periods.find(x => x.id === sh.id) : null;
+  return '<h2>' + (p ? '修改經期' : '新增過去的經期') + '</h2>' +
+    '<div class="row"><label class="fld" style="flex:1">第一天<input type="date" id="pe-start" max="' + D.today() + '" value="' + (p ? p.start : '') + '"></label>' +
+    '<label class="fld" style="flex:1">最後一天<input type="date" id="pe-end" max="' + D.today() + '" value="' + (p?.end || '') + '"></label></div>' +
+    '<p class="small muted">還沒結束的話，最後一天可以留空。</p>' +
+    '<div class="row"><button class="btn primary" data-act="savePeriod" data-id="' + (p ? p.id : '') + '">儲存</button>' + (p ? '<button class="btn ghost danger" data-act="delPeriod" data-id="' + p.id + '">刪除這次紀錄</button>' : '') + '<button class="btn ghost" data-act="close">取消</button></div>';
+}
+function sheetLogin(){
+  return '<div class="row between"><h2>連不上雲端</h2><button class="btn sm ghost" data-act="close">關閉</button></div>' +
+    '<p>目前連不上後端，紀錄只存在這台裝置。後端可能正在喚醒，等半分鐘再試一次；一直不行的話，回到入口頁重新登入。</p>' +
+    '<div class="row"><button class="btn primary" data-act="retryLogin">重新連線</button><a class="btn" href="../">回入口頁</a></div>' +
+    '<p class="small muted">這台裝置上已經記錄的資料不會消失，連上雲端後可以選擇上傳。</p>';
+}
+function sheetDietPick(sh){
+  return '<h2>哪一位是你？</h2><p class="small muted">備份檔裡有 ' + sh.profiles.length + ' 位使用者，只會匯入你選的那一位。</p>' +
+    '<div class="chips">' + sh.profiles.map((p, i) => '<button class="chip" data-act="dietPick" data-v="' + i + '">' + esc(p.name || '未命名') + '</button>').join('') + '</div><button class="btn ghost" data-act="close">取消</button>';
+}
+
+/* ---------- period actions ---------- */
+function newPeriodOverlap(start, end, ignoreId){
+  return S.profile.periods.find(p => p.id !== ignoreId && !(end && end < p.start) && !(start > (p.end || D.add(p.start, 14))));
+}
+function doStart(date){
+  if (!D.ok(date) || date > D.today()) return toast('請選今天或之前的日期。');
+  const ps = sortedPeriods(S.profile);
+  const hit = ps.find(p => date >= p.start && date <= (p.end || (p === ps[ps.length - 1] ? D.today() : p.start)));
+  if (hit && hit.start === date) return toast('這天已經是經期第一天了。');
+  if (hit && hit.end) return toast('這天已經在 ' + D.md(hit.start) + ' 開始的經期裡。要調整請按「修改」。');
+  const prev = ps.filter(p => p.start < date).pop();
+  if (prev && !prev.end){
+    if (D.diff(prev.start, date) < 15) return toast(D.md(prev.start) + ' 開始的經期還沒記錄結束日，請先記錄結束日。', 5000);
+    S.profile.periods.find(x => x.id === prev.id).end = D.add(prev.start, Math.min(compute(S.profile).avgPeriod, D.diff(prev.start, date)) - 1);
+  }
+  const next = ps.find(p => p.start > date);
+  if (next && D.diff(date, next.start) < 15) return toast('離 ' + D.md(next.start) + ' 那次太近了，請到「統計」修改那筆紀錄。');
+  S.profile.periods.push({ id: uid8(), start: date, end: null });
+  saveProfile();
+  toast('已記錄 ' + D.md(date) + ' 是第一天，預測已更新。');
+}
+function doEnd(date){
+  if (!D.ok(date) || date > D.today()) return toast('請選今天或之前的日期。');
+  const ps = sortedPeriods(S.profile);
+  const p = ps.filter(x => x.start <= date && D.diff(x.start, date) <= 15).pop();
+  if (!p) return toast('這天前 15 天內沒有經期開始的紀錄，請先記錄第一天。');
+  const orig = S.profile.periods.find(x => x.id === p.id);
+  orig.end = date;
+  saveProfile();
+  toast('已記錄 ' + D.md(date) + ' 結束，這次共 ' + (D.diff(p.start, date) + 1) + ' 天。');
+}
+
+/* ---------- diet import ---------- */
+async function readDiet(file){
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast('這個檔案讀不出來，請選大小豬健康食記的備份檔（.json）。', 5000); }
+  if (data?.app !== 'dxz-food-log' || !Array.isArray(data.meals)) return toast('這不是大小豬健康食記的備份檔。', 5000);
+  const profiles = (data.profiles || []).filter(p => p && p.id);
+  if (!profiles.length) return toast('備份檔裡沒有使用者資料。');
+  const mine = profiles.filter(p => /^(f|female|女)/i.test(String(p.sex || p.gender || '')));
+  if (profiles.length === 1) return importDiet(data, profiles[0]);
+  openSheet({ type: 'dietPick', data, profiles: mine.length ? mine.concat(profiles.filter(p => !mine.includes(p))) : profiles });
+}
+function importDiet(data, prof){
+  const days = {};
+  const add = (d, k, v) => { if (!D.ok(d) || !(v > 0)) return; (days[d] = days[d] || { kcal: 0, sugar: 0, sodium: 0, water: 0 })[k] += v; };
+  (data.meals || []).filter(m => m.profileId === prof.id).forEach(m => { const t = m.totals || {}; add(m.date, 'kcal', +t.kcal || 0); add(m.date, 'sugar', +t.sugar || 0); add(m.date, 'sodium', +t.sodium || 0); });
+  (data.water || []).filter(w => w.profileId === prof.id).forEach(w => { const ml = +w.ml || +w.amount || +w.cc || (+w.cups ? w.cups * 250 : 0); add(w.date, 'water', ml); });
+  const ds = Object.keys(days).sort();
+  if (!ds.length) return toast('備份檔裡沒有 ' + (prof.name || '這位使用者') + ' 的飲食紀錄。', 5000);
+  const cut = D.add(ds[ds.length - 1], -365), kept = {};
+  ds.filter(d => d >= cut).forEach(d => { const v = days[d]; kept[d] = { kcal: Math.round(v.kcal), sugar: Math.round(v.sugar * 10) / 10, sodium: Math.round(v.sodium), water: Math.round(v.water) }; });
+  S.diet = { importedAt: Date.now(), profileName: String(prof.name || '').slice(0, 40), days: kept };
+  writeDoc('diet', S.diet); scheduleShare();
+  closeSheet(); render();
+  toast('已匯入 ' + Object.keys(kept).length + ' 天的飲食資料。');
+}
+
+/* ---------- calendar file ---------- */
+function icsFile(){
+  const st = compute(S.profile), s = settings();
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const dv = d => d.replace(/-/g, '');
+  const ev = (d, title, desc, k) => ['BEGIN:VEVENT', 'UID:ptk-' + k + '-' + dv(d) + '@period-diary', 'DTSTAMP:' + stamp, 'DTSTART;VALUE=DATE:' + dv(d), 'DTEND;VALUE=DATE:' + dv(D.add(d, 1)), 'SUMMARY:' + title, 'DESCRIPTION:' + desc, 'TRANSP:TRANSPARENT',
+    'BEGIN:VALARM', 'ACTION:DISPLAY', 'DESCRIPTION:' + title, 'TRIGGER:PT9H', 'END:VALARM', 'END:VEVENT'].join('\r\n');
+  const out = [];
+  for (let c = 0; c < 3; c++){
+    const start = D.add(st.nextStart, c * st.avgCycle);
+    if (start >= D.today()) out.push(ev(start, '預計經期第一天', '有來的話記得打開小豬經期日記記錄', 'p' + c));
+    const pms = D.add(start, -s.pmsDays); if (pms > D.today()) out.push(ev(pms, 'PMS 期開始', '接下來幾天身體和情緒可能比較敏感', 'm' + c));
+  }
+  const lateDay = D.add(st.nextStart, s.lateDays);
+  if (lateDay >= D.today()) out.push(ev(lateDay, '月經還沒來嗎？', '已經比預計晚 ' + s.lateDays + ' 天。如果已經來了，請刪除這則提醒並打開小豬經期日記補記第一天。', 'l0'));
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//period-diary//ZH-TW', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:小豬經期日記'].concat(out, ['END:VCALENDAR']).join('\r\n');
+}
+async function save(filename, data, type){
+  const dl = window.claude ? await window.claude.use('downloads').catch(() => null) : null;
+  try {
+    if (dl) await dl.save({ filename, data: new Blob([data], { type }) });
+    else { const u = URL.createObjectURL(new Blob([data], { type })); const a = document.createElement('a'); a.href = u; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); }
+    return true;
+  } catch (e) { if (e?.code !== 'declined') toast(e?.code === 'rate_limited' ? '已經有一個下載視窗開著，請先處理它。' : '這裡無法下載檔案。'); return false; }
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act, v = b.dataset.v;
+  if (a === 'scrim'){ if (e.target === b) closeSheet(); return; }
+  if (S.readOnly && ['setup', 'doStart', 'doEnd', 'dsave', 'dclear', 'savePeriod', 'delPeriod', 'share', 'step', 'saveSetup', 'usePms', 'markStart', 'markEnd'].includes(a)){ toast('你的權限只能看，無法修改。'); return; }
+  switch (a){
+    case 'tab': S.view = v; render(); window.scrollTo(0, 0); break;
+    case 'setup': {
+      const start = $('#su-start').value, cyc = Math.min(60, Math.max(18, +$('#su-cycle').value || 28)), per = Math.min(12, Math.max(2, +$('#su-period').value || 5));
+      if (!D.ok(start) || start > D.today()) return toast('請選最近一次月經的第一天。');
+      const end = D.add(start, per - 1);
+      S.profile = { v: 1, setup: { cycle: cyc, period: per }, settings: { pmsDays: 7, lateDays: 3, share: Object.fromEntries(SHARE_ITEMS.map(x => [x[0], true])) }, periods: [{ id: uid8(), start, end: end < D.today() ? end : null }] };
+      S.view = 'today'; saveProfile(); toast('設定完成！'); break; }
+    case 'startSheet': openSheet({ type: 'start' }); break;
+    case 'endSheet': openSheet({ type: 'end' }); break;
+    case 'doStart': { const d = $('#mk-date').value; closeSheet(); doStart(d); break; }
+    case 'doEnd': { const d = $('#mk-date').value; closeSheet(); doEnd(d); break; }
+    case 'markStart': closeSheet(); doStart(b.dataset.d); break;
+    case 'markEnd': closeSheet(); doEnd(b.dataset.d); break;
+    case 'day': { const d = b.dataset.d, l = logOf(d); openSheet({ type: 'day', date: d, draft: l ? JSON.parse(JSON.stringify(l)) : { sym: [] } }); break; }
+    case 'dset': S.sheet.draft[b.dataset.k] = +v; S.sheet.draft.note = $('#d-note')?.value || ''; renderSheet(); break;
+    case 'dsym': { const dr = S.sheet.draft; dr.sym = dr.sym || []; dr.sym = dr.sym.includes(v) ? dr.sym.filter(x => x !== v) : dr.sym.concat(v); dr.note = $('#d-note')?.value || ''; renderSheet(); break; }
+    case 'dmood': { const dr = S.sheet.draft; dr.mood = dr.mood === v ? '' : v; dr.note = $('#d-note')?.value || ''; renderSheet(); break; }
+    case 'dsave': {
+      const dr = S.sheet.draft; dr.note = ($('#d-note')?.value || '').trim().slice(0, 300);
+      const e2 = { flow: dr.flow || 0, pain: dr.pain || 0, sym: dr.sym || [], mood: dr.mood || '', note: dr.note, t: Date.now() };
+      const empty = !e2.flow && !e2.pain && !e2.sym.length && !e2.mood && !e2.note;
+      const d = S.sheet.date; closeSheet(); saveLog(d, empty ? null : e2); toast(empty ? '這天沒有記錄任何內容。' : '已儲存 ' + D.md(d) + ' 的紀錄。'); break; }
+    case 'dclear': { const d = S.sheet.date; closeSheet(); saveLog(d, null); toast('已清除。'); break; }
+    case 'close': closeSheet(); break;
+    case 'login': loginFlow(false); break;
+    case 'retryLogin': closeSheet(); loginFlow(true); break;
+    case 'perms': (async () => { const pm = window.claude ? await window.claude.use('permissions').catch(() => null) : null;
+      if (!pm) return toast('這裡無法開啟權限設定，請用網頁右上角的選單調整權限。', 5000);
+      try { await pm.manage(); closeSheet(); loginFlow(true); } catch (e) { toast('權限設定開不起來，請用網頁右上角的選單調整權限。', 5000); } })(); break;
+    case 'migrateYes': { const L = S.sheet.local; closeSheet();
+      S.profile = JSON.parse(JSON.stringify(L.profile)); writeDoc('profile', S.profile);
+      for (const k in (L.logDocs || {})) if (L.logDocs[k]?.days && Object.keys(L.logDocs[k].days).length){ S.logDocs[k] = L.logDocs[k]; writeDoc(k, L.logDocs[k]); }
+      if (L.diet){ S.diet = L.diet; writeDoc('diet', L.diet); }
+      scheduleShare(); render(); toast('已上傳到雲端。'); break; }
+    case 'calMode': S.calMode = v; render(); break;
+    case 'mon': { const [y, m] = S.calMonth.split('-').map(Number); const t = new Date(Date.UTC(y, m - 1 + +v, 1)); S.calMonth = t.getUTCFullYear() + '-' + pad(t.getUTCMonth() + 1); render(); break; }
+    case 'yr': S.calMonth = (+S.calMonth.slice(0, 4) + +v) + S.calMonth.slice(4); render(); break;
+    case 'goMonth': S.calMonth = v; S.calMode = 'month'; render(); break;
+    case 'addPast': openSheet({ type: 'period' }); break;
+    case 'editPeriod': openSheet({ type: 'period', id: b.dataset.id }); break;
+    case 'savePeriod': {
+      const id = b.dataset.id, start = $('#pe-start').value, end = $('#pe-end').value || null;
+      if (!D.ok(start)) return toast('請選第一天。');
+      if (start > D.today() || (end && end > D.today())) return toast('不能選未來的日期。');
+      if (end && end < start) return toast('最後一天不能早於第一天。');
+      if (end && D.diff(start, end) > 14) return toast('一次經期最多記錄 15 天，請確認日期。');
+      const ov = newPeriodOverlap(start, end, id);
+      if (ov) return toast('跟 ' + D.md(ov.start) + ' 那次重疊了，請調整日期。');
+      if (id){ const p = S.profile.periods.find(x => x.id === id); p.start = start; p.end = end; }
+      else S.profile.periods.push({ id: uid8(), start, end });
+      closeSheet(); saveProfile(); toast('已儲存，預測已更新。'); break; }
+    case 'delPeriod': { const id = b.dataset.id, p = S.profile.periods.find(x => x.id === id);
+      openSheet({ type: 'confirm', title: '刪除這次經期？', text: p.start.replace(/-/g, '/') + ' 開始的紀錄會刪除，每天的症狀紀錄會保留。', yes: '刪除', danger: true, run: () => { S.profile.periods = S.profile.periods.filter(x => x.id !== id); saveProfile(); toast('已刪除。'); } }); break; }
+    case 'confirmYes': { const r = S.sheet.run; closeSheet(); r(); break; }
+    case 'share': { if (S.mode !== 'cloud') return; const s = settings(); s.share[b.dataset.k] = !s.share[b.dataset.k]; S.profile.settings = s; saveProfile(); break; }
+    case 'step': { const s = settings(), k = b.dataset.k, lim = { pmsDays: [2, 14], lateDays: [1, 14] }[k]; s[k] = Math.min(lim[1], Math.max(lim[0], s[k] + +v)); S.profile.settings = s; saveProfile(); break; }
+    case 'usePms': { const s = settings(); s.pmsDays = +v; S.profile.settings = s; saveProfile(); toast('PMS 期改成 ' + v + ' 天。'); break; }
+    case 'saveSetup': { const c = +$('#cfg-cycle').value, p = +$('#cfg-period').value;
+      if (!(c >= 18 && c <= 60) || !(p >= 2 && p <= 12)) return toast('週期請填 18–60 天，經期請填 2–12 天。');
+      S.profile.setup = { cycle: c, period: p }; $('#cfg-cycle').blur(); saveProfile(); toast('已儲存預設值。'); break; }
+    case 'ics': save('小豬經期提醒.ics', icsFile(), 'text/calendar').then(ok => ok && toast('下載後打開檔案，就能加到行事曆。', 5000)); break;
+    case 'dietImport': $('#dietFile').click(); break;
+    case 'periodImport': $('#periodFile').click(); break;
+    case 'dietPick': importDiet(S.sheet.data, S.sheet.profiles[+v]); break;
+    case 'dietClear': openSheet({ type: 'confirm', title: '刪除飲食資料？', text: '只會刪除這裡匯入的副本，大小豬健康食記裡的紀錄不受影響。', yes: '刪除', danger: true, run: () => { S.diet = null; writeDoc('diet', DEL); scheduleShare(); render(); toast('已刪除飲食資料。'); } }); break;
+    case 'export': save('小豬經期日記備份_' + D.today() + '.json', JSON.stringify({ app: 'period-diary', version: 1, exported: new Date().toISOString(), profile: S.profile, logs: allLogs(), diet: S.diet }, null, 1), 'application/json'); break;
+  }
+});
+document.addEventListener('focusout', () => { setTimeout(() => { if (S.pendingRender && !(document.activeElement && /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))) render(); }, 0); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && S.sheet) closeSheet(); });
+$('#dietFile').addEventListener('change', e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) readDiet(f); });
+$('#periodFile').addEventListener('change', e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) importPeriodBackup(f); });
+
+/* ---------- 匯入舊「小豬經期日記」的備份（合併，不刪除） ---------- */
+async function importPeriodBackup(file){
+  let data;
+  try { data = JSON.parse(await file.text()); } catch (e) { return toast('這個檔案讀不出來，請選小豬經期日記的備份檔（.json）。', 5000); }
+  if (data?.app !== 'period-diary' || !data.profile || !Array.isArray(data.profile.periods)) return toast('這不是小豬經期日記的備份檔。', 5000);
+  if (S.mode !== 'cloud') return toast('連上雲端後才能匯入。');
+  const cur = S.profile ? JSON.parse(JSON.stringify(S.profile)) : null;
+  const base = cur || { v: 1, setup: data.profile.setup || { cycle: 28, period: 5 }, settings: data.profile.settings || { pmsDays: 7, lateDays: 3, share: {} }, periods: [] };
+  const have = new Set(base.periods.map(p => p.start));
+  let addedP = 0;
+  data.profile.periods.filter(p => p && D.ok(p.start)).forEach(p => {
+    if (have.has(p.start)) return;
+    base.periods.push({ id: p.id || uid8(), start: p.start, end: D.ok(p.end) ? p.end : null }); have.add(p.start); addedP++;
+  });
+  S.profile = base; saveProfile();
+  const logs = data.logs && typeof data.logs === 'object' ? data.logs : {};
+  const byMonth = {};
+  let addedL = 0;
+  for (const d in logs){ if (!D.ok(d) || !logs[d] || logOf(d)) continue; (byMonth['log-' + d.slice(0, 7)] = byMonth['log-' + d.slice(0, 7)] || {})[d] = logs[d]; addedL++; }
+  for (const k in byMonth){
+    const doc = S.logDocs[k] ? JSON.parse(JSON.stringify(S.logDocs[k])) : { days: {} };
+    doc.days = Object.assign({}, byMonth[k], doc.days || {});
+    S.logDocs[k] = doc; writeDoc(k, doc);
+  }
+  if (data.diet && data.diet.days && !S.diet){ S.diet = data.diet; writeDoc('diet', S.diet); }
+  scheduleShare(); render();
+  toast('匯入完成：新增 ' + addedP + ' 次經期、' + addedL + ' 天的身體紀錄。', 6000);
+}
+
+/* ---------- 飲食對照：直接讀飲食頁（/food）的紀錄 ---------- */
+function watchFoodDiet(db, id){
+  const base = 'data/users/' + id;
+  let profiles = [], meals = [], water = [];
+  const recompute = () => {
+    const prof = profiles.find(p => p.sex === 'F') || profiles[0];
+    const days = {};
+    const add = (d, k, v) => { if (!D.ok(d) || !(v > 0)) return; const o = days[d] = days[d] || { kcal: 0, sugar: 0, sodium: 0, water: 0 }; o[k] = (o[k] || 0) + v; };
+    if (prof){
+      meals.filter(m => m.profileId === prof.id).forEach(m => { const t = m.totals || {}; ['kcal', 'sugar', 'sodium', 'iron'].forEach(k => add(m.date, k, +t[k] || 0)); });
+      water.filter(w => w.profileId === prof.id).forEach(w => add(w.date, 'water', +w.ml || 0));
+    }
+    for (const d in days){ const v = days[d]; v.kcal = Math.round(v.kcal); v.sugar = Math.round(v.sugar * 10) / 10; v.sodium = Math.round(v.sodium); v.water = Math.round(v.water); if (typeof v.iron === 'number') v.iron = Math.round(v.iron * 10) / 10; }
+    S.dsync = Object.keys(days).length ? { days, updated: Date.now(), profileName: String(prof?.name || '') } : null;
+    if (!S.sheet) render(); else S.pendingRender = true;
+  };
+  const list = snap => snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  db.unprefixed.collection(base + '/profiles/list').onSnapshot(s => { profiles = list(s); recompute(); }, () => {});
+  db.unprefixed.collection(base + '/meals/list').where('date', '>=', D.add(D.today(), -365)).onSnapshot(s => { meals = list(s); recompute(); }, () => {});
+  db.unprefixed.collection(base + '/water/list').where('date', '>=', D.add(D.today(), -365)).onSnapshot(s => { water = list(s); recompute(); }, () => {});
+}
+
+/* ---------- boot ---------- */
+async function connectCloud(){
+  const C = window.claude;
+  let db = null, user = null;
+  if (C && C.use){ try { [db, user] = await Promise.all([C.use('db'), C.use('user')]); } catch (e) {} }
+  const id = user ? await user.id() : null;
+  S.isOwner = user ? await user.isOwner() : false;
+  if (!(db && id)) return false;
+  const local = S.mode === 'local' && S.profile ? { profile: S.profile, logDocs: S.logDocs, diet: S.diet } : null;
+  S.loaded = false; S.profile = null; S.logDocs = {}; S.diet = null;
+  {
+    S.mode = 'cloud'; S.db = db; S.uid = id; S.user = user;
+    let first = true;
+    db.collection('data/users/' + id).onSnapshot(snap => {
+      const logDocs = {}; let prof = null, diet = null;
+      snap.docs.forEach(d => { const x = d.data(); if (!x) return; if (d.id === 'profile') prof = x; else if (d.id === 'diet') diet = x; else if (d.id.startsWith('log-')) logDocs[d.id] = x; });
+      S.profile = prof ? JSON.parse(JSON.stringify(prof)) : null;
+      S.logDocs = JSON.parse(JSON.stringify(logDocs)); S.diet = diet;
+      if (first && (!snap.metadata.fromCache || snap.size)){ first = false; S.loaded = true; scheduleShare();
+        if (local && !S.profile){ S.sheet = { type: 'migrate', local }; renderSheet(); } }
+      if (!S.sheet) render(); else S.pendingRender = true;
+    }, err => { toast('雲端連線中斷，請重新整理頁面。', 6000); });
+    {
+      db.collection('share').onSnapshot(async snap => {
+        S.shared = snap.docs.filter(d => d.id !== id && d.data()).map(d => ({ id: d.id, data: d.data() }));
+        if (S.shared.length){ try { const ps = await user.profiles(S.shared.map(x => x.id)); for (const k in ps) if (ps[k].name) S.names[k] = ps[k].name; } catch (e) {} }
+        if (S.shared.length && !S.profile && S.view !== 'partner') S.view = 'partner';
+        if (!S.sheet) render();
+      }, () => {});
+    }
+    watchFoodDiet(db, id);
+    db.doc('share/' + id).get().then(d => { lastShare = sigOf(d.exists ? d.data() : null); scheduleShare(); }).catch(() => { lastShare = null; });
+  }
+  render();
+  return true;
+}
+async function loginFlow(retry){
+  if (S.connecting) return;
+  S.connecting = true; render();
+  const C = window.claude;
+  const pm = C && C.use ? await C.use('permissions').catch(() => null) : null;
+  if (pm){
+    try {
+      const st = await pm.state();
+      const need = ['db', 'user'].filter(k => st[k] === 'prompt');
+      if (need.length) await pm.request(need);
+    } catch (e) {}
+  }
+  const ok = await connectCloud();
+  S.connecting = false; render();
+  if (ok) toast('已連上雲端。');
+  else openSheet({ type: 'login' });
+}
+async function boot(){
+  const ok = await connectCloud();
+  if (!ok){ S.mode = 'local'; localLoad(); S.loaded = true; render(); }
+}
+render();
+boot();
+})();
+</script>
+
+</body></html>

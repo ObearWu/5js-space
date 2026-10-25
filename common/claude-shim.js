@@ -12,9 +12,15 @@
  *
  * 即時同步：舊資料庫會主動推送變化；這裡改成每隔幾秒向後端要「上次之後
  * 有變動的文件」。自己寫入的資料會先直接反映到畫面上，不用等下一輪。
+ *
+ * 經期（/period）也是從 Artifact 搬來的，共用這支檔案。載入前設定
+ * window.CLAUDE_SHIM = { module: "period", prefix: "period/" }：所有集合路徑
+ * 前面加上 period/，跟飲食的資料分開（後端依前綴判斷權限）。db.unprefixed
+ * 可以讀不加前綴的路徑，經期頁用它直接讀飲食紀錄。
  */
 (() => {
   const { API_BASE } = window.FIVEJS_CONFIG;
+  const OPT = Object.assign({ module: "food", prefix: "" }, window.CLAUDE_SHIM || {});
   const PHOTO_PREFIX = `${API_BASE}/api/photos/`;
   const POLL_MS = 12000;
 
@@ -24,7 +30,7 @@
   function me() {
     if (!mePromise) mePromise = (async () => {
       for (let i = 0; ; i++) {
-        try { return await FiveJS.requireLogin("food"); }
+        try { return await FiveJS.requireLogin(OPT.module); }
         catch (e) {
           if (i >= 12) throw e;
           const el = document.getElementById("storeStatus");
@@ -50,7 +56,7 @@
       if (e?.name === "AbortError") throw { code: "cancelled", message: "已停止" };
       throw netErr();
     }
-    if (res.status === 401) { FiveJS.setToken(null); location.href = "../?next=food"; throw netErr("登入已逾期"); }
+    if (res.status === 401) { FiveJS.setToken(null); location.href = `../?next=${OPT.module}`; throw netErr("登入已逾期"); }
     return res;
   }
   async function postJSON(path, body) {
@@ -86,7 +92,7 @@
 
   function snapshotOf(map) {
     const docs = [...map.entries()].map(([id, data]) => ({ id, data: () => data }));
-    return { docs, empty: !docs.length, size: docs.length };
+    return { docs, empty: !docs.length, size: docs.length, metadata: { fromCache: false } };
   }
   function emit(l) {
     if (l.emitTimer) return;
@@ -167,8 +173,14 @@
   }
 
   function docRef(c, id) {
+    const pick = snap => {
+      const d = snap.docs.find(x => x.id === id);
+      return { id, exists: !!d, data: () => (d ? d.data() : undefined) };
+    };
     return {
       id,
+      get() { return query(c, []).get().then(pick); },
+      onSnapshot(cb, err) { return query(c, []).onSnapshot(snap => cb(pick(snap)), err); },
       set(body) {
         const data = { ...body }; delete data.id;
         applyLocal(c, id, data);
@@ -195,10 +207,11 @@
       },
     };
   }
-  const db = {
-    collection: path => query(path, []),
-    doc(path) { const i = path.lastIndexOf("/"); return docRef(path.slice(0, i), path.slice(i + 1)); },
-  };
+  const makeDb = prefix => ({
+    collection: path => query(prefix + path, []),
+    doc(path) { const i = path.lastIndexOf("/"); return docRef(prefix + path.slice(0, i), path.slice(i + 1)); },
+  });
+  const db = Object.assign(makeDb(OPT.prefix), { unprefixed: makeDb("") });
 
   // ---------- user ----------
   function userApi(info) {
@@ -207,6 +220,7 @@
     return {
       id: async () => String(info.user.id),
       can: async () => true,
+      isOwner: async () => true,
       profiles: async ids => Object.fromEntries(ids.map(i => [i, { name: names[i] || "另一半" }])),
     };
   }
