@@ -100,4 +100,4 @@ fitness/index.html    運動：運動紀錄、重訓組數、體重曲線（跟�
 
 ## Part D. 後端網址
 
-`common/config.js` 的 `API_BASE` 預設是 `https://5js-space-backend.onrender.com`。如果 Render 建立服務時名稱被用掉、網址不一樣，要改成 Render 實際給的網址。
+`common/config.js` 的 `API_BASE` 是 `https://fivejs-space-backend.onrender.com`（Render 實際給的網址；服務名稱開頭是數字，Render 自動改成 fivejs）。
