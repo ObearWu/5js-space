@@ -64,7 +64,7 @@ a{color:var(--berry)}
 .btn.block{width:100%}
 .btn.sm{min-height:36px;padding:6px 12px;font-size:14px}
 .btn[disabled]{opacity:.5;cursor:default}
-input[type=date],input[type=number],select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:42px;max-width:100%}
+input[type=date],input[type=number],input[type=text],select,textarea{font:inherit;color:var(--ink);background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:42px;max-width:100%}
 textarea{width:100%;min-height:70px;resize:vertical}
 label.fld{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
 /* hero */
@@ -169,6 +169,13 @@ nav.tabs svg{width:22px;height:22px}
 .tip{background:var(--sunk);border-radius:12px;padding:10px 12px;font-size:14px}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
 .kv dt{color:var(--muted)} .kv dd{margin:0}
+.care{border-color:color-mix(in srgb,var(--emb) 45%,var(--line))}
+.care h3{font-size:15px;margin-top:4px}
+.sug{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.sug li{display:flex;gap:8px}
+.sug li::before{content:"";flex:none;width:8px;height:8px;margin-top:.55em;border-radius:50%;background:var(--c);box-shadow:0 0 8px var(--c)}
+.care2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:360px){.care2{grid-template-columns:1fr}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="../common/hq-port.css">
@@ -676,7 +683,7 @@ function vSet(){
 
 function vPartner(){
   if (!S.shared.length) return '<section class="card"><p class="muted">還沒有人分享狀態給你。</p></section>';
-  return S.shared.map(({ id, data }) => partnerCard(id, data)).join('');
+  return S.shared.map(({ id, data }) => partnerCard(id, data) + careCard(id, data)).join('');
 }
 function partnerCard(id, d){
   const f = new Set(d.fields || []), name = S.names[id] || '她';
@@ -719,6 +726,142 @@ function partnerCard(id, d){
   return html;
 }
 
+/* ---------- 陪伴建議（只有看「她的狀態」的人看得到，也就是大豬） ----------
+ * 依她分享的週期推算現在在哪一段，從 CARE 的清單每天輪流挑 3 個陪伴、甜點、菜餚；
+ * 有分享症狀／心情／飲食時再加碼。口味偏好存在看的人自己的資料（period/data/users/<我>/care），
+ * 她看不到。AI 客製是按了才跑，結果只留在這台裝置當天。 */
+const CARE = {
+  p1: { label: '經期 1–2 天',
+    care: ['幫她準備熱敷袋，腰也可以敷', '今天行程排輕鬆，陪她窩著看劇', '家事你先包辦，不用問「要不要幫忙」', '睡前幫她泡一杯熱飲放床邊', '幫她揉揉腰或小腿', '準備好止痛藥和溫開水放她看得到的地方', '少問「是不是那個來了」，直接照顧', '幫她買衛生用品備著', '晚上早點關燈，陪她一起睡'],
+    dessert: ['熱紅豆湯', '桂圓紅棗茶', '黑糖薑茶', '黑巧克力一小塊', '熱薑汁豆花', '紫米粥', '熱可可'],
+    dish: ['薑絲蛤蜊湯', '紅燒牛腩（補鐵）', '菠菜豬肝湯', '麻油雞湯（不加酒）', '熱稀飯配蒸蛋', '牛肉麵', '當歸羊肉湯（少油）'],
+    avoid: ['冰品、冰飲', '酒', '太鹹的零食', '太辣的食物'] },
+  p2: { label: '經期 3 天後',
+    care: ['陪她短程散步，曬曬太陽', '安排輕鬆的約會，例如咖啡廳', '提醒她早點睡、多喝溫水', '主動問她今天身體好一點了嗎', '幫她排一部想看的電影'],
+    dessert: ['芝麻湯圓', '紅棗銀耳湯', '熱可可', '桂圓蛋糕', '燕麥牛奶'],
+    dish: ['鮭魚', '番茄炒蛋', '深綠色蔬菜', '清燉牛肉湯', '香煎雞腿配地瓜'],
+    avoid: ['冰飲'] },
+  follicular: { label: '濾泡期',
+    care: ['她精神變好，適合安排出遊', '一起去運動或爬山', '試一間新餐廳', '計畫一個小旅行', '一起做一件新鮮的事'],
+    dessert: ['水果優格', '莓果鬆餅', '仙草凍', '芒果冰（不要太冰）', '水果塔'],
+    dish: ['雞胸沙拉', '海鮮義大利麵', '豆腐料理', '壽司', '越南河粉'],
+    avoid: [] },
+  fertile: { label: '易孕期',
+    care: ['她精神最好的時候，適合大一點的約會', '一起拍照、出去走走', '多稱讚她', '安排一個浪漫的晚餐'],
+    dessert: ['新鮮水果', '抹茶甜點', '優格', '水果茶'],
+    dish: ['鮭魚', '酪梨沙拉', '堅果拌菜', '烤蔬菜', '清蒸魚'],
+    avoid: [] },
+  luteal: { label: '黃體期',
+    care: ['多陪伴，作息規律一點', '一起散步聊天', '幫她分擔一些瑣事', '提早幫她規劃好下次經期那幾天的行程'],
+    dessert: ['烤地瓜', '燕麥餅乾', '香蕉', '無糖豆花'],
+    dish: ['糙米飯', '全穀便當', '雞肉料理', '南瓜湯', '豆腐蔬菜鍋'],
+    avoid: ['太油炸的食物'] },
+  pms: { label: 'PMS 期',
+    care: ['多一點耐心，少說教', '她情緒來的時候不要爭論對錯', '主動問她現在需要什麼', '接住她的情緒，先抱抱', '準備她愛的零食', '幫她把行程排鬆一點', '說一句「辛苦了」比講道理有用'],
+    dessert: ['黑巧克力（控制份量）', '香蕉燕麥', '熱可可', '地瓜湯', '堅果小點'],
+    dish: ['南瓜料理', '深綠葉菜', '糙米飯', '雞肉蔬菜湯', '清蒸魚（少鹽）'],
+    avoid: ['高鹽零食（容易水腫）', '咖啡太多', '酒'] },
+  late: { label: '晚來',
+    care: ['先關心她的感受，不要追問', '陪她一起決定要不要驗孕或看醫生', '讓她知道不管怎樣你都在', '不要開玩笑帶過'],
+    dessert: ['溫和的熱飲', '熱牛奶', '紅棗茶'],
+    dish: ['清淡溫熱的湯', '蒸蛋', '稀飯'],
+    avoid: ['酒'] }
+};
+const careKeyOf = (ph, st) => !ph ? null : ph.k === 'period' ? (st.periodDay <= 2 ? 'p1' : 'p2') : ph.k === 'late' ? 'late' : ph.k === 'pms' ? 'pms' : ph.k === 'fertile' ? 'fertile' : ph.label === '濾泡期' ? 'follicular' : 'luteal';
+// 她分享出來的週期 → 現在在哪一段（跟 partnerCard 一樣的推算）
+function partnerPhase(d){
+  if (!d.cycle) return null;
+  const pseudo = { setup: { cycle: d.cycle.avgCycle, period: d.cycle.avgPeriod }, periods: (d.periods && d.periods.length ? d.periods : [{ start: d.cycle.lastStart, end: d.cycle.lastEnd }]).map((p, i) => ({ id: 'p' + i, start: p.start, end: p.end })) };
+  const st = compute(pseudo); st.avgCycle = d.cycle.avgCycle; st.avgPeriod = d.cycle.avgPeriod;
+  st.nextStart = D.add(st.last.start, st.avgCycle); st.untilNext = D.diff(st.today, st.nextStart); st.late = st.untilNext < 0 ? -st.untilNext : 0; st.ovu = D.add(st.nextStart, -14);
+  return { st, ph: phaseOf(st, { pmsDays: d.cycle.pmsDays || 7 }) };
+}
+const hashStr = s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return h >>> 0; };
+const prefList = s => String(s || '').split(/[，,、\s]+/).map(x => x.trim()).filter(Boolean);
+// 從清單挑 n 個：避開她不吃的，她喜歡的優先，其餘依日期和「換一組」次數輪流
+function pickCare(list, n, seed, prefs){
+  const no = prefList(prefs.dislikes), yes = prefList(prefs.likes);
+  const ok = list.filter(x => !no.some(w => x.includes(w)));
+  const fav = ok.filter(x => yes.some(w => x.includes(w)));
+  const rest = ok.filter(x => !fav.includes(x)).sort((a, b) => hashStr(seed + a) - hashStr(seed + b));
+  return fav.concat(rest).slice(0, n);
+}
+// 依她分享的症狀、心情、飲食加碼
+function careExtras(d){
+  const out = { care: [], dessert: [], dish: [], avoid: [], warn: '' };
+  const days = Object.keys(d.recent || {}).sort().reverse().slice(0, 2).map(k => d.recent[k]);
+  const sym = new Set(days.flatMap(r => r.sym || [])), pain = Math.max(0, ...days.map(r => r.pain || 0)), moods = days.map(r => r.mood).filter(Boolean);
+  if (pain >= 2) out.care.push('她最近經痛明顯：熱敷、止痛藥先備著，讓她多躺');
+  if (days.length >= 2 && days.every(r => (r.pain || 0) >= 3)) out.warn = '她連續兩天以上「很痛」，可以溫和地提議陪她去看婦產科。';
+  if (sym.has('腰痠')) out.care.push('晚上幫她按按腰，或一起泡腳');
+  if (sym.has('脹氣')){ out.dish.push('溫熱的湯品'); out.avoid.push('豆類、汽水'); }
+  if (sym.has('嘴饞')) out.care.push('準備小份量的甜點，不要整盒');
+  if (sym.has('失眠')) out.dessert.push('睡前溫牛奶');
+  if (sym.has('疲倦')) out.care.push('她很累，約會改成在家，你負責張羅');
+  if (sym.has('頭痛')) out.care.push('房間燈光調暗，讓她安靜休息');
+  if (moods.some(m => ['低落', '焦慮', '煩躁', '敏感'].includes(m))) out.care.push('她心情比較' + moods.find(m => ['低落', '焦慮', '煩躁', '敏感'].includes(m)) + '，多聽她說，不急著給建議');
+  const diet = Object.keys(d.diet || {}).sort().reverse().slice(0, 3).map(k => d.diet[k]);
+  if (diet.length >= 2 && diet.reduce((a, x) => a + (x.sugar || 0), 0) / diet.length > 50) out.dessert.unshift('最近糖吃得比較多，甜點換成無糖豆花或水果');
+  return out;
+}
+function careCard(id, d){
+  const pp = partnerPhase(d);
+  const key = pp && careKeyOf(pp.ph, pp.st);
+  const name = S.names[id] || '她';
+  let html = '<section class="card care"><div class="row" style="justify-content:space-between"><h2>今天怎麼陪' + esc(name) + '</h2><span class="small muted">只有你看得到</span></div>';
+  if (!key) return html + '<p class="muted">' + esc(name) + '還沒有分享經期狀態或 PMS 期，等她開啟分享後，這裡會依她的週期給建議。</p></section>';
+  const set = CARE[key], prefs = S.care || {}, x = careExtras(d), seed = D.today() + ':' + (S.careShuffle || 0);
+  const ai = careAiGet(id);
+  const list = (arr, c) => '<ul class="sug" style="--c:' + c + '">' + arr.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
+  const care = ai ? ai.care : x.care.slice(0, 2).concat(pickCare(set.care, 3, seed + 'c', prefs)).slice(0, 4);
+  const dessert = ai ? ai.desserts : x.dessert.concat(pickCare(set.dessert, 3, seed + 'd', prefs)).slice(0, 3);
+  const dish = ai ? ai.dishes : x.dish.concat(pickCare(set.dish, 3, seed + 'm', prefs)).slice(0, 3);
+  const avoid = ai ? ai.avoid : [...new Set(set.avoid.concat(x.avoid))];
+  html += '<p class="small muted">' + (ai ? 'AI 依她最近的狀態想的' : '依「' + set.label + '」') + (pp.ph.k === 'period' ? '・經期第 ' + pp.st.periodDay + ' 天' : '') + '</p>';
+  if (ai && ai.summary) html += '<p class="tip">' + esc(ai.summary) + '</p>';
+  if (x.warn) html += alert('rose', '!', '<b>' + x.warn + '</b>');
+  html += '<h3>陪伴</h3>' + list(care, 'var(--emb)') +
+    '<div class="care2"><div><h3>甜點</h3>' + list(dessert, 'var(--gold)') + '</div><div><h3>菜餚</h3>' + list(dish, 'var(--envy)') + '</div></div>' +
+    (avoid.length ? '<h3>先避開</h3><p>' + esc(avoid.join('、')) + '</p>' : '') +
+    '<div class="row"><button class="btn sm ghost" data-act="careShuffle">換一組</button>' +
+    '<button class="btn sm primary" data-act="careAI" data-v="' + id + '"' + (S.careBusy ? ' disabled' : '') + '>' + (S.careBusy ? 'AI 想想中…' : ai ? 'AI 再想一組' : 'AI 依她最近狀態想') + '</button>' +
+    '<button class="btn sm ghost" data-act="carePrefs">口味偏好</button></div>';
+  const pl = prefList(prefs.likes), pd = prefList(prefs.dislikes);
+  if (pl.length || pd.length) html += '<p class="small muted">' + [pl.length ? '她喜歡：' + esc(pl.join('、')) : '', pd.length ? '不吃：' + esc(pd.join('、')) : ''].filter(Boolean).join('・') + '</p>';
+  return html + '<p class="small muted">這些是一般的照顧方向，不是醫療建議。</p></section>';
+}
+const careAiKey = id => 'care.ai.' + id + '.' + D.today();
+function careAiGet(id){ try { return JSON.parse(localStorage.getItem(careAiKey(id)) || 'null'); } catch (e) { return null; } }
+async function careAI(id){
+  const it = S.shared.find(x => x.id === id); if (!it || S.careBusy) return;
+  if (!S.sample){ try { S.sample = await window.claude.use('sample'); } catch (e) { return toast('現在無法使用 AI。'); } }
+  const d = it.data, pp = partnerPhase(d), prefs = S.care || {};
+  const recent = Object.keys(d.recent || {}).sort().reverse().map(k => { const r = d.recent[k]; return k + '：' + [r.flow ? '經血' + FLOW[r.flow] : '', r.pain ? PAIN[r.pain] : '', (r.sym || []).join('、'), r.mood ? '心情' + r.mood : ''].filter(Boolean).join('，'); });
+  const diet = Object.keys(d.diet || {}).sort().reverse().slice(0, 5).map(k => k + '：' + Math.round(d.diet[k].kcal || 0) + ' 大卡、糖 ' + Math.round(d.diet[k].sugar || 0) + ' 克');
+  const prompt = '你在幫一位男生照顧他的女朋友。她現在的週期階段：' + (pp ? pp.ph.label + (pp.ph.k === 'period' ? '（經期第 ' + pp.st.periodDay + ' 天）' : '') : '不清楚') + '。\n' +
+    (recent.length ? '她最近幾天的紀錄：\n' + recent.join('\n') + '\n' : '') + (diet.length ? '她最近吃的熱量與糖：\n' + diet.join('\n') + '\n' : '') +
+    (prefList(prefs.likes).length ? '她喜歡：' + prefList(prefs.likes).join('、') + '\n' : '') + (prefList(prefs.dislikes).length ? '她不吃：' + prefList(prefs.dislikes).join('、') + '（一定要避開）\n' : '') +
+    '請用台灣繁體中文、口語、具體可以馬上做的建議。甜點和菜餚用台灣常見、買得到或簡單做得出來的。不要給醫療診斷；很痛或異常時建議陪她看醫生。\n' +
+    '只回傳 JSON：{"summary":"一句話說明她現在的狀態和照顧重點","care":["陪伴建議 3 到 4 個"],"desserts":["3 個"],"dishes":["3 個"],"avoid":["0 到 3 個要避開的"]}';
+  S.careBusy = true; render();
+  try {
+    const r = await S.sample.json(prompt, { modelTier: 'quick' });
+    const no = prefList(prefs.dislikes);
+    const arr = v => Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim() && !no.some(w => x.includes(w))).slice(0, 4) : [];
+    const res = { summary: typeof r?.summary === 'string' ? r.summary : '', care: arr(r?.care), desserts: arr(r?.desserts).slice(0, 3), dishes: arr(r?.dishes).slice(0, 3), avoid: arr(r?.avoid).slice(0, 3) };
+    if (!res.care.length || !res.desserts.length || !res.dishes.length) throw { message: 'AI 回覆不完整，請再試一次。' };
+    try { localStorage.setItem(careAiKey(id), JSON.stringify(res)); } catch (e) {}
+  } catch (e) { toast(e?.message || 'AI 發生錯誤，請再試一次。'); }
+  S.careBusy = false; render();
+}
+function sheetCarePrefs(){
+  const p = S.care || {};
+  return '<h2>她的口味偏好</h2><p class="small muted">只有你看得到。多個用逗號或頓號分開，建議會優先挑她喜歡的、避開她不吃的。</p>' +
+    '<label class="fld">她喜歡<input type="text" id="cp-likes" maxlength="200" value="' + esc(p.likes || '') + '" placeholder="例如：芋頭、紅豆、牛肉麵"></label>' +
+    '<label class="fld">她不吃<input type="text" id="cp-dislikes" maxlength="200" value="' + esc(p.dislikes || '') + '" placeholder="例如：香菜、薑、羊肉"></label>' +
+    '<div class="row"><button class="btn primary" data-act="carePrefsSave">儲存</button><button class="btn ghost" data-act="close">取消</button></div>';
+}
+
 /* ---------- sheets ---------- */
 function renderSheet(){
   const root = $('#sheetRoot');
@@ -730,6 +873,7 @@ function renderSheet(){
   else if (sh.type === 'period') inner = sheetPeriod(sh);
   else if (sh.type === 'dietPick') inner = sheetDietPick(sh);
   else if (sh.type === 'login') inner = sheetLogin();
+  else if (sh.type === 'carePrefs') inner = sheetCarePrefs();
   else if (sh.type === 'migrate') inner = '<h2>把這台裝置的紀錄上傳到雲端？</h2><p>這台裝置上有 ' + (sh.local.profile?.periods?.length || 0) + ' 次經期紀錄，雲端目前還沒有資料。上傳後換手機也看得到，也可以開啟分享。</p><div class="row"><button class="btn primary" data-act="migrateYes">上傳到雲端</button><button class="btn ghost" data-act="close">先不要</button></div>';
   else if (sh.type === 'confirm') inner = '<h2>' + sh.title + '</h2><p>' + sh.text + '</p><div class="row"><button class="btn ' + (sh.danger ? 'danger' : 'primary') + '" data-act="confirmYes">' + sh.yes + '</button><button class="btn ghost" data-act="close">取消</button></div>';
   root.innerHTML = '<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>' + inner + '</div></div>';
@@ -917,6 +1061,10 @@ document.addEventListener('click', e => {
       const d = S.sheet.date; closeSheet(); saveLog(d, empty ? null : e2); toast(empty ? '這天沒有記錄任何內容。' : '已儲存 ' + D.md(d) + ' 的紀錄。'); break; }
     case 'dclear': { const d = S.sheet.date; closeSheet(); saveLog(d, null); toast('已清除。'); break; }
     case 'close': closeSheet(); break;
+    case 'careShuffle': S.careShuffle = (S.careShuffle || 0) + 1; try { localStorage.removeItem(careAiKey(S.shared[0]?.id)); } catch (e) {} render(); break;
+    case 'careAI': careAI(v); break;
+    case 'carePrefs': openSheet({ type: 'carePrefs' }); break;
+    case 'carePrefsSave': { S.care = { likes: $('#cp-likes').value.trim(), dislikes: $('#cp-dislikes').value.trim(), updated: Date.now() }; writeDoc('care', S.care); closeSheet(); render(); toast('已儲存口味偏好。'); break; }
     case 'login': loginFlow(false); break;
     case 'retryLogin': closeSheet(); loginFlow(true); break;
     case 'perms': (async () => { const pm = window.claude ? await window.claude.use('permissions').catch(() => null) : null;
@@ -1032,7 +1180,7 @@ async function connectCloud(){
     let first = true;
     db.collection('data/users/' + id).onSnapshot(snap => {
       const logDocs = {}; let prof = null, diet = null;
-      snap.docs.forEach(d => { const x = d.data(); if (!x) return; if (d.id === 'profile') prof = x; else if (d.id === 'diet') diet = x; else if (d.id.startsWith('log-')) logDocs[d.id] = x; });
+      snap.docs.forEach(d => { const x = d.data(); if (!x) return; if (d.id === 'profile') prof = x; else if (d.id === 'care') S.care = x; else if (d.id === 'diet') diet = x; else if (d.id.startsWith('log-')) logDocs[d.id] = x; });
       S.profile = prof ? JSON.parse(JSON.stringify(prof)) : null;
       S.logDocs = JSON.parse(JSON.stringify(logDocs)); S.diet = diet;
       if (first && (!snap.metadata.fromCache || snap.size)){ first = false; S.loaded = true; scheduleShare();

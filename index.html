@@ -144,7 +144,10 @@ function statusOf(key, s) {
     if (!s.period.length) return { text: "記錄週期" };
     return { text: s.period.map(p => {
       const who = +p.user_id === me.id ? "" : nameOf(p.user_id);
-      return p.state === "in" ? `${who}經期第 ${p.day} 天` : p.state === "late" ? `${who}晚了 ${p.days} 天` : p.days === 0 ? `${who}預計今天` : `${who}還有 ${p.days} 天`;
+      const txt = p.state === "in" ? `${who}經期第 ${p.day} 天` : p.state === "late" ? `${who}晚了 ${p.days} 天` : p.days === 0 ? `${who}預計今天` : `${who}還有 ${p.days} 天`;
+      // 給看對方狀態的人一句陪伴提示（只出現在另一半的首頁，跟經期頁的「今天怎麼陪她」一致）
+      const hint = !who ? "" : p.state === "in" ? (p.day <= 2 ? "幫她準備熱的" : "陪她輕鬆過") : p.state === "late" ? "先關心她" : p.pms ? "多點耐心" : "";
+      return txt + (hint ? `，${hint}` : "");
     }).join("・") };
   }
   if (key === "together") {
