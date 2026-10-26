@@ -48,6 +48,19 @@ body.locked .tabbar{display:none}
 .pingbar.got{border-color:var(--emb);box-shadow:0 0 30px color-mix(in srgb,var(--emb) 40%,transparent),0 10px 30px var(--shadow)}
 .pingbar.got .heart{animation:pulse 1.8s ease-in-out infinite}
 
+/* 我們這週（週日）、我們的一年（12 月） */
+.weekcard h2{font-size:1rem;margin-bottom:10px}
+.weekcard .g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.weekcard .g div{background:var(--sunk);border-radius:14px;padding:10px 12px;display:flex;gap:10px;align-items:center;min-width:0}
+.weekcard .g .orb{--s:26px}
+.weekcard .g b{display:block;font-family:var(--f-num);font-size:1.15rem}
+.weekcard .g small{color:var(--muted);font-size:.76rem;display:block}
+.weekcard p{margin:10px 0 0;font-size:.85rem}
+.yearcard{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;border-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 0 30px color-mix(in srgb,var(--gold) 22%,transparent),0 10px 30px var(--shadow)}
+.yearcard .orb{--s:44px}
+.yearcard b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.15rem;color:#FFE59A}
+.yearcard span.s{font-size:.85rem;color:var(--muted)}
+
 /* 控制台 */
 .console{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px;padding:22px 12px}
 .console a{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;text-decoration:none;color:inherit;border-radius:18px;padding:6px 2px;min-width:0}
@@ -91,6 +104,8 @@ body.locked .tabbar{display:none}
     </a>
 
     <section class="panel pingbar" id="pingbar" hidden aria-label="想你"></section>
+    <a class="panel yearcard" id="yearCard" hidden></a>
+    <section class="panel weekcard" id="weekCard" hidden aria-labelledby="wkTitle"></section>
 
     <nav class="panel console" id="console" aria-label="功能"></nav>
 
@@ -220,6 +235,32 @@ function renderShelf(s) {
   $("shelf").innerHTML = rows + labels + legend;
 }
 
+// 週日的「我們這週」：兩人這週吃了幾餐、運動幾天、一起答了幾題；錢只顯示自己存的
+function renderWeek(s) {
+  const el = $("weekCard"), w = s.week;
+  const sunday = new Date(s.today + "T00:00:00").getDay() === 0;
+  if (!w || !(sunday || new URLSearchParams(location.search).has("week"))) { el.hidden = true; return; }
+  const me = ME.user, pa = ME.partner;
+  const both = (o, unit) => `${o[me.id] || 0}${pa ? ` / ${o[pa.id] || 0}` : ""} ${unit}`;
+  el.hidden = false;
+  el.innerHTML = `<h2 id="wkTitle">我們這週・${+w.from.slice(5, 7)}/${+w.from.slice(8)} 起</h2>
+    <div class="g">
+      <div><i class="orb" style="--c:var(--joy)"></i><span><b>${both(w.meals, "餐")}</b><small>記錄的餐點${pa ? `（${esc(me.name)} / ${esc(pa.name)}）` : ""}</small></span></div>
+      <div><i class="orb" style="--c:var(--anger)"></i><span><b>${both(w.fitness, "天")}</b><small>有運動的天數</small></span></div>
+      <div><i class="orb gold"></i><span><b>${w.answeredBoth} 題</b><small>每日一問一起答了</small></span></div>
+      <div><i class="orb" style="--c:var(--disgust)"></i><span><b>${money(w.saved)}</b><small>你存進未來（只有你看得到）</small></span></div>
+    </div>
+    <p class="muted">${[w.photos ? `放了 ${w.photos} 張照片` : "", w.pings ? `互送 ${w.pings} 顆想你` : ""].filter(Boolean).join("、") || "這週辛苦了"}。今天也別忘了到互動頁寫<a href="together/#checkin">每週小聊天</a>。</p>`;
+}
+// 12 月到 1 月第一週：首頁出現「我們的一年」
+function renderYear(s) {
+  const el = $("yearCard"), [y, m, d] = s.today.split("-").map(Number);
+  const year = m === 12 ? y : m === 1 && d <= 7 ? y - 1 : null;
+  if (!year) { el.hidden = true; return; }
+  el.hidden = false; el.href = `year/?year=${year}`;
+  el.innerHTML = `<i class="orb gold pulse"></i><span><b>我們的 ${year} 年</b><span class="s">照片、問答記憶球、旅程島和做到的事，一起翻翻看</span></span>`;
+}
+
 // 想你：對方送來還沒看的愛心會讓這一條亮起來；按愛心送一顆給對方（也會把收到的標成看過）
 const hm = iso => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
 function renderPing(p) {
@@ -241,11 +282,16 @@ function renderPing(p) {
 }
 
 async function loadSummary() {
+  // 先畫上次的摘要，後端回來再換成最新的
+  const c = FiveJS.peek("/api/hq/today");
+  if (c && !loadSummary.shown) { loadSummary.shown = true; try { renderConsole(c); renderCore(c); renderShelf(c); renderPing(c.together.ping); } catch (e) {} }
   try {
     const s = await FiveJS.api("/api/hq/today");
-    renderConsole(s); renderCore(s); renderShelf(s); renderPing(s.together.ping);
+    renderConsole(s); renderCore(s); renderShelf(s); renderPing(s.together.ping); renderWeek(s); renderYear(s);
   } catch (e) {
     if (e instanceof FiveJS.AuthError) { FiveJS.setToken(null); showGate(e.message, true); return; }
+    // 已經畫了上次的摘要就留著，等下次回到這頁再更新
+    if (loadSummary.shown) return;
     renderConsole(null);
     $("shelf").innerHTML = `<p class="small muted">${esc(e.message)}</p>`;
   }
@@ -264,7 +310,7 @@ function showGate(msg, isErr) {
 
 function enter(me) {
   const next = new URLSearchParams(location.search).get("next");
-  if (next && READY.has(next) && next !== "hq") { location.replace(`${next}/`); return; }
+  if (next && (READY.has(next) || next === "year") && next !== "hq") { location.replace(`${next}/`); return; }
   ME = me;
   document.body.classList.remove("locked");
   $("booting").hidden = true; $("gate").hidden = true; $("hub").hidden = false;
@@ -285,6 +331,14 @@ async function boot() {
   const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
   const woke = FiveJS.wake();
   if (!FiveJS.getToken()) { await woke; clearTimeout(slow); showGate(); return; }
+  // 登入過就先用上次的身分進總部，背景再跟後端確認
+  const prev = FiveJS.cachedMe();
+  if (prev?.user) {
+    clearTimeout(slow);
+    enter(prev);
+    FiveJS.status().catch(e => { if (e instanceof FiveJS.AuthError) { FiveJS.setToken(null); showGate(e.message, true); } });
+    return;
+  }
   try { enter(await FiveJS.status()); }
   catch (e) {
     // 連不上後端不代表登入失效，保留 token，重新整理就會再試一次

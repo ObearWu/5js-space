@@ -98,6 +98,24 @@
     if (l.emitTimer) return;
     l.emitTimer = setTimeout(() => { l.emitTimer = null; try { l.cb(snapshotOf(l.map)); } catch (e) { console.error(e); } }, 0);
   }
+  // 先顯示上次的資料：每個查詢的結果存在這台瀏覽器（依登入的人分開，登出清掉），
+  // 開頁時立刻拿出來畫，後端回來再換成最新的。太大的（超過約 1MB）就不存。
+  const cacheKey = l => `fivejsDocs:${FiveJS.cachedMe?.()?.user?.id || 0}:${l.c}|${JSON.stringify(l.where)}`;
+  function loadCache(l) {
+    try {
+      const v = JSON.parse(localStorage.getItem(cacheKey(l)) || "null");
+      if (v && Array.isArray(v.docs)) { l.map = new Map(v.docs); l.fromCache = true; emit(l); }
+    } catch (e) {}
+  }
+  function saveCache(l) {
+    clearTimeout(l.cacheTimer);
+    l.cacheTimer = setTimeout(() => {
+      try {
+        const v = JSON.stringify({ at: Date.now(), docs: [...l.map.entries()] });
+        if (v.length < 1000000) localStorage.setItem(cacheKey(l), v); else localStorage.removeItem(cacheKey(l));
+      } catch (e) { try { localStorage.removeItem(cacheKey(l)); } catch (x) {} }
+    }, 1500);
+  }
 
   function schedule(ms) {
     clearTimeout(timer);
@@ -121,7 +139,7 @@
             r.docs.forEach(d => { const data = fromServer(d.data); if (matches(data, l.where)) l.map.set(d.id, data); else l.map.delete(d.id); });
           }
           l.since = now;
-          if (r.full || r.docs.length || r.removed.length || !l.ready) { l.ready = true; emit(l); }
+          if (r.full || r.docs.length || r.removed.length || !l.ready) { l.ready = true; emit(l); saveCache(l); }
         }
         shots.forEach(s => s.resolve(snapshotOf(new Map((results[s.key]?.docs || []).map(d => [d.id, fromServer(d.data)])))));
       } catch (e) {
@@ -142,7 +160,7 @@
     for (const l of listeners.values()) {
       if (l.c !== c) continue;
       if (data && matches(data, l.where)) l.map.set(id, data); else l.map.delete(id);
-      if (l.ready) emit(l);
+      if (l.ready || l.fromCache) { emit(l); saveCache(l); }
     }
   }
   function resyncCollection(c) {
@@ -201,7 +219,9 @@
       },
       onSnapshot(cb, err) {
         const key = `l${++seq}`;
-        listeners.set(key, { c, where, map: new Map(), since: null, cb, err, ready: false });
+        const l = { c, where, map: new Map(), since: null, cb, err, ready: false };
+        listeners.set(key, l);
+        loadCache(l);
         schedule(0);
         return () => listeners.delete(key);
       },

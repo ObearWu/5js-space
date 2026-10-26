@@ -848,6 +848,22 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   state.me = info.user; state.partner = info.partner;
+  // 先用上次的資料畫出整頁，後端醒來再更新
+  const pk = FiveJS.peek;
+  const q = pk("/api/together/question"), m = pk("/api/together/moods");
+  if (q && m) {
+    try {
+      state.q = q; state.moods = m; renderQuestion(); renderMoods();
+      const d = pk("/api/together/dates"); if (d) { state.dates = d.items; state.datesToday = d.today; renderDates(); }
+      const ph = pk("/api/together/photos"); if (ph) { state.photos = ph.items; state.photosDone = ph.items.length < 60; renderWall(); }
+      const h = pk("/api/together/history"); if (h) { state.hist = h.items; state.histBefore = h.next_before; state.histMore = h.items.length > 0; renderHistory(); }
+      const lm = pk("/api/together/lovemap"); if (lm) { state.lm = lm; renderLovemap(); }
+      const ck = pk("/api/together/checkin"); if (ck) { state.ck = ck; renderCheckin(); }
+      const bk = pk("/api/together/bucket"); if (bk) { state.bucket = bk.items; renderBucket(); }
+      const pi = pk("/api/together/pings"); if (pi) { state.ping = pi; renderPing(); }
+      $("booting").hidden = true; $("app").hidden = false;
+    } catch (e) {}
+  }
   try {
     await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory(), loadLovemap(), loadCheckin(), loadBucket()]);
     loadOtd().catch(() => {}); loadPing().catch(() => {});

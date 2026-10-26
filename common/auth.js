@@ -32,7 +32,27 @@
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) throw new AuthError(data.error || "登入已逾期，請重新登入。");
     if (!res.ok) throw new Error(data.error || `發生錯誤（${res.status}）`);
+    if (method === "GET" && CACHE_PATHS.test(path)) keep(path, data);
     return data;
+  }
+
+  // ---------- 先顯示上次的資料 ----------
+  // 常用的讀取結果存在這台瀏覽器（依登入的人分開）。頁面打開先用 peek() 拿上次的畫出來，
+  // 後端醒來、拿到最新的再重畫，不用一直看「正在叫醒後端」。登出時全部清掉。
+  const CACHE_PATHS = /^\/api\/(hq\/|together\/|ledger\/state|split\/)/;
+  const CACHE_PREFIX = "fivejsCache:";
+  const cacheKey = path => `${CACHE_PREFIX}${cachedMe()?.user?.id || 0}:${path}`;
+  function keep(path, data) {
+    try {
+      const v = JSON.stringify({ at: Date.now(), data });
+      if (v.length < 600000) localStorage.setItem(cacheKey(path), v);
+    } catch (e) { clearCache(); }
+  }
+  function peek(path) {
+    try { const v = JSON.parse(localStorage.getItem(cacheKey(path)) || "null"); return v ? v.data : null; } catch (e) { return null; }
+  }
+  function clearCache() {
+    try { Object.keys(localStorage).filter(k => k.startsWith(CACHE_PREFIX) || k.startsWith("fivejsDocs:")).forEach(k => localStorage.removeItem(k)); } catch (e) {}
   }
 
   // 後端休眠時，第一個請求要等它醒來。頁面一打開就先叫醒它，不碰資料庫。
@@ -78,6 +98,7 @@
   async function logout() {
     try { await api("/auth/logout", { method: "POST" }); } catch (e) {}
     setToken(null);
+    clearCache();
     try { localStorage.removeItem(ME_KEY); } catch (e) {}
     if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   }
@@ -86,6 +107,12 @@
   async function requireLogin(moduleKey) {
     const back = () => { location.href = `../?next=${encodeURIComponent(moduleKey)}`; };
     if (!getToken()) { back(); return new Promise(() => {}); }
+    // 這台瀏覽器登入過：先用上次的身分讓頁面畫出來，背景再跟後端確認；登入失效才導回入口頁
+    const prev = cachedMe();
+    if (prev?.user) {
+      status().catch(e => { if (e instanceof AuthError) { setToken(null); back(); } });
+      return prev;
+    }
     try { return await status(); }
     catch (e) {
       if (e instanceof AuthError) { setToken(null); back(); return new Promise(() => {}); }
@@ -93,5 +120,5 @@
     }
   }
 
-  window.FiveJS = Object.assign(window.FiveJS || {}, { api, wake, status, getToken, setToken, AuthError, renderGoogleButton, logout, requireLogin, cachedMe, applyTheme });
+  window.FiveJS = Object.assign(window.FiveJS || {}, { api, wake, status, getToken, setToken, AuthError, renderGoogleButton, logout, requireLogin, cachedMe, applyTheme, peek, clearCache });
 })();

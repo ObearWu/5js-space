@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant" data-mod="hq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>我們的一年 · 大小豬的小空間</title>
+<meta name="theme-color" content="#15102A">
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="../common/style.css">
+<style>
+/* 年底回顧：一頁一張卡，左右滑（或按箭頭）一起翻 */
+.page{max-width:560px}
+.deck{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;padding:4px 2px 12px;scrollbar-width:none}
+.deck::-webkit-scrollbar{display:none}
+.card{flex:0 0 100%;scroll-snap-align:center;min-height:62vh;display:flex;flex-direction:column;gap:14px;justify-content:center;text-align:center}
+.card h2{font-family:var(--f-round);font-weight:400;font-size:1.4rem;color:#FFE59A;margin:0}
+.card .big{font-family:var(--f-num);font-size:3rem;font-weight:700;line-height:1;color:#FFE59A;text-shadow:0 0 22px color-mix(in srgb,var(--gold) 55%,transparent)}
+.card p{margin:0}
+.card .pigs{display:flex;justify-content:center;gap:6px}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.dots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.dots i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2)}
+.dots i.on{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+.ph{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ph span{aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px color-mix(in srgb,var(--envy) 60%,transparent),0 0 14px color-mix(in srgb,var(--envy) 35%,transparent)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.orbs{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.orbs .orb{--s:16px}
+.qa{text-align:left;background:var(--sunk);border-radius:16px;padding:12px}
+.qa b{display:block;font-family:var(--f-round);font-weight:400;margin-bottom:6px}
+.qa div{font-size:.9rem;white-space:pre-wrap;word-break:break-word}
+.qa small{color:var(--muted);font-size:.75rem}
+.rows{display:flex;flex-direction:column;gap:8px;text-align:left}
+.rows div{display:flex;align-items:center;gap:10px;background:var(--sunk);border-radius:14px;padding:10px 12px}
+.rows div .orb{--s:26px}
+.rows div span{flex:1;min-width:0}
+.rows div small{display:block;color:var(--muted);font-size:.78rem}
+.rows div b.n{font-family:var(--f-num)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two > div{background:var(--sunk);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:4px;align-items:center}
+.two .v{font-family:var(--f-num);font-size:1.5rem;font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="band">
+    <a class="back" href="../">‹ 總部</a>
+    <div class="row"><h1 id="title">我們的一年</h1><span class="bstat" id="yearSel"></span></div>
+  </header>
+  <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">整理這一年的回憶…</span></p>
+  <main id="app" hidden>
+    <div class="deck" id="deck"></div>
+    <div class="nav"><button class="btn ghost sm" type="button" id="prev">‹ 上一張</button><div class="dots" id="dots"></div><button class="btn ghost sm" type="button" id="next">下一張 ›</button></div>
+  </main>
+</div>
+
+<script src="../common/config.js"></script>
+<script src="../common/auth.js"></script>
+<script src="../common/mascot.js"></script>
+<script src="../common/hq.js"></script>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const md = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
+const TRIP_C = { envy: "var(--envy)", joy: "var(--joy)", sad: "var(--sad)", anger: "var(--anger)", fear: "var(--fear)", disgust: "var(--disgust)", emb: "var(--emb)", anx: "var(--anx)" };
+let ME = null;
+
+// 平均挑：太多照片時，整年平均取 16 張
+const spread = (list, n) => list.length <= n ? list : Array.from({ length: n }, (_, i) => list[Math.floor(i * list.length / n)]);
+
+function cards(y) {
+  const me = ME.user, pa = ME.partner, people = [me, pa].filter(Boolean);
+  const nm = id => people.find(p => p.id === +id)?.name || "";
+  const out = [];
+  out.push(`<span class="pigs">${FiveJS.lollipop(me.theme, "sparkle", 70)}${pa ? FiveJS.lollipop(pa.theme, "happy", 60) : ""}</span>
+    <h2>${y.year} 年，我們的一年</h2>
+    ${y.daysTogether ? `<p class="muted">到 ${md(y.to)} 為止，在一起第</p><div class="big">${y.daysTogether.toLocaleString("en-US")}</div><p class="muted">天</p>` : ""}
+    <p class="small muted">往右翻，一起看看這一年 ›</p>`);
+  if (y.photos.length) out.push(`<h2>${y.photos.length} 顆照片回憶</h2>
+    <div class="ph">${spread(y.photos, 16).map(p => `<span title="${esc(md(p.date) + " " + (p.caption || ""))}"><img loading="lazy" src="${photoUrl(p.thumb)}" alt="${esc(p.caption)}"></span>`).join("")}</div>
+    <p class="small muted">從 ${md(y.photos[0].date)} 到 ${md(y.photos[y.photos.length - 1].date)}</p>`);
+  if (y.qa.length) {
+    const picks = spread(y.qa, 3);
+    out.push(`<h2>一起答了 <span class="big" style="font-size:2rem">${y.qaCount}</span> 題</h2>
+      <div class="orbs">${y.qa.map(() => `<i class="orb gold"></i>`).join("")}</div>
+      ${picks.map(x => `<div class="qa"><small>${md(x.date)}</small><b>${esc(x.question)}</b>${people.map(p => x.answers[p.id] ? `<div><small>${esc(p.name)}</small> ${esc(x.answers[p.id])}</div>` : "").join("")}</div>`).join("")}`);
+  }
+  if (y.trips.length) out.push(`<h2>去了 ${y.trips.length} 座島</h2><div class="rows">${y.trips.map(t => `<div><i class="orb" style="--c:${TRIP_C[t.color] || "var(--envy)"}"></i><span><b>${esc(t.name)}</b><small>${md(t.start_date)}${t.end_date && t.end_date !== t.start_date ? `–${md(t.end_date)}` : ""}・${t.count} 筆</small></span><b class="n">${money(t.total)}</b></div>`).join("")}</div>`);
+  const body = people.map(p => {
+    const w = y.weights[p.id] || [];
+    const diff = w.length >= 2 ? Math.round((w[w.length - 1].weight - w[0].weight) * 10) / 10 : null;
+    return `<div><b>${esc(p.name)}</b><span class="v">${y.fitness[p.id] ?? 0}</span><span class="small muted">天有運動</span>
+      <span class="small">${y.meals[p.id] ?? 0} 餐有記錄</span>${diff != null ? `<span class="small">體重 ${w[0].weight} → ${w[w.length - 1].weight} kg（${diff > 0 ? "+" : ""}${diff}）</span>` : ""}</div>`;
+  }).join("");
+  out.push(`<h2>一起照顧身體</h2><div class="two">${body}</div><p class="small muted">對方的數字來自有分享的紀錄。</p>`);
+  const moodLine = p => { const m = y.moods[p.id] || {}; const top = Object.entries(m).sort((a, b) => b[1] - a[1])[0]; return top ? `<div><i class="orb" style="--c:${FiveJS.MOOD_COLOR[top[0]] || "var(--muted)"}"></i><span><b>${esc(p.name)}最常是「${esc(top[0])}」</b><small>打卡 ${Object.values(m).reduce((a, b) => a + b, 0)} 天</small></span></div>` : ""; };
+  const pingLine = pa ? `<div><i class="orb" style="--c:var(--emb)"></i><span><b>互相送了 ${(y.pings[me.id] || 0) + (y.pings[pa.id] || 0)} 顆想你</b><small>${esc(me.name)} ${y.pings[me.id] || 0} 顆・${esc(pa.name)} ${y.pings[pa.id] || 0} 顆</small></span></div>` : "";
+  const moodHtml = people.map(moodLine).join("") + pingLine;
+  if (moodHtml) out.push(`<h2>這一年的心情</h2><div class="rows">${moodHtml}</div>`);
+  if (y.bucket.length || y.goals.length) out.push(`<h2>做到的事</h2><div class="rows">
+    ${y.bucket.map(b => `<div><i class="orb gold"></i><span><b>${esc(b.title)}</b><small>${md(b.date)} 一起做到了</small></span></div>`).join("")}
+    ${y.goals.map(g => `<div><i class="orb gold"></i><span><b>${esc(g.name)}</b><small>你的記帳目標・${g.doneAt ? md(g.doneAt) : ""} 達成（只有你看得到）</small></span></div>`).join("")}</div>`);
+  out.push(`<span class="pigs">${FiveJS.lollipop(me.theme, "happy", 64)}${pa ? FiveJS.lollipop(pa.theme, "sparkle", 64) : ""}</span><h2>${y.year + 1} 年也一起</h2><p class="muted">這一年的每一顆記憶球，都收進核心記憶了。</p>
+    <p><a class="btn primary" href="../together/">去互動頁寫下一年的第一題</a></p>`);
+  return out;
+}
+
+function render(y) {
+  const list = cards(y);
+  $("deck").innerHTML = list.map((h, i) => `<section class="panel card" data-i="${i}">${h}</section>`).join("");
+  $("dots").innerHTML = list.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("");
+  $("title").textContent = `我們的 ${y.year} 年`;
+}
+const deck = () => $("deck");
+function go(d) { const w = deck().clientWidth + 14; deck().scrollBy({ left: d * w, behavior: "smooth" }); }
+$("prev").onclick = () => go(-1); $("next").onclick = () => go(1);
+document.addEventListener("keydown", e => { if (e.key === "ArrowRight") go(1); if (e.key === "ArrowLeft") go(-1); });
+$("deck").addEventListener("scroll", () => {
+  const i = Math.round(deck().scrollLeft / (deck().clientWidth + 14));
+  [...$("dots").children].forEach((d, k) => d.classList.toggle("on", k === i));
+}, { passive: true });
+
+async function boot() {
+  let info = null;
+  for (let i = 0; i < 12 && !info; i++) {
+    try { info = await FiveJS.requireLogin("year"); }
+    catch (e) { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; await new Promise(r => setTimeout(r, 5000)); }
+  }
+  if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
+  ME = info;
+  const q = new URLSearchParams(location.search).get("year");
+  for (let i = 0; i < 12; i++) {
+    try {
+      const y = await FiveJS.api(`/api/hq/year${q ? `?year=${encodeURIComponent(q)}` : ""}`);
+      render(y); $("booting").hidden = true; $("app").hidden = false; return;
+    } catch (e) {
+      if (e instanceof FiveJS.AuthError) { location.href = "../?next=year"; return; }
+      $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; await new Promise(r => setTimeout(r, 5000));
+    }
+  }
+  $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。";
+}
+boot();
+})();
+</script>
+</body>
+</html>

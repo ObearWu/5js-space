@@ -43,6 +43,8 @@ async function call(path, opts) {
 }
 async function load() {
   const month = L.month;
+  // 先用上次的資料畫出來（後端還在醒來也看得到），拿到最新的再重畫
+  if (!L.data || L.data.month !== month) { const c = FiveJS.peek(`/api/ledger/state?month=${month}`); if (c) { L.data = c; render(); } }
   const d = await call(`/api/ledger/state?month=${month}`);
   if (month !== L.month) return;
   L.data = d; L.loaded = true;

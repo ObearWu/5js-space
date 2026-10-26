@@ -637,6 +637,11 @@ function handleErr(e) {
   if (e instanceof FiveJS.AuthError) { location.href = "../?next=split"; return; }
   toast(e.message);
 }
+function applyIslands(r) {
+  state.islands = r.islands;
+  if (Array.isArray(r.colors)) state.colors = r.colors;
+  if (Array.isArray(r.categories)) state.categories = r.categories;
+}
 async function loadIslands() {
   try {
     const r = await FiveJS.api("/api/split/islands");
@@ -651,7 +656,10 @@ async function loadEntries() {
   const trip = state.trip;
   try {
     const q = trip === null ? `month=${state.month}` : `trip=${trip}`;
+    const c = state.dataKey !== q && FiveJS.peek(`/api/split/entries?${q}`);
+    if (c) { state.data = c; state.dataKey = q; renderBalance(); renderBand(); renderList(); }
     const data = await FiveJS.api(`/api/split/entries?${q}`);
+    state.dataKey = q;
     if (trip !== state.trip) return;  // 讀取途中換了島
     state.data = data;
     renderBalance(); renderBand(); renderList();
@@ -682,7 +690,9 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   state.me = info.user; state.partner = info.partner;
-  await loadIslands();
+  // 有上次的島嶼資料就先用，不等後端
+  const cachedIslands = FiveJS.peek("/api/split/islands");
+  if (cachedIslands) { applyIslands(cachedIslands); loadIslands(); } else await loadIslands();
   // 網址帶 #trip-3 就打開那座島；不然打開正在進行的旅程（今天在旅程日期內），都沒有就是日常島
   const m = location.hash.match(/^#trip-(\d+)$/);
   const t = taipeiToday();
