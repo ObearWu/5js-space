@@ -63,10 +63,20 @@ textarea{resize:vertical;min-height:84px}
 .born{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.88rem;color:#FFE59A}
 .born .orb{--s:22px;animation:born .9s ease-out}
 @keyframes born{from{transform:scale(.2);opacity:0}70%{transform:scale(1.25)}to{transform:scale(1);opacity:1}}
-.hist{margin-top:14px;border-top:2px dashed var(--line);padding-top:10px}
-.hist details{border-bottom:1px solid var(--line);padding:6px 0}
-.hist summary{cursor:pointer;font-size:.9rem}
-.hist summary span{color:var(--muted);font-size:.8rem;margin-right:6px}
+/* 問答記憶架：每天的題目是一顆記憶球，兩人都答了是金色，點開看題目和答案 */
+.hist{margin-top:14px;border-top:2px dashed var(--line);padding-top:12px}
+.hist h3{margin:0 0 10px;font-size:.95rem;font-weight:400;font-family:var(--f-round,inherit)}
+.qshelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:10px 6px}
+.qshelf button{border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem;min-width:0}
+.qshelf .orb{--s:32px;transition:transform .15s}
+.qshelf button:hover .orb{transform:scale(1.08)}
+.qshelf button[aria-pressed="true"]{color:var(--ink,#fff)}
+.qshelf button[aria-pressed="true"] .orb{box-shadow:0 0 0 3px #fff,0 0 18px var(--c)}
+.qshelf .new .orb{animation:born .9s ease-out}
+.qopen{margin-top:12px;background:var(--sunk);border-radius:14px;padding:12px}
+.qopen .q{margin-top:0}
+.qopen .small{display:block;margin-bottom:4px}
+.qopen .bubble{background:rgba(255,255,255,.08)}
 
 /* 心情 */
 .moods{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
@@ -204,7 +214,8 @@ const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
 const moodOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MOOD_COLOR[mood] || "var(--muted)"}"></i>`;
 
 const state = { me: null, partner: null, q: null, moods: null, pickMood: null, moodOpen: null, dates: [], editDate: null,
-                photos: [], photosDone: false, upload: null, histBefore: null };
+                photos: [], photosDone: false, upload: null, histBefore: null,
+                hist: [], histNew: [], histOpen: null, histMore: false };
 const people = () => [state.me, state.partner].filter(Boolean);
 const person = id => people().find(p => p.id === +id);
 const pig = (p, mood, size) => p ? FiveJS.lollipop(p.theme, mood, size) : "";
@@ -240,7 +251,7 @@ function renderQuestion(editing = false) {
     if (editing) $("qCancel").onclick = () => renderQuestion(false);
     return;
   }
-  const born = q.partner != null ? `<p class="born"><i class="orb gold"></i>兩個人都答了，新的記憶球收進記憶架</p>` : "";
+  const born = q.partner != null ? `<p class="born"><i class="orb gold"></i>兩個人都答了，新的記憶球收進下面的問答記憶架</p>` : "";
   box.innerHTML = `<p class="q">${esc(q.question)}</p>${answersHtml(q)}${born}
     <div class="qacts"><button class="link" type="button" id="qEdit">修改我的答案</button></div>`;
   $("qEdit").onclick = () => renderQuestion(true);
@@ -254,6 +265,7 @@ async function sendAnswer() {
     state.q = await call("/api/together/question", { method: "PUT", body: { date: state.q.date, answer } });
     renderQuestion();
     toast(state.q.partner != null ? "揭曉！看看對方怎麼說" : "送出了，等對方回答就能互相看到");
+    if (state.q.partner != null) loadHistory().catch(() => {});
   } catch (e) { toast(e.message); $("qSend").disabled = false; }
 }
 
@@ -261,15 +273,39 @@ async function loadHistory(more = false) {
   const before = more ? state.histBefore : null;
   const data = await call("/api/together/history" + (before ? `?before=${before}` : ""));
   state.histBefore = data.next_before;
-  const el = $("hist");
-  if (!more) el.innerHTML = "";
-  el.querySelector(".more")?.remove();
-  if (!more && !data.items.length) { el.innerHTML = `<p class="small muted">過去回答過的題目會留在這裡。</p>`; return; }
-  el.insertAdjacentHTML("beforeend", data.items.map(it => `<details><summary><span>${esc(dayText(it.date))}</span>${esc(it.question)}</summary>${answersHtml(it)}</details>`).join(""));
-  if (data.items.length) {
-    el.insertAdjacentHTML("beforeend", `<p class="more" style="text-align:center;margin-top:8px"><button class="link" type="button">再往前看</button></p>`);
-    el.querySelector(".more button").onclick = () => loadHistory(true).catch(e => toast(e.message));
+  if (!more) {
+    const known = new Set(state.hist.map(it => it.date));
+    state.histNew = state.hist.length ? data.items.filter(it => !known.has(it.date)).map(it => it.date) : [];
+    state.hist = [];
   }
+  state.hist.push(...data.items);
+  state.histMore = data.items.length > 0;
+  renderHistory();
+}
+
+function renderHistory() {
+  const el = $("hist");
+  const items = state.hist;
+  if (!items.length) {
+    el.innerHTML = `<h3>問答記憶架</h3><p class="small muted">兩個人都回答的題目，會變成一顆金色記憶球收在這裡。</p>`;
+    return;
+  }
+  const both = it => it.mine != null && it.partner_answered;
+  const open = items.find(it => it.date === state.histOpen);
+  el.innerHTML = `<h3>問答記憶架</h3>
+    <div class="qshelf">${items.map(it => {
+      const d = parse(it.date);
+      return `<button type="button" data-d="${it.date}" aria-pressed="${it.date === state.histOpen}"${state.histNew.includes(it.date) ? ' class="new"' : ""}
+        aria-label="${esc(dayText(it.date))}：${esc(it.question)}"><i class="orb${both(it) ? " gold" : " empty"}"></i>${d.getUTCMonth() + 1}/${d.getUTCDate()}</button>`;
+    }).join("")}</div>
+    ${open ? `<div class="qopen"><span class="small muted">${esc(dayText(open.date))}</span><p class="q">${esc(open.question)}</p>${open.mine != null ? answersHtml(open) : `<p class="small muted">這天你沒有回答${open.partner_answered ? "，所以看不到對方的答案" : ""}。</p>`}</div>` : ""}
+    ${state.histMore ? `<p class="more" style="text-align:center;margin-top:10px"><button class="link" type="button">再往前看</button></p>` : ""}`;
+  el.querySelectorAll(".qshelf button").forEach(b => b.onclick = () => {
+    state.histOpen = state.histOpen === b.dataset.d ? null : b.dataset.d;
+    state.histNew = [];
+    renderHistory();
+  });
+  el.querySelector(".more button")?.addEventListener("click", () => loadHistory(true).catch(e => toast(e.message)));
 }
 
 // ---------- 心情 ----------
@@ -494,7 +530,9 @@ async function refresh() {
   const dayChanged = state.q && state.q.date !== q.date;
   // 正在寫答案時不要把輸入框洗掉
   const typing = document.activeElement?.id === "qInput";
+  const bornNow = state.q && !dayChanged && state.q.partner == null && q.partner != null;
   state.q = q; state.moods = m;
+  if (bornNow) loadHistory().catch(() => {});
   if (!typing || dayChanged) renderQuestion();
   if (dayChanged) { state.pickMood = null; loadHistory().catch(() => {}); loadDates().catch(() => {}); }
   renderMoods();
