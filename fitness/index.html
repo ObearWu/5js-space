@@ -69,11 +69,51 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 
 /* 重訓組數 */
 .sets{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
-.set{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto;gap:6px;align-items:center}
+.set{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto auto;gap:6px;align-items:center}
 .set input{padding:6px 8px}
 .set .x,.list .x{border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:0 4px}
-.sethead{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto;gap:6px;font-size:.75rem;color:var(--muted);padding:0 2px}
+.sethead{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) auto auto;gap:6px;font-size:.75rem;color:var(--muted);padding:0 2px}
 .sethead span:last-child{width:22px}
+.sethead span.dn{width:44px}
+.set .done{border:2px solid var(--line);background:var(--surface);border-radius:999px;font:inherit;font-size:.72rem;padding:3px 6px;cursor:pointer;width:44px;color:var(--muted)}
+.set .done.full{border-color:var(--gold);color:var(--gold)}
+.set .hint{grid-column:1/-1;font-size:.76rem;color:var(--muted);margin:-2px 2px 4px}
+.set .hint button{border:0;background:none;color:var(--accent-deep);font:inherit;text-decoration:underline;cursor:pointer;padding:0}
+.rts{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+.rts .chip{display:inline-flex;align-items:center;gap:2px;border:2px solid var(--line);border-radius:999px;background:var(--surface);font-size:.82rem;overflow:hidden}
+.rts .chip button{border:0;background:none;cursor:pointer;font:inherit;padding:4px 4px 4px 10px;color:inherit}
+.rts .chip button.rx{padding:4px 8px 4px 2px;color:var(--muted)}
+.rtsave{display:flex;gap:6px;margin:0 0 10px}
+.restbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0));z-index:45;display:flex;align-items:center;gap:10px;
+  background:var(--surface);border:2px solid var(--anger);border-radius:999px;padding:6px 8px 6px 16px;box-shadow:0 0 24px color-mix(in srgb,var(--anger) 40%,transparent);font-family:var(--f-round)}
+.restbar b{font-family:var(--f-num);font-size:1.3rem;min-width:3.2em;text-align:center}
+.restbar button{border:0;background:var(--sunk);color:inherit;border-radius:999px;padding:4px 10px;cursor:pointer;font:inherit;font-size:.82rem}
+.restbar.end{border-color:var(--gold);animation:pop .6s ease-out 2}
+@keyframes pop{50%{transform:translateX(-50%) scale(1.08)}}
+/* 情侶挑戰 */
+.chal .rowc{display:flex;align-items:center;gap:10px;margin-top:10px}
+.chal .rowc .nm{width:3.5em;font-size:.85rem;flex:none}
+.chal .bar{flex:1;height:14px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.chal .bar i{display:block;height:100%;border-radius:999px;background:var(--anger);box-shadow:0 0 10px var(--anger)}
+.chal .bar i.ok{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.chal .n{font-family:var(--f-num);font-weight:700;width:4.2em;text-align:right;font-size:.9rem}
+.chal .orb{--s:22px}
+.chal .msg{margin-top:10px;font-size:.88rem}
+/* 肌群 */
+.mus{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+.mus svg{width:150px;height:auto}
+.mus svg .m{stroke:rgba(255,255,255,.25);stroke-width:1.5}
+.mus svg .base{fill:rgba(255,255,255,.06);stroke:rgba(255,255,255,.2);stroke-width:1.5}
+.mus svg text{fill:var(--muted);font-size:9px;text-anchor:middle}
+.mlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.85rem}
+.mlist li{display:grid;grid-template-columns:2.8em minmax(0,1fr) auto;gap:6px;align-items:center}
+.mlist .bar{height:8px;border-radius:999px;background:var(--sunk);overflow:hidden}
+.mlist .bar i{display:block;height:100%;background:var(--anger)}
+.mlist .bar i.ok{background:var(--gold)}
+.mlist span.v{font-family:var(--f-num);font-size:.8rem;color:var(--muted)}
+.unk{margin-top:10px;font-size:.8rem;color:var(--muted)}
+.unk div{display:flex;gap:6px;align-items:center;margin-top:4px}
+.unk select{width:auto;padding:2px 6px}
 .link{background:none;border:0;padding:0;color:var(--accent-deep);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
 .actions{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
 
@@ -176,15 +216,23 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
         <p class="streak" id="streak"></p>
       </section>
 
+      <section class="panel chal" id="chal" aria-labelledby="cTitle">
+        <div class="head"><h2 id="cTitle">這個月的挑戰</h2><span class="seg small" id="cTarget"></span></div>
+        <div id="cBody"></div>
+      </section>
+
       <section class="panel" id="formPanel" aria-labelledby="fTitle">
         <h2 id="fTitle">記一筆運動</h2>
         <form id="form" autocomplete="off" novalidate>
           <div class="field"><span>種類</span><div class="seg" id="fType"></div></div>
           <div class="field"><span>內容</span><input id="fName" maxlength="40" placeholder="例如：慢跑、腿部訓練"></div>
           <div id="setsBox" hidden>
-            <div class="sethead"><span>動作</span><span>重量 kg</span><span>次數</span><span>組數</span><span></span></div>
+            <div class="rts" id="routines"></div>
+            <div class="sethead"><span>動作</span><span>重量 kg</span><span>次數</span><span>組數</span><span class="dn">做完</span><span></span></div>
             <div class="sets" id="sets"></div>
-            <p style="margin:-2px 0 10px"><button class="link" type="button" id="addSet">＋ 再加一個動作</button></p>
+            <p style="margin:-2px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"><button class="link" type="button" id="addSet">＋ 再加一個動作</button><button class="link" type="button" id="saveRt">存成範本</button>
+              <span class="small muted">休息</span><span class="seg small" id="restSec"></span></p>
+            <div class="rtsave" id="rtSave" hidden><input id="rtName" maxlength="20" placeholder="範本名稱，例如：上半身 A"><button class="btn primary sm" type="button" id="rtOk">存</button><button class="btn ghost sm" type="button" id="rtNo">取消</button></div>
           </div>
           <div class="row3">
             <div class="field"><span>日期</span><input id="fDate" type="date"></div>
@@ -222,6 +270,11 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
         <div id="liftChart"></div>
         <ul class="prs" id="prs"></ul>
       </section>
+
+      <section class="panel" aria-labelledby="muTitle">
+        <div class="head"><h2 id="muTitle">這週各肌群</h2><span class="small muted">每個部位一週 10 組以上</span></div>
+        <div id="muBody"></div>
+      </section>
       <section class="panel" id="bc" aria-labelledby="bcTitle">
         <div class="head"><h2 id="bcTitle">身體組成</h2><span class="small muted" id="bcSub"></span></div>
         <div id="bcTop"></div>
@@ -252,6 +305,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
   </footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<div class="restbar" id="restbar" hidden role="timer" aria-live="off"></div>
 
 <script src="../common/config.js"></script>
 <script src="../common/auth.js"></script>
@@ -280,7 +334,8 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = fals
 const TYPES = ["重訓", "跑步", "快走", "騎車", "游泳", "瑜伽", "球類", "其他"];
 const S = { db: null, sample: null, me: null, partner: null, profiles: [], pid: null,
             exercise: [], weights: [], pShare: null, pExercise: [], pWeights: [], view: "me",
-            type: "重訓", sets: [], range: LS.get("fit.range", 90), lift: null, armed: null };
+            type: "重訓", sets: [], range: LS.get("fit.range", 90), lift: null, armed: null,
+            routines: [], prefs: {}, rest: LS.get("fit.rest", 90) };
 const col = sub => S.db.collection(`data/users/${S.me.id}/${sub}/list`);
 const shareCol = sub => S.db.collection(`shared/${S.me.id}/${sub}`);
 // 可以切換看另一半的紀錄（只能看、不能改）：資料來自對方在飲食頁分享出來的副本 shared/<對方>/...
@@ -362,11 +417,120 @@ function renderSets() {
     <input data-k="kg" type="number" inputmode="decimal" step="0.5" min="0" value="${esc(s.kg)}" aria-label="重量">
     <input data-k="reps" type="number" inputmode="numeric" min="1" step="1" value="${esc(s.reps)}" aria-label="次數">
     <input data-k="n" type="number" inputmode="numeric" min="1" step="1" value="${esc(s.n)}" aria-label="組數">
-    <button class="x" type="button" data-del="${i}" aria-label="刪除這個動作">×</button></div>`).join("") +
+    <button class="done${(s.done || 0) >= (+s.n || 1) ? " full" : ""}" type="button" data-done="${i}" aria-label="做完一組，開始休息計時">✓ ${s.done || 0}/${+s.n || 1}</button>
+    <button class="x" type="button" data-del="${i}" aria-label="刪除這個動作">×</button>${hintHtml(s.lift, i)}</div>`).join("") +
     `<datalist id="liftList">${lifts.map(l => `<option value="${esc(l)}">`).join("")}</datalist>`;
 }
 $("sets").oninput = e => { const row = e.target.closest("[data-i]"); if (row) S.sets[+row.dataset.i][e.target.dataset.k] = e.target.value; };
-$("sets").onclick = e => { const b = e.target.closest("[data-del]"); if (b) { S.sets.splice(+b.dataset.del, 1); renderSets(); } };
+// 動作名稱打完（離開輸入框）才更新建議，打字途中不重畫
+$("sets").addEventListener("change", e => { if (e.target.dataset.k === "lift" || e.target.dataset.k === "n") renderSets(); });
+$("sets").onclick = e => {
+  const b = e.target.closest("[data-del]"); if (b) { S.sets.splice(+b.dataset.del, 1); renderSets(); return; }
+  const d = e.target.closest("[data-done]");
+  if (d) { const s = S.sets[+d.dataset.done]; s.done = Math.min((s.done || 0) + 1, +s.n || 1); renderSets(); if (s.done < (+s.n || 1) || S.sets.some(x => (x.done || 0) < (+x.n || 1))) startRest(); return; }
+  const u = e.target.closest("[data-use]");
+  if (u) { const s = S.sets[+u.dataset.use]; Object.assign(s, JSON.parse(u.dataset.v)); renderSets(); }
+};
+
+// ---------- 估計 1RM、下次建議 ----------
+// Epley 公式：重量 ×（1 + 次數 ÷ 30）；超過 12 下估得不準，就不算
+const e1rm = (kg, reps) => !(kg > 0) || !(reps > 0) || reps > 12 ? 0 : reps === 1 ? +kg : r1(kg * (1 + reps / 30));
+function lastSession(lift, before = "9999") {
+  const xs = mineEx().filter(x => x.date < before && (x.sets || []).some(s => s.lift === lift)).sort((a, b) => a.date < b.date ? 1 : a.date > b.date ? -1 : b.ts - a.ts);
+  if (!xs.length) return null;
+  const rows = xs[0].sets.filter(s => s.lift === lift);
+  const top = rows.reduce((a, b) => (+b.kg > +a.kg || (+b.kg === +a.kg && +b.reps > +a.reps) ? b : a));
+  return { date: xs[0].date, kg: +top.kg, reps: +top.reps, n: +top.n };
+}
+// 漸進式超負荷：上次做完了，下次加 2.5 公斤（次數一樣）或多做 1 下；做到 12 下以上就加重、回到 8 下
+function suggest(last) {
+  if (!last) return [];
+  if (!(last.kg > 0)) return [{ kg: 0, reps: last.reps + 1 }];
+  if (last.reps >= 12) return [{ kg: r1(last.kg + 2.5), reps: 8 }];
+  return [{ kg: r1(last.kg + 2.5), reps: last.reps }, { kg: last.kg, reps: last.reps + 1 }];
+}
+const sugText = o => o.kg ? `${o.kg}kg×${o.reps}` : `${o.reps} 下`;
+function hintHtml(lift, i) {
+  const last = lift && lastSession(String(lift).trim());
+  if (!last) return "";
+  return `<div class="hint">上次 ${+last.date.slice(5, 7)}/${+last.date.slice(8)}：${sugText(last)}×${last.n}組。下次試試 ${suggest(last).map(o =>
+    `<button type="button" data-use="${i}" data-v='${esc(JSON.stringify({ kg: o.kg || "", reps: o.reps, n: last.n }))}'>${sugText(o)}</button>`).join(" 或 ")}</div>`;
+}
+
+// ---------- 休息計時 ----------
+const REST_OPTS = [60, 90, 120, 180];
+function renderRestOpts() {
+  $("restSec").innerHTML = REST_OPTS.map(v => `<button type="button" data-v="${v}" aria-pressed="${v === S.rest}">${v >= 120 ? v / 60 + " 分" : v + " 秒"}</button>`).join("");
+}
+$("restSec").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; S.rest = +b.dataset.v; LS.set("fit.rest", S.rest); renderRestOpts(); };
+const REST = { end: 0, timer: null };
+function startRest(sec = S.rest) {
+  REST.end = Date.now() + sec * 1000;
+  clearInterval(REST.timer); REST.timer = setInterval(tickRest, 250); tickRest();
+}
+function stopRest() { clearInterval(REST.timer); REST.timer = null; $("restbar").hidden = true; }
+function beep() {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [0, .25, .5].forEach(t => { const o = ac.createOscillator(), g = ac.createGain(); o.frequency.value = 880; g.gain.value = .15;
+      o.connect(g); g.connect(ac.destination); o.start(ac.currentTime + t); o.stop(ac.currentTime + t + .15); });
+    setTimeout(() => ac.close(), 1200);
+  } catch (e) {}
+  try { navigator.vibrate?.([200, 100, 200]); } catch (e) {}
+}
+function tickRest() {
+  const bar = $("restbar"), left = Math.ceil((REST.end - Date.now()) / 1000);
+  bar.hidden = false;
+  if (left <= 0) {
+    clearInterval(REST.timer); REST.timer = null; beep();
+    bar.className = "restbar end"; bar.innerHTML = `<span>休息結束，下一組！</span><button type="button" data-r="close">好</button>`;
+    setTimeout(() => { if (!REST.timer) bar.hidden = true; }, 8000);
+    return;
+  }
+  bar.className = "restbar";
+  bar.innerHTML = `<span>休息</span><b>${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}</b><button type="button" data-r="-15">−15</button><button type="button" data-r="15">+15</button><button type="button" data-r="close" aria-label="結束休息">×</button>`;
+}
+$("restbar").onclick = e => {
+  const b = e.target.closest("[data-r]"); if (!b) return;
+  if (b.dataset.r === "close") stopRest(); else { REST.end += +b.dataset.r * 1000; tickRest(); }
+};
+
+// ---------- 訓練範本 ----------
+function renderRoutines() {
+  const list = S.routines.filter(r => r.profileId === S.pid).sort((a, b) => (b.used || 0) - (a.used || 0));
+  $("routines").innerHTML = list.length ? `<span class="small muted">範本</span>` + list.map(r =>
+    `<span class="chip"><button type="button" data-rt="${esc(r.id)}">${esc(r.name)}</button><button type="button" class="rx" data-rx="${esc(r.id)}" aria-label="刪除範本 ${esc(r.name)}">×</button></span>`).join("") : "";
+}
+$("routines").onclick = async e => {
+  const u = e.target.closest("[data-rt]"), x = e.target.closest("[data-rx]");
+  if (u) {
+    const r = S.routines.find(r => r.id === u.dataset.rt); if (!r) return;
+    S.sets = r.sets.map(s => {
+      // 帶入範本時，直接用上次的重量和次數（沒做過就用範本的）
+      const last = lastSession(s.lift);
+      return { lift: s.lift, kg: last ? last.kg || "" : s.kg || "", reps: last ? last.reps : s.reps, n: s.n, done: 0 };
+    });
+    $("fName").value = r.name; renderSets();
+    col("routines").doc(r.id).set({ ...strip(r), used: Date.now() }).catch(() => {});
+    toast(`帶入「${r.name}」，重量用上次的`);
+  } else if (x) {
+    if (x.dataset.armed !== "1") { x.dataset.armed = "1"; x.textContent = "刪？"; setTimeout(() => renderRoutines(), 3000); return; }
+    try { await col("routines").doc(x.dataset.rx).delete(); } catch (err) { toast(err.message || "刪除失敗"); }
+  }
+};
+const strip = ({ id, ...rest }) => rest;
+$("saveRt").onclick = () => {
+  if (!cleanSets().length) { toast("先填至少一個動作"); return; }
+  $("rtSave").hidden = false; $("rtName").value = $("fName").value && $("fName").value !== "重訓" ? $("fName").value : ""; $("rtName").focus();
+};
+$("rtNo").onclick = () => { $("rtSave").hidden = true; };
+$("rtOk").onclick = async () => {
+  const name = $("rtName").value.trim().slice(0, 20);
+  if (!name) { toast("幫範本取個名字"); return; }
+  const old = S.routines.find(r => r.profileId === S.pid && r.name === name);
+  try { await col("routines").doc(old?.id || uid()).set({ profileId: S.pid, name, sets: cleanSets(), used: Date.now() }); $("rtSave").hidden = true; toast(old ? "範本已更新" : "存成範本了"); }
+  catch (err) { toast(err.message || "儲存失敗"); }
+};
 $("addSet").onclick = () => { S.sets.push({ lift: "", kg: "", reps: "", n: 3 }); renderSets(); };
 
 function cleanSets() {
@@ -507,13 +671,19 @@ function renderLifts() {
     const o = by[s.lift] = by[s.lift] || { best: 0, bestReps: 0, bestDate: "", last: "", days: {} };
     if (+s.kg > o.best || (+s.kg === o.best && s.reps > o.bestReps) || (+s.kg === o.best && +s.reps === +o.bestReps && x.date < o.bestDate)) { o.best = +s.kg; o.bestReps = s.reps; o.bestDate = x.date; }
     if (x.date > o.last) o.last = x.date;
-    o.days[x.date] = Math.max(o.days[x.date] || 0, +s.kg);
+    o.days[x.date] = Math.max(o.days[x.date] || 0, e1rm(+s.kg, +s.reps));
+    o.e1 = Math.max(o.e1 || 0, e1rm(+s.kg, +s.reps));
   }
   const lifts = Object.entries(by).sort((a, b) => a[1].last < b[1].last ? 1 : -1);
   if (!lifts.length) { $("liftChart").innerHTML = `<p class="empty small">記錄重訓時填上動作、重量、次數，這裡會畫出每個動作的重量變化。</p>`; $("prs").innerHTML = ""; return; }
   if (!S.lift || !by[S.lift]) S.lift = lifts[0][0];
-  const pts = Object.entries(by[S.lift].days).sort().map(([date, v]) => ({ date, v }));
-  $("liftChart").innerHTML = `<p class="small muted" style="margin-bottom:4px">${esc(S.lift)}：每次訓練的最大重量</p>` + lineChart(pts, { unit: " kg", digits: 1 });
+  const o = by[S.lift];
+  const pts = Object.entries(o.days).filter(([, v]) => v > 0).sort().map(([date, v]) => ({ date, v }));
+  const last = lastSession(S.lift);
+  const next = partnerView() ? "" : suggest(last).map(sugText).join(" 或 ");
+  $("liftChart").innerHTML = `<p class="small muted" style="margin-bottom:4px">${esc(S.lift)}：估計 1RM（一次能舉起的最大重量）${o.e1 ? `・最高 <b style="color:var(--ink)">${o.e1} kg</b>` : ""}</p>` +
+    (pts.length ? lineChart(pts, { unit: " kg", digits: 1 }) : `<p class="empty small">這個動作沒有重量（或每組超過 12 下），估不出 1RM。</p>`) +
+    (next ? `<p class="small" style="margin-top:6px">下次建議：<b>${esc(next)}</b>（上次 ${sugText(last)}×${last.n}組，做完了就往上加一點）</p>` : "");
   // 最近一週破紀錄的動作變成金色核心記憶（第一次做的不算）
   const recent = addDays(today(), -6);
   const isPr = o => o.bestDate >= recent && Object.keys(o.days).some(d => d < o.bestDate);
@@ -541,7 +711,78 @@ $("who").onclick = e => {
   const b = e.target.closest("[data-v]"); if (!b || b.disabled) return;
   S.view = b.dataset.v; S.lift = null; LS.set("fit.view", S.view); renderAll();
 };
-function renderAll() { renderWho(); if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); renderBC(); mirrorBC(); }
+function renderAll() { renderWho(); if (!prof()) return; renderWeek(); renderChallenge(); renderLogs(); renderWeight(); renderLifts(); renderMuscles(); renderRoutines(); renderBC(); mirrorBC(); }
+
+// ---------- 兩個人的挑戰 ----------
+// 每個月一起各運動 N 天（目標存在自己的設定裡），兩個人都達成就各拿一顆金球
+const CH_OPTS = [8, 12, 16, 20];
+function savePrefs(patch) { S.prefs = { ...S.prefs, ...patch }; return col("fitprefs").doc("prefs").set(S.prefs).catch(err => toast(err.message || "儲存失敗")); }
+function renderChallenge() {
+  const target = S.prefs.challenge || 12, month = today().slice(0, 7);
+  $("cTarget").innerHTML = CH_OPTS.map(v => `<button type="button" data-v="${v}" aria-pressed="${v === target}">${v} 天</button>`).join("");
+  const days = list => new Set(list.filter(x => x.date.startsWith(month) && x.date <= today()).map(x => x.date)).size;
+  const rows = [[S.me, ownProf()?.name || S.me.name, days(ownEx())]];
+  const p2 = pp();
+  if (S.partner && p2) rows.push([S.partner, p2.name, days(S.pExercise.filter(x => x.profileId === p2.id))]);
+  const left = parse(month + "-01"); left.setUTCMonth(left.getUTCMonth() + 1);
+  const remain = Math.round((left - parse(today())) / 86400000);
+  const all = rows.every(r => r[2] >= target);
+  $("cBody").innerHTML = `<p class="small muted">${+month.slice(5)} 月一起各運動 ${target} 天，還剩 ${remain} 天。</p>` +
+    rows.map(([u, name, n]) => `<div class="rowc"><span class="nm">${esc(name)}</span><span class="bar"><i class="${n >= target ? "ok" : ""}" style="width:${Math.min(100, n / target * 100)}%"></i></span>
+      <span class="n">${n}/${target}</span>${n >= target ? `<i class="orb gold" title="達成"></i>` : `<i class="orb empty"></i>`}</div>`).join("") +
+    `<p class="msg">${rows.length < 2 ? `<span class="muted">${S.partner ? `${esc(S.partner.name)}在飲食頁開啟分享後，就能一起挑戰。` : ""}</span>`
+      : all ? "兩個人都達成了，各拿一顆金色記憶球 ✨" : rows[0][2] >= target ? `你達成了，幫${esc(rows[1][1])}加油！` : ""}</p>`;
+}
+$("cTarget").onclick = e => { const b = e.target.closest("[data-v]"); if (b) { savePrefs({ challenge: +b.dataset.v }); renderChallenge(); } };
+
+// ---------- 這週各肌群 ----------
+// 依動作名稱猜部位（猜不到的可以自己指定，存在設定裡）；一組算一組，複合動作只算主要部位
+const MUSCLES = [
+  ["胸", ["臥推", "胸", "飛鳥", "伏地挺身", "夾胸", "bench", "push up", "pushup", "fly", "pec", "dip"]],
+  ["背", ["划船", "引體", "下拉", "背", "硬舉", "row", "pull", "deadlift", "lat pull", "chin"]],
+  ["腿", ["深蹲", "腿", "弓箭步", "蹲", "小腿", "squat", "lunge", "leg", "calf"]],
+  ["臀", ["臀", "橋", "髖", "hip", "thrust", "glute", "bridge"]],
+  ["肩", ["肩", "推舉", "側平舉", "前平舉", "面拉", "聳肩", "shoulder", "ohp", "press", "raise", "face"]],
+  ["手臂", ["二頭", "三頭", "彎舉", "下壓", "手臂", "臂", "curl", "tricep", "bicep", "extension"]],
+  ["核心", ["腹", "核心", "棒式", "捲", "plank", "crunch", "core", "abs", "sit"]],
+];
+const muscleOf = lift => {
+  const own = S.prefs.muscles?.[lift]; if (own) return own;
+  const l = lift.toLowerCase();
+  return MUSCLES.find(([, ks]) => ks.some(k => l.includes(k)))?.[0] || null;
+};
+function bodySvg(sets) {
+  const c = g => { const n = sets[g] || 0; return n ? `fill="color-mix(in srgb, var(--${n >= 10 ? "gold" : "anger"}) ${Math.min(100, 35 + n * 6.5)}%, transparent)"` : `fill="rgba(255,255,255,.05)" stroke-dasharray="3 3"`; };
+  // 正面（胸、肩、手臂、核心、腿）和背面（背、肩、臀、腿）兩個小人
+  const fig = (x, back) => `<g transform="translate(${x},0)">
+    <circle class="base" cx="35" cy="12" r="9"/>
+    <ellipse class="m" cx="17" cy="29" rx="8" ry="6" ${c("肩")}/><ellipse class="m" cx="53" cy="29" rx="8" ry="6" ${c("肩")}/>
+    ${back ? `<rect class="m" x="23" y="25" width="24" height="34" rx="6" ${c("背")}/><rect class="m" x="23" y="61" width="24" height="16" rx="7" ${c("臀")}/>`
+      : `<rect class="m" x="23" y="25" width="24" height="18" rx="6" ${c("胸")}/><rect class="m" x="25" y="45" width="20" height="28" rx="6" ${c("核心")}/>`}
+    <rect class="m" x="6" y="36" width="9" height="34" rx="4.5" ${c("手臂")}/><rect class="m" x="55" y="36" width="9" height="34" rx="4.5" ${c("手臂")}/>
+    <rect class="m" x="23" y="79" width="11" height="46" rx="5.5" ${c("腿")}/><rect class="m" x="36" y="79" width="11" height="46" rx="5.5" ${c("腿")}/>
+    <text x="35" y="138">${back ? "背面" : "正面"}</text></g>`;
+  return `<svg viewBox="0 0 150 142" role="img" aria-label="這週各肌群的訓練組數">${fig(0, false)}${fig(78, true)}</svg>`;
+}
+function renderMuscles() {
+  const mon = mondayOf(today()), sets = {}, unknown = new Set();
+  for (const x of mineEx()) if (x.date >= mon && x.date <= today()) for (const s of x.sets || []) {
+    if (!s.lift) continue;
+    const g = muscleOf(s.lift);
+    if (g) sets[g] = (sets[g] || 0) + (+s.n || 1); else unknown.add(s.lift);
+  }
+  const any = Object.keys(sets).length || unknown.size;
+  if (!any) { $("muBody").innerHTML = `<p class="empty small">這週還沒有重訓紀錄。記重訓時寫上動作名稱（例如臥推、深蹲），這裡會算出每個部位做了幾組。</p>`; return; }
+  $("muBody").innerHTML = `<div class="mus">${bodySvg(sets)}<ul class="mlist">${MUSCLES.map(([g]) => {
+      const n = sets[g] || 0;
+      return `<li><span>${g}</span><span class="bar"><i class="${n >= 10 ? "ok" : ""}" style="width:${Math.min(100, n * 10)}%"></i></span><span class="v">${n} 組</span></li>`;
+    }).join("")}</ul></div>` +
+    (unknown.size && !partnerView() ? `<div class="unk">這些動作猜不出部位，幫我選一下：${[...unknown].map(l => `<div><span>${esc(l)}</span><select data-lift="${esc(l)}"><option value="">選部位</option>${MUSCLES.map(([g]) => `<option>${g}</option>`).join("")}</select></div>`).join("")}</div>` : "");
+}
+$("muBody").onchange = e => {
+  const sel = e.target.closest("[data-lift]"); if (!sel || !sel.value) return;
+  savePrefs({ muscles: { ...(S.prefs.muscles || {}), [sel.dataset.lift]: sel.value } }); renderMuscles();
+};
 
 // ---------- 身體組成（體脂機報告）----------
 // 一份報告一筆，存在 data/users/<我>/bodycomp/list，文件 id = <個人資料 id>_<測量日期>（同一天只留一筆）。
@@ -803,7 +1044,7 @@ async function boot() {
   S.view = LS.get("fit.view", "me") === "partner" ? "partner" : "me";
   [S.db, S.sample] = await Promise.all([window.claude.use("db"), window.claude.use("sample")]);
   $("fDate").value = today(); $("fName").value = S.type;
-  renderType();
+  renderType(); renderRestOpts();
 
   let first = true;
   const docs = snap => snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -821,6 +1062,8 @@ async function boot() {
   col("exercise").onSnapshot(snap => { S.exercise = docs(snap); renderAll(); }, () => {});
   col("weights").onSnapshot(snap => { S.weights = docs(snap); renderAll(); }, () => {});
   col("bodycomp").onSnapshot(snap => { BC.list = docs(snap); BC.loaded = true; renderAll(); }, () => {});
+  col("routines").onSnapshot(snap => { S.routines = docs(snap); renderRoutines(); }, () => {});
+  col("fitprefs").onSnapshot(snap => { S.prefs = strip(docs(snap).find(d => d.id === "prefs") || { id: "" }); if (prof()) { renderChallenge(); renderMuscles(); } }, () => {});
   S.db.collection(`shared/${S.me.id}/bodycomp`).onSnapshot(snap => { BC.mineShared = docs(snap); BC.sharedLoaded = true; mirrorBC(); }, () => {});
   if (S.partner) {
     S.db.collection("shared").doc(String(S.partner.id)).onSnapshot(d => { S.pShare = d.exists ? d.data() : null; renderAll(); }, () => {});
