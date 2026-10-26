@@ -82,6 +82,14 @@ textarea{resize:vertical;min-height:84px}
 .today2 .who div{min-width:0}
 .today2 .who b{display:block;font-size:.85rem}
 .today2 .who span{font-size:.8rem;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button.who{border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;width:100%}
+button.who:hover,button.who[aria-expanded="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
+.mdetail{display:flex;gap:10px;align-items:flex-start;margin:-4px 0 12px;padding:10px 12px;border-radius:14px;background:var(--sunk);border:1px solid var(--line)}
+.mdetail .orb{--s:34px}
+.mdetail b{display:block;font-size:.9rem}
+.mdetail p{margin:2px 0 0;white-space:pre-wrap;word-break:break-word}
+.mdetail .x{margin-left:auto;border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
 .strip{display:grid;grid-template-columns:auto repeat(14,1fr);gap:2px;margin-top:12px;font-size:.7rem;align-items:center;text-align:center}
 .strip .nm{text-align:left;padding-right:4px;color:var(--muted);white-space:nowrap}
 .strip .c{display:flex;justify-content:center;align-items:center;aspect-ratio:1;border-radius:50%}
@@ -132,6 +140,7 @@ textarea{resize:vertical;min-height:84px}
       <section class="panel" aria-labelledby="mTitle">
         <h2 id="mTitle">今天的心情</h2>
         <div class="today2" id="mToday"></div>
+        <div class="mdetail" id="mDetail" hidden role="status"></div>
         <div class="moods" id="mPick"></div>
         <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
         <div class="strip" id="mStrip" aria-label="最近兩週的心情"></div>
@@ -194,7 +203,7 @@ const dayText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}月${d.
 const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
 const moodOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MOOD_COLOR[mood] || "var(--muted)"}"></i>`;
 
-const state = { me: null, partner: null, q: null, moods: null, pickMood: null, dates: [], editDate: null,
+const state = { me: null, partner: null, q: null, moods: null, pickMood: null, moodOpen: null, dates: [], editDate: null,
                 photos: [], photosDone: false, upload: null, histBefore: null };
 const people = () => [state.me, state.partner].filter(Boolean);
 const person = id => people().find(p => p.id === +id);
@@ -270,7 +279,8 @@ function renderMoods() {
   const todayOf = id => m.items.find(x => x.date === today && x.user_id === id);
   $("mToday").innerHTML = people().map(p => {
     const t = todayOf(p.id);
-    return `<div class="who">${t ? moodOrb(t.mood) : moodOrb("", " empty")}<div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></div>`;
+    const open = state.moodOpen && state.moodOpen.u === p.id && state.moodOpen.d === today;
+    return `<button type="button" class="who" data-u="${p.id}" data-d="${today}" aria-expanded="${!!open}">${t ? moodOrb(t.mood) : moodOrb("", " empty")}<div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></button>`;
   }).join("");
   const mine = todayOf(state.me.id);
   if (state.pickMood == null) { state.pickMood = mine?.mood || null; $("mNote").value = mine?.note || ""; }
@@ -280,9 +290,31 @@ function renderMoods() {
   $("mStrip").innerHTML = `<span></span>` + days.map(d => `<span class="muted">${+d.slice(8)}</span>`).join("") +
     people().map(p => `<span class="nm">${esc(p.name)}</span>` + days.map(d => {
       const x = m.items.find(i => i.date === d && i.user_id === p.id);
-      return `<span class="c${d === today ? " today" : ""}" title="${esc(x ? `${dayText(d)} ${x.mood}${x.note ? "・" + x.note : ""}` : dayText(d))}">${x ? moodOrb(x.mood) : ""}</span>`;
+      return x ? `<button type="button" class="c${d === today ? " today" : ""}" data-u="${p.id}" data-d="${d}" aria-label="${esc(`${p.name} ${dayText(d)} ${x.mood}`)}">${moodOrb(x.mood)}</button>`
+        : `<span class="c${d === today ? " today" : ""}"></span>`;
     }).join("")).join("");
+  renderMoodDetail();
 }
+// 點一顆心情珠子（今天的卡片或兩週的小珠子），在下面展開那天的心情和小語。只能看，
+// 要改只能改自己今天的（用下面的選項重新打卡）。
+function renderMoodDetail() {
+  const box = $("mDetail"), o = state.moodOpen, m = state.moods;
+  const x = o && m?.items.find(i => i.date === o.d && i.user_id === o.u);
+  if (!o) { box.hidden = true; return; }
+  const p = person(o.u);
+  box.hidden = false;
+  box.innerHTML = `${x ? moodOrb(x.mood) : moodOrb("", " empty")}<div><b>${esc(p?.name || "")}・${esc(dayText(o.d))}${x ? "・" + esc(x.mood) : ""}</b>
+    <p>${x ? (x.note ? esc(x.note) : '<span class="muted">沒有寫小語</span>') : '<span class="muted">這天還沒打卡</span>'}</p></div>
+    <button class="x" type="button" data-close="1" aria-label="收起">×</button>`;
+}
+function toggleMood(u, d) {
+  const o = state.moodOpen;
+  state.moodOpen = o && o.u === u && o.d === d ? null : { u, d };
+  renderMoods();
+}
+$("mToday").onclick = e => { const b = e.target.closest("[data-u]"); if (b) toggleMood(+b.dataset.u, b.dataset.d); };
+$("mStrip").onclick = e => { const b = e.target.closest("[data-u]"); if (b) toggleMood(+b.dataset.u, b.dataset.d); };
+$("mDetail").onclick = e => { if (e.target.closest("[data-close]")) { state.moodOpen = null; renderMoods(); } };
 $("mPick").onclick = e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
   state.pickMood = state.pickMood === b.dataset.v ? null : b.dataset.v; renderMoods();

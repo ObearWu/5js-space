@@ -43,6 +43,11 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 .seg.small button{padding:3px 10px;font-size:.8rem}
 
 /* 本週 */
+.who{display:inline-flex;gap:4px;padding:3px;border-radius:999px;background:color-mix(in srgb,#000 18%,transparent)}
+.who button{border:0;background:none;color:inherit;font:inherit;font-size:.82rem;font-weight:700;padding:3px 12px;border-radius:999px;cursor:pointer;opacity:.75}
+.who button[aria-pressed="true"]{background:rgba(255,255,255,.9);color:#3A1010;opacity:1}
+.who button:disabled{opacity:.4;cursor:default}
+.ro{font-size:.82rem;color:var(--muted);margin:-4px 0 10px}
 .dorbs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:.75rem;color:var(--muted);margin-bottom:14px}
 .dorbs .orb{--s:34px;margin:0 auto 3px;display:block}
 .dorbs .orb.empty{border-color:rgba(255,255,255,.2)}
@@ -108,6 +113,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
   <header class="band">
     <a class="back" href="../">‹ 總部</a>
     <div class="row"><h1>運動</h1><span class="bstat" id="bandStat"></span></div>
+    <div class="row" style="margin-top:6px;justify-content:flex-start"><span class="who" id="who" role="group" aria-label="看誰的紀錄" hidden></span></div>
     <label class="small" id="profBox" hidden>記錄對象 <select id="prof"></select></label>
   </header>
 
@@ -122,13 +128,14 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
     <div class="col">
       <section class="panel" aria-labelledby="wkTitle">
         <h2 id="wkTitle">這週</h2>
+        <p class="ro" id="roNote" hidden></p>
         <div class="dorbs" id="dorbs" aria-label="這週每天有沒有運動"></div>
         <div class="week" id="week"></div>
         <div class="heat" id="heat" aria-label="最近 12 週有運動的日子"></div>
         <p class="streak" id="streak"></p>
       </section>
 
-      <section class="panel" aria-labelledby="fTitle">
+      <section class="panel" id="formPanel" aria-labelledby="fTitle">
         <h2 id="fTitle">記一筆運動</h2>
         <form id="form" autocomplete="off" novalidate>
           <div class="field"><span>種類</span><div class="seg" id="fType"></div></div>
@@ -209,13 +216,19 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = fals
 // 跟飲食頁同一套集合（舊食記的命名）
 const TYPES = ["重訓", "跑步", "快走", "騎車", "游泳", "瑜伽", "球類", "其他"];
 const S = { db: null, sample: null, me: null, partner: null, profiles: [], pid: null,
-            exercise: [], weights: [], pShare: null, pExercise: [],
+            exercise: [], weights: [], pShare: null, pExercise: [], pWeights: [], view: "me",
             type: "重訓", sets: [], range: LS.get("fit.range", 90), lift: null, armed: null };
 const col = sub => S.db.collection(`data/users/${S.me.id}/${sub}/list`);
 const shareCol = sub => S.db.collection(`shared/${S.me.id}/${sub}`);
-const prof = () => S.profiles.find(p => p.id === S.pid);
-const mineEx = () => S.exercise.filter(x => x.profileId === S.pid);
-const mineW = () => S.weights.filter(x => x.profileId === S.pid).sort((a, b) => a.date < b.date ? -1 : 1);
+// 可以切換看另一半的紀錄（只能看、不能改）：資料來自對方在飲食頁分享出來的副本 shared/<對方>/...
+const pp = () => S.pShare?.profiles?.[0] || null;
+const partnerView = () => S.view === "partner" && !!pp();
+const ownProf = () => S.profiles.find(p => p.id === S.pid);
+const ownEx = () => S.exercise.filter(x => x.profileId === S.pid);
+const prof = () => partnerView() ? pp() : ownProf();
+const mineEx = () => partnerView() ? S.pExercise.filter(x => x.profileId === pp().id) : ownEx();
+const mineW = () => (partnerView() ? S.pWeights.filter(x => x.profileId === pp().id) : S.weights.filter(x => x.profileId === S.pid))
+  .sort((a, b) => a.date < b.date ? -1 : 1);
 
 // ---------- 本週、熱度圖 ----------
 function weekStats(list) {
@@ -224,9 +237,9 @@ function weekStats(list) {
   return { n: new Set(wk.map(x => x.date)).size, min: wk.reduce((s, x) => s + (+x.minutes || 0), 0), kcal: wk.reduce((s, x) => s + (+x.kcal || 0), 0) };
 }
 function renderWeek() {
-  const cards = [[S.me, prof()?.name, mineEx()]];
-  const pp = S.pShare?.profiles?.[0];
-  if (S.partner && pp) cards.push([S.partner, pp.name, S.pExercise.filter(x => x.profileId === pp.id)]);
+  const cards = [[S.me, ownProf()?.name, ownEx()]];
+  const p2 = pp();
+  if (S.partner && p2) cards.push([S.partner, p2.name, S.pExercise.filter(x => x.profileId === p2.id)]);
   // 這週七天七顆球：有運動的那天亮起來，動越久越亮
   const mon = mondayOf(today()), mins = {};
   mineEx().forEach(x => { mins[x.date] = (mins[x.date] || 0) + (+x.minutes || 30); });
@@ -301,6 +314,7 @@ const setsText = sets => sets.map(s => `${s.lift} ${s.kg ? s.kg + "kg×" : ""}${
 
 $("form").onsubmit = async e => {
   e.preventDefault();
+  if (partnerView()) return;  // 另一半的紀錄只能看
   const p = prof(), msg = $("fMsg");
   const sets = S.type === "重訓" ? cleanSets() : [];
   let name = $("fName").value.trim() || (sets.length ? "重量訓練" : S.type === "其他" ? "" : S.type);
@@ -346,12 +360,12 @@ function renderLogs() {
     if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}</div><ul class="list">`; last = x.date; }
     html += `<li><span class="tag">${esc(x.type || "運動")}</span><div class="main"><b>${esc(x.name)}</b>
       <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
-      <span class="kc">${r0(x.kcal)} 大卡</span><button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button></li>`;
+      <span class="kc">${r0(x.kcal)} 大卡</span>${partnerView() ? "" : `<button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button>`}</li>`;
   }
   $("logs").innerHTML = html + "</ul>";
 }
 $("logs").onclick = async e => {
-  const b = e.target.closest("[data-del]"); if (!b) return;
+  const b = e.target.closest("[data-del]"); if (!b || partnerView()) return;
   const id = b.dataset.del;
   if (S.armed !== id) { S.armed = id; renderLogs(); setTimeout(() => { if (S.armed === id) { S.armed = null; renderLogs(); } }, 4000); return; }
   S.armed = null;
@@ -405,6 +419,7 @@ function renderWeight() {
 $("wRange").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; S.range = +b.dataset.v; LS.set("fit.range", S.range); renderWeight(); };
 $("wForm").onsubmit = async e => {
   e.preventDefault();
+  if (partnerView()) return;  // 另一半的紀錄只能看
   const kg = r1($("wKg").value);
   if (!(kg >= 20 && kg <= 300)) { toast("請填正確的體重"); return; }
   const p = prof(), date = today(), id = `${p.id}_${date}`;
@@ -443,7 +458,27 @@ function renderLifts() {
 }
 $("prs").onclick = e => { const li = e.target.closest("[data-l]"); if (li) { S.lift = li.dataset.l; renderLifts(); } };
 
-function renderAll() { if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); }
+// 切換「我／另一半」。看另一半時藏起所有可以新增、修改、刪除的地方
+function renderWho() {
+  const box = $("who");
+  if (!S.partner) { box.hidden = true; return; }
+  const shared = !!pp();
+  if (!shared && S.view === "partner") S.view = "me";
+  box.hidden = false;
+  box.innerHTML = `<button type="button" data-v="me" aria-pressed="${S.view === "me"}">我</button>` +
+    `<button type="button" data-v="partner" aria-pressed="${S.view === "partner"}"${shared ? "" : ` disabled title="${esc(S.partner.name)}還沒在飲食頁開啟分享"`}>${esc(S.partner.name)}</button>`;
+  const ro = partnerView();
+  $("formPanel").hidden = ro; $("wForm").hidden = ro;
+  $("profBox").hidden = ro || S.profiles.length < 2;
+  $("roNote").hidden = !ro;
+  $("roNote").textContent = ro ? `正在看${S.partner.name}的紀錄，只能看、不能修改。` : "";
+  $("lTitle").textContent = ro ? `${S.partner.name}最近的紀錄` : "最近的紀錄";
+}
+$("who").onclick = e => {
+  const b = e.target.closest("[data-v]"); if (!b || b.disabled) return;
+  S.view = b.dataset.v; S.lift = null; LS.set("fit.view", S.view); renderAll();
+};
+function renderAll() { renderWho(); if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); }
 
 // ---------- 啟動 ----------
 async function boot() {
@@ -456,6 +491,7 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   S.me = info.user; S.partner = info.partner;
+  S.view = LS.get("fit.view", "me") === "partner" ? "partner" : "me";
   [S.db, S.sample] = await Promise.all([window.claude.use("db"), window.claude.use("sample")]);
   $("fDate").value = today(); $("fName").value = S.type;
   renderType();
@@ -477,7 +513,8 @@ async function boot() {
   col("weights").onSnapshot(snap => { S.weights = docs(snap); renderAll(); }, () => {});
   if (S.partner) {
     S.db.collection("shared").doc(String(S.partner.id)).onSnapshot(d => { S.pShare = d.exists ? d.data() : null; renderAll(); }, () => {});
-    S.db.collection(`shared/${S.partner.id}/exercise`).where("date", ">=", addDays(today(), -14)).onSnapshot(snap => { S.pExercise = docs(snap); renderAll(); }, () => {});
+    S.db.collection(`shared/${S.partner.id}/exercise`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pExercise = docs(snap); renderAll(); }, () => {});
+    S.db.collection(`shared/${S.partner.id}/weights`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pWeights = docs(snap); renderAll(); }, () => {});
   }
   $("prof").onchange = () => { S.pid = $("prof").value; LS.set("fit.pid", S.pid); S.sets = []; renderType(); renderAll(); };
 }
