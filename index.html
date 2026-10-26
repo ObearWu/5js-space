@@ -38,6 +38,16 @@ body.locked .tabbar{display:none}
 .core b .num{font-size:1.6rem;margin:0 3px}
 .core span.s{font-size:.88rem;color:var(--muted)}
 
+/* 想你 */
+.pingbar{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.pingbar .t{flex:1;min-width:0;font-size:.9rem}
+.pingbar .t b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.05rem}
+.pingbar .heart{border:0;cursor:pointer;width:46px;height:46px;border-radius:50%;font-size:1.3rem;color:#fff;flex:none;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 8%,transparent 30%),var(--emb);box-shadow:0 0 16px color-mix(in srgb,var(--emb) 55%,transparent)}
+.pingbar .heart:active{transform:scale(.9)}
+.pingbar.got{border-color:var(--emb);box-shadow:0 0 30px color-mix(in srgb,var(--emb) 40%,transparent),0 10px 30px var(--shadow)}
+.pingbar.got .heart{animation:pulse 1.8s ease-in-out infinite}
+
 /* 控制台 */
 .console{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 10px;padding:22px 12px}
 .console a{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;text-decoration:none;color:inherit;border-radius:18px;padding:6px 2px;min-width:0}
@@ -79,6 +89,8 @@ body.locked .tabbar{display:none}
       <span class="pigs" id="corePigs"></span>
       <span><span class="k">核心記憶</span><b id="coreTitle">我們的小空間</b><span class="s" id="coreSub"></span></span>
     </a>
+
+    <section class="panel pingbar" id="pingbar" hidden aria-label="想你"></section>
 
     <nav class="panel console" id="console" aria-label="功能"></nav>
 
@@ -156,6 +168,11 @@ function statusOf(key, s) {
   }
   if (key === "together") {
     const a = s.together.answered, mine = a[me.id], theirs = pa && a[pa.id];
+    const lm = s.together.lovemap || {}, ck = s.together.checkin || {};
+    const sunday = new Date(s.today + "T00:00:00").getDay() === 0;
+    if (pa && s.together.ping?.unseen) return { text: `${pa.name}想你了 ♥`, hot: true };
+    if (pa && sunday && !ck[me.id]) return { text: ck[pa.id] ? `${pa.name}寫好週日小聊天了` : "今天是週日小聊天", hot: true };
+    if (pa && lm[pa.id] && !lm[me.id] && (!theirs || mine)) return { text: `${pa.name}猜好了，換你猜`, hot: true };
     if (theirs && !mine) return { text: `${pa.name}答了！換你`, hot: true };
     if (mine && !theirs && pa) return { text: `等${pa.name}回答` };
     if (mine && theirs) return { text: "今天都答了" };
@@ -203,10 +220,30 @@ function renderShelf(s) {
   $("shelf").innerHTML = rows + labels + legend;
 }
 
+// 想你：對方送來還沒看的愛心會讓這一條亮起來；按愛心送一顆給對方（也會把收到的標成看過）
+const hm = iso => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+function renderPing(p) {
+  const pa = ME.partner, el = $("pingbar");
+  if (!pa || !p) { el.hidden = true; return; }
+  el.hidden = false;
+  el.classList.toggle("got", p.unseen > 0);
+  const sent = p.today[ME.user.id] || 0;
+  el.innerHTML = `<div class="t">${p.unseen ? `<b>${esc(pa.name)}想你了 ♥</b><span class="muted">${p.unseen > 1 ? `${p.unseen} 顆，` : ""}${hm(p.last)}。按愛心回一顆</span>`
+    : `<b>想${esc(pa.name)}了嗎？</b><span class="muted">${sent ? `今天送了 ${sent} 顆${p.partner_seen ? `・${hm(p.partner_seen)} 看到了` : ""}` : `按一下，${esc(pa.name)}的首頁就會亮起來`}</span>`}</div>
+    <button class="heart" type="button" id="pingBtn" aria-label="送一顆想你給${esc(pa.name)}">♥</button>`;
+  $("pingBtn").onclick = async () => {
+    try {
+      if (p.unseen) await FiveJS.api("/api/together/pings/seen", { method: "POST" });
+      await FiveJS.api("/api/together/pings", { method: "POST" });
+      loadSummary();
+    } catch (e) { $("pingbar").querySelector(".t span").textContent = e.message; }
+  };
+}
+
 async function loadSummary() {
   try {
     const s = await FiveJS.api("/api/hq/today");
-    renderConsole(s); renderCore(s); renderShelf(s);
+    renderConsole(s); renderCore(s); renderShelf(s); renderPing(s.together.ping);
   } catch (e) {
     if (e instanceof FiveJS.AuthError) { FiveJS.setToken(null); showGate(e.message, true); return; }
     renderConsole(null);

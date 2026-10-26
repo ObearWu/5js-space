@@ -127,6 +127,59 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 .lb .box{background:var(--surface);border-radius:16px;padding:10px 12px;width:min(520px,100%);display:flex;flex-direction:column;gap:8px}
 .lb .row{display:grid;grid-template-columns:1fr auto;gap:8px}
 .lb .acts{display:flex;justify-content:space-between;gap:8px}
+/* 往年今天 */
+.otd{display:flex;gap:12px;align-items:center;overflow-x:auto}
+.otd .lead{flex:none;max-width:9em}
+.otd .lead b{display:block;font-family:var(--f-round);font-size:1.05rem;color:#FFE59A}
+.otd button{flex:none;border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.72rem;width:76px}
+.otd .ball{display:block;width:76px;height:76px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold);animation:born .9s ease-out}
+.otd img{width:100%;height:100%;object-fit:cover;display:block}
+/* 想你 */
+.ping{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ping .txt{flex:1;min-width:10em}
+.ping .txt b{display:block;font-family:var(--f-round)}
+.heart{border:0;cursor:pointer;width:56px;height:56px;border-radius:50%;font-size:1.6rem;line-height:1;color:#fff;flex:none;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 8%,transparent 30%),var(--emb);box-shadow:0 0 18px color-mix(in srgb,var(--emb) 60%,transparent);transition:transform .15s}
+.heart:active{transform:scale(.9)}
+.heart.pop{animation:pop .5s ease-out}
+@keyframes pop{40%{transform:scale(1.3)}}
+.ping.got{border-color:var(--emb);box-shadow:0 0 24px color-mix(in srgb,var(--emb) 35%,transparent)}
+/* 猜猜對方、小聊天、一起想做的事 */
+.lm label,.ck label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+.lm .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+@media (max-width:420px){.lm .pair{grid-template-columns:1fr}}
+.lm .card{background:var(--sunk);border-radius:14px;padding:10px 12px;min-width:0}
+.lm .card b{display:block;font-size:.85rem;margin-bottom:4px}
+.lm .card p{margin:0 0 6px;white-space:pre-wrap;word-break:break-word}
+.lm .card .g{font-size:.85rem;color:var(--muted)}
+.lm .verdict{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.lm .verdict .ok{color:#FFE59A}
+.lm .shelf2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;align-items:center}
+.lm .shelf2 .orb{--s:24px}
+.ck .qa{margin-top:10px}
+.ck .qa b{display:block;font-size:.9rem;margin-bottom:4px}
+.ck textarea{min-height:52px}
+.ck .both{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:420px){.ck .both{grid-template-columns:1fr}}
+.ck .both div{background:var(--sunk);border-radius:12px;padding:8px 10px;white-space:pre-wrap;word-break:break-word;font-size:.92rem;min-width:0}
+.ck .both small{display:block;color:var(--muted);font-size:.75rem}
+.bk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.bk li{display:flex;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
+.bk li .main{flex:1;min-width:0}
+.bk li .main b{display:block;word-break:break-word}
+.bk li .main span{font-size:.8rem;color:var(--muted)}
+.bk li .orb{--s:22px}
+.bk .chk{border:0;background:none;padding:0;cursor:pointer}
+.bk .done .main b{color:#FFE59A}
+.bkform{display:grid;grid-template-columns:1fr 7em;gap:8px;margin-bottom:10px}
+.bkform .full{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
+.bkshelf{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:2px dashed var(--line);padding-top:10px}
+.bkshelf button{border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;color:#FFE59A;max-width:64px}
+.bkshelf button span{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bkshelf .orb{--s:30px}
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet .box{background:var(--surface);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0));width:min(520px,100%);display:flex;flex-direction:column;gap:10px}
+.sheet .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
 </style>
 </head>
@@ -140,7 +193,10 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
 
   <main class="grid" id="app" hidden>
+    <section class="panel otd" id="otd" hidden style="grid-column:1/-1" aria-label="往年今天"></section>
     <div class="col">
+      <section class="panel ping" id="ping" aria-label="想你"></section>
+
       <section class="panel" aria-labelledby="qTitle">
         <div class="head"><h2 id="qTitle">每日一問</h2><span class="small muted" id="qDate"></span></div>
         <div id="qBody"></div>
@@ -154,6 +210,11 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
         <div class="moods" id="mPick"></div>
         <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
         <div class="strip" id="mStrip" aria-label="最近兩週的心情"></div>
+      </section>
+
+      <section class="panel lm" id="lovemap" aria-labelledby="lmTitle">
+        <div class="head"><h2 id="lmTitle">猜猜對方</h2><span class="small muted">每週一題</span></div>
+        <div id="lmBody"></div>
       </section>
     </div>
 
@@ -174,6 +235,11 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
         </form>
       </section>
 
+      <section class="panel ck" id="checkin" aria-labelledby="ckTitle">
+        <div class="head"><h2 id="ckTitle">每週小聊天</h2><span class="small muted" id="ckWeek"></span></div>
+        <div id="ckBody"></div>
+      </section>
+
       <section class="panel" id="photos" aria-labelledby="pTitle">
         <div class="head"><h2 id="pTitle">照片記憶架</h2><label class="btn sm" for="pFile">上傳照片</label></div>
         <input type="file" id="pFile" accept="image/*" hidden>
@@ -185,6 +251,11 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
         <div class="wall" id="wall"></div>
         <p style="text-align:center;margin-top:10px" id="pMoreBox" hidden><button class="link" type="button" id="pMore">看更早的照片</button></p>
       </section>
+
+      <section class="panel" id="bucket" aria-labelledby="bkTitle">
+        <div class="head"><h2 id="bkTitle">一起想做的事</h2><button class="btn sm" type="button" id="bkAdd">新增</button></div>
+        <div id="bkBody"></div>
+      </section>
     </div>
   </main>
 
@@ -193,6 +264,7 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
   </footer>
 </div>
 <div class="lb" id="lb" hidden></div>
+<div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="../common/config.js"></script>
@@ -215,7 +287,9 @@ const moodOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MO
 
 const state = { me: null, partner: null, q: null, moods: null, pickMood: null, moodOpen: null, dates: [], editDate: null,
                 photos: [], photosDone: false, upload: null, histBefore: null,
-                hist: [], histNew: [], histOpen: null, histMore: false };
+                hist: [], histNew: [], histOpen: null, histMore: false,
+                otd: [], ping: null, lm: null, lmEdit: false, ck: null, ckEdit: false, ckOpen: null,
+                bucket: [], bkForm: null, bkOpen: null };
 const people = () => [state.me, state.partner].filter(Boolean);
 const person = id => people().find(p => p.id === +id);
 const pig = (p, mood, size) => p ? FiveJS.lollipop(p.theme, mood, size) : "";
@@ -524,6 +598,230 @@ function openPhoto(p) {
   };
 }
 
+// ---------- 往年今天 ----------
+function renderOtd() {
+  const el = $("otd"), items = state.otd;
+  el.hidden = !items.length;
+  if (!items.length) return;
+  const years = [...new Set(items.map(p => +state.datesToday.slice(0, 4) - +p.taken_on.slice(0, 4)))];
+  el.innerHTML = `<div class="lead"><b>往年今天</b><span class="small muted">${years.map(y => y === 1 ? "去年" : y === 2 ? "前年" : `${y} 年前`).join("、")}的今天</span></div>` +
+    items.map(p => `<button type="button" data-id="${p.id}" aria-label="${esc(p.taken_on + " " + (p.caption || ""))}"><span class="ball"><img src="${photoUrl(p.thumb)}" alt=""></span><span>${p.taken_on.slice(0, 4)}${p.caption ? " " + esc(p.caption) : ""}</span></button>`).join("");
+}
+$("otd").onclick = e => { const b = e.target.closest("[data-id]"); if (b) openPhoto(state.otd.find(p => p.id === +b.dataset.id)); };
+async function loadOtd() { state.otd = (await call("/api/together/photos/onthisday")).items; renderOtd(); }
+
+// ---------- 想你 ----------
+const hm = iso => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+function renderPing() {
+  const p = state.ping, pa = state.partner, el = $("ping");
+  if (!p || !pa) { el.hidden = true; return; }
+  el.hidden = false;
+  const sent = p.today[state.me.id] || 0, got = p.today[pa.id] || 0;
+  const fresh = state.pingFresh;
+  el.classList.toggle("got", !!fresh);
+  el.innerHTML = `<button class="heart" type="button" id="pingBtn" aria-label="送一顆想你給${esc(pa.name)}">♥</button>
+    <div class="txt">${fresh ? `<b>${esc(pa.name)}想你了 ♥</b><span class="small muted">${fresh.n > 1 ? `送了 ${fresh.n} 顆，` : ""}最後一次 ${hm(fresh.last)}。按愛心回一顆</span>`
+      : `<b>想${esc(pa.name)}的時候按一下</b><span class="small muted">${esc(pa.name)}的首頁會亮起來。今天你送了 ${sent} 顆${got ? `，${esc(pa.name)}送了 ${got} 顆` : ""}${sent && p.partner_seen ? `・${hm(p.partner_seen)} 看到了` : ""}</span>`}</div>`;
+  $("pingBtn").onclick = async () => {
+    const b = $("pingBtn"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    try { state.ping = await call("/api/together/pings", { method: "POST" }); state.pingFresh = null; renderPing(); toast(`送給${pa.name}了 ♥`); }
+    catch (e) { toast(e.message); }
+  };
+}
+async function loadPing() {
+  const p = await call("/api/together/pings");
+  // 有沒看過的愛心：這次打開頁面先顯示，同時標成看過（首頁就會熄掉）
+  if (p.unseen) { state.pingFresh = { n: p.unseen, last: p.last }; state.ping = await call("/api/together/pings/seen", { method: "POST" }); }
+  else state.ping = p;
+  renderPing();
+}
+
+// ---------- 猜猜對方 ----------
+const wk = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+function lmPair(it, judge) {
+  const pa = state.partner, m = it.mine, t = it.partner;
+  const mark = r => r === true ? `<span class="ok"><i class="orb gold" style="--s:16px;vertical-align:-3px"></i> 猜對了</span>` : r === false ? `<span class="muted">沒猜中</span>` : "";
+  return `<div class="pair">
+    <div class="card"><b>${esc(pa.name)}的答案</b><p>${esc(t.answer)}</p><div class="g">你猜：${esc(m.guess)}</div>
+      <div class="verdict">${m.right == null ? `<span class="small muted">等${esc(pa.name)}判定</span>` : mark(m.right)}</div></div>
+    <div class="card"><b>你的答案</b><p>${esc(m.answer)}</p><div class="g">${esc(pa.name)}猜：${esc(t.guess)}</div>
+      <div class="verdict">${t.right != null ? mark(t.right) : ""}${judge && t.right == null ? `<span class="small muted">${esc(pa.name)}猜得對嗎？</span><button class="btn sm" type="button" data-judge="1" data-w="${it.week}">猜對了</button><button class="btn ghost sm" type="button" data-judge="0" data-w="${it.week}">不太對</button>` : ""}</div></div>
+  </div>`;
+}
+function renderLovemap() {
+  const d = state.lm, pa = state.partner, el = $("lmBody");
+  if (!d) return;
+  if (!pa) { el.innerHTML = `<p class="small muted">另一半登入後就能一起玩。</p>`; return; }
+  const c = d.current;
+  let html = `<p class="q">${esc(c.question)}</p>`;
+  if (!c.mine || (state.lmEdit && !c.partner)) {
+    html += `<label for="lmA">你自己的答案</label><textarea id="lmA" maxlength="300">${esc(c.mine?.answer || "")}</textarea>
+      <label for="lmG">猜猜${esc(pa.name)}會怎麼答</label><textarea id="lmG" maxlength="300">${esc(c.mine?.guess || "")}</textarea>
+      <div class="qacts">${state.lmEdit ? `<button class="btn ghost sm" type="button" id="lmCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="lmSend">送出</button></div>
+      <p class="small muted">${c.partner_done ? `${esc(pa.name)}已經寫好了，你送出就揭曉` : "兩個人都寫完才會揭曉"}</p>`;
+  } else if (!c.partner) {
+    html += `<p class="small muted">你寫好了，等${esc(pa.name)}寫完就揭曉。</p><div class="qacts"><button class="link" type="button" id="lmEdit">修改</button></div>`;
+  } else {
+    html += lmPair(c, true);
+  }
+  const past = d.past.filter(it => it.mine && it.partner);
+  if (past.length) {
+    const open = past.find(it => it.week === state.lmOpen);
+    html += `<div class="shelf2"><span class="small muted">猜對的記憶球</span>${past.map(it => {
+      const n = (it.mine.right ? 1 : 0) + (it.partner.right ? 1 : 0);
+      return `<button type="button" class="link" data-w="${it.week}" style="text-decoration:none" aria-label="${wk(it.week)} 那週，猜對 ${n} 個"><i class="orb${n === 2 ? " gold" : n === 1 ? "" : " empty"}"${n === 1 ? ' style="--c:var(--sad)"' : ""}></i></button>`;
+    }).join("")}</div>${open ? `<div class="qopen"><span class="small muted">${wk(open.week)} 那週</span><p class="q">${esc(open.question)}</p>${lmPair(open, open.partner.right == null)}</div>` : ""}`;
+  }
+  el.innerHTML = html;
+  $("lmSend") && ($("lmSend").onclick = async () => {
+    const answer = $("lmA").value.trim(), guess = $("lmG").value.trim();
+    if (!answer || !guess) { toast("自己的答案和猜的答案都要寫"); return; }
+    $("lmSend").disabled = true;
+    try { state.lm = await call("/api/together/lovemap", { method: "PUT", body: { answer, guess } }); state.lmEdit = false; renderLovemap();
+      toast(state.lm.current.partner ? "揭曉！看看你猜對沒" : "送出了"); }
+    catch (e) { toast(e.message); $("lmSend").disabled = false; }
+  });
+  $("lmEdit") && ($("lmEdit").onclick = () => { state.lmEdit = true; renderLovemap(); });
+  $("lmCancel") && ($("lmCancel").onclick = () => { state.lmEdit = false; renderLovemap(); });
+}
+$("lmBody").addEventListener("click", async e => {
+  const j = e.target.closest("[data-judge]");
+  if (j) {
+    try { state.lm = await call("/api/together/lovemap/judge", { method: "PUT", body: { week: j.dataset.w, right: j.dataset.judge === "1" } }); renderLovemap(); }
+    catch (err) { toast(err.message); }
+    return;
+  }
+  const w = e.target.closest(".shelf2 [data-w]");
+  if (w) { state.lmOpen = state.lmOpen === w.dataset.w ? null : w.dataset.w; renderLovemap(); }
+});
+async function loadLovemap() { state.lm = await call("/api/together/lovemap"); renderLovemap(); }
+
+// ---------- 每週小聊天 ----------
+function renderCheckin() {
+  const d = state.ck, pa = state.partner, el = $("ckBody");
+  if (!d) return;
+  const c = d.current, isSun = parse(d.today).getUTCDay() === 0;
+  $("ckWeek").textContent = `到 ${wk(c.week)}（日）這週`;
+  const last = d.past[0] && d.past[0].week === addDays(c.week, -7) ? d.past[0] : null;
+  const editing = state.ckEdit;  // null／這週／上週的週日
+  const target = editing === "last" ? last : c;
+  let html = "";
+  if (editing || !c.mine) {
+    const vals = (editing ? target.mine : null) || [];
+    html += `${editing === "last" ? `<p class="small muted">補寫 ${wk(last.week)} 那週</p>` : `<p class="small muted">${isSun ? "今天週日，" : ""}花五分鐘各自寫，兩個人都寫完才互相看到。不用每題都寫。</p>`}
+      ${d.questions.map((q, i) => `<div class="qa"><b>${esc(q)}</b><textarea data-i="${i}" maxlength="500">${esc(vals[i] || "")}</textarea></div>`).join("")}
+      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="ckCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="ckSend">送出</button></div>`;
+  } else if (!c.partner) {
+    html += `<p class="small muted">你寫好了${pa ? `，等${esc(pa.name)}寫完就能一起看` : ""}。</p><div class="qacts"><button class="link" type="button" id="ckEdit">修改</button></div>`;
+  } else {
+    html += ckBoth(d, c) + `<div class="qacts"><button class="link" type="button" id="ckEdit">修改我的</button></div>`;
+  }
+  if (!editing && last && !last.mine) html += `<p class="small" style="margin-top:8px"><button class="link" type="button" id="ckLast">補寫上週的</button>${last.partner_done && pa ? `（${esc(pa.name)}寫了）` : ""}</p>`;
+  const done = d.past.filter(it => it.mine && it.partner);
+  if (done.length) {
+    const open = done.find(it => it.week === state.ckOpen);
+    html += `<div class="shelf2" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;align-items:center">
+      <span class="small muted">以前的小聊天</span>${done.map(it => `<button class="btn ghost sm" type="button" data-w="${it.week}" aria-pressed="${it.week === state.ckOpen}">${wk(it.week)}</button>`).join("")}</div>
+      ${open ? `<div class="qopen">${ckBoth(d, open)}</div>` : ""}`;
+  }
+  el.innerHTML = html;
+  $("ckSend") && ($("ckSend").onclick = async () => {
+    const answers = [...el.querySelectorAll("textarea[data-i]")].map(t => t.value.trim());
+    if (!answers.some(Boolean)) { toast("至少寫一題"); return; }
+    $("ckSend").disabled = true;
+    try {
+      state.ck = await call("/api/together/checkin", { method: "PUT", body: { answers, week: target.week } });
+      state.ckEdit = null; renderCheckin(); toast(state.ck.current.partner ? "兩個人都寫完了，一起看看" : "送出了");
+    } catch (e) { toast(e.message); $("ckSend").disabled = false; }
+  });
+  $("ckEdit") && ($("ckEdit").onclick = () => { state.ckEdit = "this"; renderCheckin(); });
+  $("ckLast") && ($("ckLast").onclick = () => { state.ckEdit = "last"; renderCheckin(); });
+  $("ckCancel") && ($("ckCancel").onclick = () => { state.ckEdit = null; renderCheckin(); });
+}
+function ckBoth(d, it) {
+  const pa = state.partner;
+  return d.questions.map((q, i) => (it.mine[i] || it.partner[i]) ? `<div class="qa"><b>${esc(q)}</b><div class="both">
+    <div><small>${esc(state.me.name)}</small>${esc(it.mine[i] || "—")}</div><div><small>${esc(pa.name)}</small>${esc(it.partner[i] || "—")}</div></div></div>` : "").join("");
+}
+$("ckBody").addEventListener("click", e => {
+  const w = e.target.closest(".shelf2 [data-w]");
+  if (w) { state.ckOpen = state.ckOpen === w.dataset.w ? null : w.dataset.w; renderCheckin(); }
+});
+async function loadCheckin() { state.ck = await call("/api/together/checkin"); renderCheckin(); }
+
+// ---------- 一起想做的事 ----------
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
+const GOAL_BUCKETS = [["reserve", "預備金"], ["short", "短期 2 年"], ["mid", "中期 6 年"], ["long", "長期 10 年以上"]];
+function renderBucket() {
+  const el = $("bkBody"), todo = state.bucket.filter(b => !b.done_on), done = state.bucket.filter(b => b.done_on);
+  el.innerHTML = (todo.length ? `<ul class="bk">${todo.map(b => `<li data-id="${b.id}">
+      <button class="chk" type="button" data-done="${b.id}" aria-label="完成了：${esc(b.title)}"><i class="orb empty"></i></button>
+      <div class="main" data-edit="${b.id}" style="cursor:pointer"><b>${esc(b.title)}</b><span>${[b.cost != null ? `預算 ${money(b.cost)}` : "", b.note, `${esc(person(b.created_by)?.name || "")}想的`].filter(Boolean).map(esc).join("・")}</span></div></li>`).join("")}</ul>`
+    : `<p class="small muted">想去的餐廳、想去的國家、想一起學的事，都可以放進來。做完就變成金色記憶球。</p>`) +
+    (done.length ? `<div class="bkshelf"><span class="small muted" style="width:100%">一起做到了</span>${done.map(b =>
+      `<button type="button" data-edit="${b.id}" aria-label="${esc(b.title)}，${b.done_on}"><i class="orb gold"></i><span>${esc(b.title)}</span></button>`).join("")}</div>` : "");
+}
+$("bkBody").onclick = async e => {
+  const d = e.target.closest("[data-done]");
+  if (d) {
+    const b = state.bucket.find(x => x.id === +d.dataset.done);
+    try { await saveBucket(b.id, { ...b, done_on: state.datesToday || taipeiToday() }); toast("收進記憶架了 ✨"); } catch (err) { toast(err.message); }
+    return;
+  }
+  const ed = e.target.closest("[data-edit]");
+  if (ed) openBucket(state.bucket.find(x => x.id === +ed.dataset.edit));
+};
+$("bkAdd").onclick = () => openBucket(null);
+async function saveBucket(id, body) {
+  if (id) await call(`/api/together/bucket/${id}`, { method: "PUT", body });
+  else await call("/api/together/bucket", { method: "POST", body });
+  await loadBucket();
+}
+function closeSheet() { $("sheet").hidden = true; $("sheet").innerHTML = ""; }
+$("sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+function openBucket(b) {
+  const sh = $("sheet");
+  sh.innerHTML = `<div class="box" role="dialog" aria-label="一起想做的事">
+    <h2 style="margin:0;font-size:1.1rem">${b ? "編輯" : "新增想一起做的事"}</h2>
+    <input id="bkT" maxlength="60" placeholder="例如：去北海道看雪、吃那家牛排" value="${esc(b?.title || "")}">
+    <div class="row2"><input id="bkC" type="number" inputmode="numeric" min="0" placeholder="預算（選填）" value="${b?.cost ?? ""}"><input id="bkD" type="date" title="完成日期（做到了才填）" value="${b?.done_on || ""}"></div>
+    <input id="bkN" maxlength="200" placeholder="備註（選填）" value="${esc(b?.note || "")}">
+    ${b && b.cost ? `<button class="btn sm" type="button" id="bkGoal">變成我的記帳目標</button>` : ""}
+    <div style="display:flex;justify-content:space-between;gap:8px"><span>${b ? `<button class="btn danger sm" type="button" id="bkDel">刪除</button>` : ""}</span>
+      <span><button class="btn ghost sm" type="button" id="bkX">取消</button> <button class="btn primary sm" type="button" id="bkS">儲存</button></span></div></div>`;
+  sh.hidden = false; $("bkT").focus();
+  $("bkX").onclick = closeSheet;
+  $("bkS").onclick = async () => {
+    try { await saveBucket(b?.id, { title: $("bkT").value, cost: $("bkC").value, note: $("bkN").value, done_on: $("bkD").value || null }); closeSheet(); toast("已儲存"); }
+    catch (e) { toast(e.message); }
+  };
+  if (b) $("bkDel").onclick = async () => {
+    const x = $("bkDel");
+    if (!x.dataset.armed) { x.dataset.armed = "1"; x.textContent = "確定刪除？"; return; }
+    try { await call(`/api/together/bucket/${b.id}`, { method: "DELETE" }); closeSheet(); await loadBucket(); toast("已刪除"); } catch (e) { toast(e.message); }
+  };
+  if (b && b.cost) $("bkGoal").onclick = () => openGoal(b);
+}
+// 記帳是個人的：目標建在按的那個人自己的記帳裡，對方看不到
+function openGoal(b) {
+  const sh = $("sheet");
+  sh.innerHTML = `<div class="box" role="dialog" aria-label="變成記帳目標">
+    <h2 style="margin:0;font-size:1.1rem">變成我的記帳目標</h2>
+    <p class="small muted" style="margin:0">會在你自己的記帳「我的目標」新增一筆，只有你看得到。</p>
+    <input id="glN" maxlength="40" value="${esc(b.title.slice(0, 40))}">
+    <div class="row2"><input id="glT" type="number" inputmode="numeric" min="1" value="${b.cost}" aria-label="目標金額"><input id="glD" type="date" aria-label="期限（選填）"></div>
+    <select id="glB" aria-label="屬於哪個帳戶">${GOAL_BUCKETS.map(([k, n]) => `<option value="${k}"${k === (b.cost >= 100000 ? "mid" : "short") ? " selected" : ""}>${n}</option>`).join("")}</select>
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost sm" type="button" id="glX">取消</button><button class="btn primary sm" type="button" id="glS">建立目標</button></div></div>`;
+  $("glX").onclick = closeSheet;
+  $("glS").onclick = async () => {
+    try {
+      await call("/api/ledger/items/goal", { method: "POST", body: { name: $("glN").value, target: Number($("glT").value), bucket: $("glB").value, deadline: $("glD").value || null, startAmount: 0 } });
+      closeSheet(); toast("已加到你的記帳目標");
+    } catch (e) { toast(e.message); }
+  };
+}
+async function loadBucket() { state.bucket = (await call("/api/together/bucket")).items; renderBucket(); }
+
 // ---------- 啟動 ----------
 async function refresh() {
   const [q, m] = await Promise.all([call("/api/together/question"), call("/api/together/moods")]);
@@ -534,7 +832,9 @@ async function refresh() {
   state.q = q; state.moods = m;
   if (bornNow) loadHistory().catch(() => {});
   if (!typing || dayChanged) renderQuestion();
-  if (dayChanged) { state.pickMood = null; loadHistory().catch(() => {}); loadDates().catch(() => {}); }
+  if (dayChanged) { state.pickMood = null; loadHistory().catch(() => {}); loadDates().catch(() => {}); loadOtd().catch(() => {}); loadCheckin().catch(() => {}); }
+  if (state.ping) loadPing().catch(() => {});
+  if (state.lm && !document.activeElement?.closest?.("#lovemap")) loadLovemap().catch(() => {});
   renderMoods();
 }
 
@@ -549,7 +849,8 @@ async function boot() {
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   state.me = info.user; state.partner = info.partner;
   try {
-    await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory()]);
+    await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory(), loadLovemap(), loadCheckin(), loadBucket()]);
+    loadOtd().catch(() => {}); loadPing().catch(() => {});
   } catch (e) { toast(e.message); }
   $("booting").hidden = true; $("app").hidden = false;
   // 對方回答或打卡後：每分鐘、或回到這個分頁時更新
