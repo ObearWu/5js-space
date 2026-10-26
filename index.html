@@ -104,7 +104,7 @@ const money = n => "$" + Math.round(n).toLocaleString("en-US");
 // 首頁控制台的功能球：照片牆是互動頁的一區，單獨給一顆球
 const CONSOLE = [
   { key: "food", name: "飲食", href: "food/", color: "var(--joy)" },
-  { key: "split", name: "分帳", href: "split/", color: "var(--disgust)" },
+  { key: "split", name: "記帳", href: "split/", color: "var(--disgust)" },
   { key: "period", name: "經期", href: "period/", color: "var(--emb)" },
   { key: "together", name: "互動", href: "together/", color: "var(--sad)" },
   { key: "fitness", name: "運動", href: "fitness/", color: "var(--anger)" },
@@ -135,10 +135,14 @@ function statusOf(key, s) {
     return { text: (n ? `今天 ${n} 餐` : "今天還沒記") + (m ? `・${pa.name} ${m} 餐` : "") };
   }
   if (key === "split") {
-    if (s.split.active_trip) return { text: `${s.split.active_trip.name}進行中` };
+    // 前半是自己的記帳（只有本人看得到），後半是兩人的分帳
+    const lg = s.ledger || {};
+    const evening = +new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Taipei", hour: "numeric", hourCycle: "h23" }).format(new Date()) >= 20;
+    const own = lg.needLeft == null ? "" : lg.needLeft < 0 ? `必要支出超出 ${money(-lg.needLeft)}` : `還能花 ${money(lg.needLeft)}`;
     const mine = +(s.split.balance[me.id] || 0);
-    if (!pa || !mine) return { text: "目前兩清" };
-    return { text: mine > 0 ? `${pa.name}要給你 ${money(mine)}` : `你要給${pa.name} ${money(-mine)}` };
+    const shared = s.split.active_trip ? `${s.split.active_trip.name}進行中` : !pa || !mine ? "" : mine > 0 ? `${pa.name}要給你 ${money(mine)}` : `你要給${pa.name} ${money(-mine)}`;
+    if (evening && !lg.recordedToday) return { text: ["今天還沒記帳", shared].filter(Boolean).join("・"), hot: true };
+    return { text: [own, shared].filter(Boolean).join("・") || "目前兩清", hot: lg.warn };
   }
   if (key === "period") {
     if (!s.period.length) return { text: "記錄週期" };

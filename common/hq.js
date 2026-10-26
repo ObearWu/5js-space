@@ -8,7 +8,7 @@
   const MODS = [
     { key: "hq", name: "總部", path: "", color: "var(--gold)" },
     { key: "food", name: "飲食", path: "food/", color: "var(--joy)" },
-    { key: "split", name: "分帳", path: "split/", color: "var(--disgust)" },
+    { key: "split", name: "記帳", path: "split/", color: "var(--disgust)" },
     { key: "period", name: "經期", path: "period/", color: "var(--emb)" },
     { key: "together", name: "互動", path: "together/", color: "var(--sad)" },
     { key: "fitness", name: "運動", path: "fitness/", color: "var(--anger)" },

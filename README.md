@@ -13,7 +13,7 @@
 
 ### 這是什麼
 
-大豬和小豬兩個人的生活紀錄網站。入口頁登入後選今天要用的功能：飲食、分帳、月經、互動、運動。純 vanilla JavaScript，沒有框架、沒有建置流程，直接把檔案交給 GitHub Pages 服務，跟 `ObearWu/TaiwanLARP` 一樣。
+大豬和小豬兩個人的生活紀錄網站。入口頁登入後選今天要用的功能：飲食、記帳（個人記帳＋兩人分帳）、月經、互動、運動。純 vanilla JavaScript，沒有框架、沒有建置流程，直接把檔案交給 GitHub Pages 服務，跟 `ObearWu/TaiwanLARP` 一樣。
 
 ### 每個功能一個資料夾
 
@@ -31,7 +31,8 @@ manifest.webmanifest  加到手機主畫面當 App 用
 icons/                主畫面圖示
 common/claude-shim.js 把舊 Artifact 用的 window.claude（資料庫、AI、下載）換成呼叫我們的後端（飲食、經期共用）
 food/index.html       飲食（舊「大小豬健康食記」整個搬進來，幾乎原封不動）
-split/index.html      分帳：記花費與還錢、目前誰欠誰、每月統計
+split/index.html      記帳：「記帳」分頁是自己的財務金三角帳本（只有本人看得到）；「分帳」分頁記兩人的花費與還錢
+split/ledger.js       記帳分頁的程式（資料在後端 /api/ledger）
 period/index.html     經期（舊「小豬經期日記」整個搬進來）
 together/index.html   互動：每日一問（兩人答完才揭曉）、心情打卡、照片牆、紀念日倒數
 fitness/index.html    運動：運動紀錄、重訓組數、體重曲線（跟飲食頁共用同一份紀錄）

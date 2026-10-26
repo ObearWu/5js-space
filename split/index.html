@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>分帳 · 大小豬的小空間</title>
+<title>記帳 · 大小豬的小空間</title>
 <meta name="theme-color" content="#15102A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -103,14 +103,98 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .item .amt{font-family:var(--f-num);font-weight:700;font-size:1.05rem;white-space:nowrap}
 .empty{text-align:center;color:var(--muted);padding:18px 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:10;max-width:calc(100% - 32px)}
+
+/* 記帳／分帳分頁切換 */
+.modetabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(255,255,255,.06);border-radius:999px;padding:4px;margin:14px 0 18px;max-width:420px}
+.modetabs button{border:0;background:none;border-radius:999px;padding:7px 10px;cursor:pointer;color:var(--muted);font:inherit;display:flex;gap:6px;justify-content:center;align-items:baseline}
+.modetabs button b{font-family:var(--f-round);font-weight:400;font-size:1rem}
+.modetabs button small{font-size:.75rem}
+.modetabs button[aria-pressed="true"]{background:var(--disgust);color:#10230F;box-shadow:0 0 16px color-mix(in srgb,var(--disgust) 45%,transparent)}
+
+/* 記帳 */
+.small{font-size:.8rem}
+.head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+.head h2{margin:0}
+.link{border:0;background:none;padding:0;color:var(--accent-deep,#9fe3a3);cursor:pointer;font:inherit;font-size:.85rem;text-decoration:underline;text-underline-offset:3px}
+.bar{display:block;height:8px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--c,var(--accent))}
+.lg-left{display:flex;flex-direction:column;gap:4px}
+.lg-left b.num{font-family:var(--f-num);font-size:2.3rem;line-height:1.1;color:#fff}
+.lg-left b.neg{color:#FF9E8A}
+.lg-warn{margin-top:12px;border-radius:14px;padding:12px;background:color-mix(in srgb,var(--anger) 18%,transparent);border:1px solid color-mix(in srgb,var(--anger) 50%,transparent);display:flex;flex-direction:column;gap:6px;font-size:.88rem}
+.lg-warn b{color:#FFB4A6}
+.lg-warn .btn{align-self:flex-start}
+svg.tri{display:block;width:100%;max-width:360px;margin:0 auto}
+.lg-status{margin-top:12px;background:rgba(0,0,0,.25);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:.88rem}
+.lg-status div{display:flex;flex-direction:column}
+.lg-status span{color:var(--muted)}
+.lg-pay,.lg-rec{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lg-pay:last-child,.lg-rec:last-child{border-bottom:0}
+.lg-pay > div,.lg-rec > div{flex:1;min-width:160px;display:flex;flex-direction:column}
+.lg-pay span,.lg-rec span{font-size:.8rem;color:var(--muted)}
+.lg-pay b{color:#FFE59A}
+.lg-rec .num{font-family:var(--f-num)}
+.seg.kinds{margin-bottom:12px}
+.lg-favs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.lg-favs button{border:1px dashed var(--line);background:none;color:var(--ink);border-radius:999px;padding:4px 10px;cursor:pointer;font-size:.82rem}
+.chk{display:flex;align-items:center;gap:8px;font-size:.88rem;margin-bottom:12px}
+.chk input{width:auto}
+.field small{font-size:.78rem}
+.lg-corners{display:flex;flex-direction:column;gap:18px}
+.lg-corner .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.lg-corner h3{margin:0;font-size:1rem;display:flex;align-items:center;gap:8px;font-family:var(--f-round);font-weight:400}
+.lg-corner h3 .orb{--s:16px}
+.lg-corner .num{font-family:var(--f-num);font-size:.92rem}
+.lg-corner .cat{grid-template-columns:2em 1fr auto;margin-bottom:5px}
+.acct{padding:8px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:4px}
+.ah{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.goals{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.goal{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;width:100%;text-align:left;background:var(--sunk);border:0;border-radius:12px;padding:9px 11px;cursor:pointer;color:var(--ink);font:inherit}
+.goal .gh{display:flex;flex-direction:column}
+.goal .bar{grid-column:1/-1}
+.done{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dg{display:flex;align-items:center;gap:5px;border:1px solid color-mix(in srgb,var(--gold) 45%,transparent);background:none;color:#FFE59A;border-radius:999px;padding:3px 10px 3px 4px;cursor:pointer;font-size:.8rem}
+.dg .orb{--s:18px}
+.item .tag{background:color-mix(in srgb,var(--t) 28%,transparent);color:#fff}
+.item.split{border-style:dashed}
+.dorbs{display:grid;grid-template-columns:repeat(7,1fr);gap:8px 4px}
+.dorb{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.66rem;color:var(--muted)}
+.dorb .orb{--s:22px}
+.dorb .orb.future{opacity:.15;box-shadow:none}
+.dorb.today small{color:#fff;font-weight:700}
+.lg-week{margin-top:14px;background:var(--sunk);border-radius:14px;padding:12px}
+.lg-week.hot{box-shadow:0 0 0 2px color-mix(in srgb,var(--gold) 60%,transparent)}
+.lg-week h3{margin:0 0 8px;font-size:.95rem}
+.lg-week .stats{margin-bottom:8px}
+svg.trend{display:block;width:100%}
+.legend{display:flex;gap:14px;justify-content:center;font-size:.8rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:5px;vertical-align:-1px}
+.lg-foot{text-align:center}
+.lg-sheet{position:fixed;inset:0;z-index:60;background:rgba(8,5,18,.6);display:flex;align-items:flex-end;justify-content:center}
+.lg-sheet .sheet{background:#1E1838;width:100%;max-width:560px;max-height:90vh;overflow:auto;border-radius:22px 22px 0 0;border:1px solid var(--line);
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.lg-sheet h2{margin:0;font-size:1.15rem}
+.lg-sheet h3{margin:6px 0 0;font-size:.95rem}
+.lg-sheet label{display:flex;flex-direction:column;gap:3px;font-size:.82rem;color:var(--muted)}
+.lg-sheet label.chk{flex-direction:row}
+.lg-sheet .alloc{flex-direction:row;align-items:center;justify-content:space-between;gap:12px}
+.lg-sheet .alloc input{max-width:150px;font-family:var(--f-num)}
+.favrow{display:flex;justify-content:space-between;font-size:.88rem}
+.yr{display:flex;align-items:center;gap:12px}
+.yl{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
+@media (min-width:761px){.lg-sheet{align-items:center}.lg-sheet .sheet{border-radius:22px}}
 </style>
 </head>
 <body>
 <div class="page">
   <header class="band">
     <a class="back" href="../">‹ 總部</a>
-    <div class="row"><h1>分帳</h1><span class="bstat" id="bandStat"></span></div>
+    <div class="row"><h1>記帳</h1><span class="bstat" id="bandStat"></span></div>
   </header>
+  <nav class="modetabs" id="modeTabs" hidden aria-label="記帳或分帳">
+    <button type="button" data-tab="ledger" aria-pressed="true"><b>記帳</b><small>只有我</small></button>
+    <button type="button" data-tab="split" aria-pressed="false"><b>分帳</b><small>我們</small></button>
+  </nav>
 
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
 
@@ -175,7 +259,31 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
     </div>
   </main>
 
-  <footer class="foot">
+  <main class="grid" id="ledger" hidden>
+    <div class="col">
+      <section class="panel lg-top">
+        <div class="monthbar">
+          <button class="icon-btn" type="button" id="lgPrev" aria-label="上個月">‹</button>
+          <h2 id="lgMonth"></h2>
+          <button class="icon-btn" type="button" id="lgNext" aria-label="下個月">›</button>
+        </div>
+        <div id="lgTop"></div>
+      </section>
+      <section class="panel" id="lgTri" aria-label="財務金三角"></section>
+      <section class="panel" id="lgPending" hidden aria-label="待處理"></section>
+      <section class="panel" id="lgForm" aria-label="記一筆"></section>
+      <section class="panel" id="lgHabit" aria-label="記帳打卡"></section>
+    </div>
+    <div class="col">
+      <section class="panel lg-corners" id="lgCorners" aria-label="三個角的內容"></section>
+      <section class="panel" aria-label="本月明細"><h2>本月明細</h2><div id="lgList"></div></section>
+      <section class="panel" id="lgTrend" aria-label="趨勢與總結"></section>
+      <p class="small muted lg-foot">這個帳本只有你自己看得到，小豬看不到；只有分帳分頁是兩個人共用的。</p>
+    </div>
+  </main>
+  <div class="lg-sheet" id="lgSheet" hidden></div>
+
+  <footer class="foot" id="splitFoot" hidden>
     <span>每趟旅行一座島，各自算誰欠誰；平常的花費在日常島。金額以新台幣整數元計，兩個人都可以修改或刪除任何一筆。</span>
   </footer>
 </div>
@@ -185,6 +293,8 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 <script src="../common/auth.js"></script>
 <script src="../common/mascot.js"></script>
 <script src="../common/hq.js"></script>
+<script>window.CLAUDE_SHIM = { module: "ledger", prefix: "" };</script>
+<script src="../common/claude-shim.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
@@ -548,6 +658,19 @@ async function loadEntries() {
 }
 async function reload() { await loadIslands(); renderForm(); await loadEntries(); }
 
+// 「記帳」（只有自己）和「分帳」（兩人共用）兩個分頁
+function showTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll("#modeTabs button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.tab === tab)));
+  $("app").hidden = tab !== "split"; $("splitFoot").hidden = tab !== "split"; $("ledger").hidden = tab !== "ledger";
+  document.title = (tab === "split" ? "分帳" : "記帳") + " · 大小豬的小空間";
+  if (tab === "split") { renderSky(); loadEntries(); if (location.hash === "#ledger") history.replaceState(null, "", "#split"); }
+  else { renderBandLedger(); window.FiveJSLedger?.load(); if (location.hash && location.hash !== "#ledger") history.replaceState(null, "", "#ledger"); }
+}
+function renderBandLedger() { $("bandStat").textContent = "只有你看得到"; }
+$("modeTabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (b && b.dataset.tab !== state.tab) { showTab(b.dataset.tab); window.scrollTo(0, 0); } });
+window.FiveJSSplit = { show: () => showTab("split"), islands: () => state.islands };
+
 async function boot() {
   const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
   let info = null;
@@ -564,15 +687,17 @@ async function boot() {
   const t = taipeiToday();
   const ongoing = state.islands.find(i => i.id && i.start_date && i.start_date <= t && t <= (i.end_date || i.start_date));
   state.trip = m && state.islands.some(i => i.id === +m[1]) ? +m[1] : ongoing ? ongoing.id : null;
-  $("booting").hidden = true; $("app").hidden = false;
+  $("booting").hidden = true; $("modeTabs").hidden = false;
   resetForm();
-  renderSky();
-  await loadEntries();
+  // 分頁：網址 #ledger／#split／#trip-3 指定；沒指定時，有正在進行的旅程就開分帳，不然開記帳
+  const want = location.hash === "#ledger" ? "ledger" : (m || location.hash === "#split" || (ongoing && location.hash !== "#ledger")) ? "split" : "ledger";
+  showTab(want);
   // 另一半新增的紀錄：回到這個分頁時重新整理
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) reload(); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) return; if (state.tab === "split") reload(); else window.FiveJSLedger?.load(); });
 }
 boot();
 })();
 </script>
+<script src="ledger.js"></script>
 </body>
 </html>
