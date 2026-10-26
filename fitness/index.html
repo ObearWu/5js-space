@@ -26,6 +26,7 @@ input,select,textarea{font:inherit;color:var(--ink);background:var(--surface);bo
 input:focus,select:focus{border-color:var(--accent);outline:none}
 .btn:disabled{opacity:.55;cursor:default}
 .btn.sm{padding:4px 12px;font-size:.85rem}
+.btn.danger{color:var(--warn);border-color:var(--warn-soft)}
 .muted{color:var(--muted)}
 .small{font-size:.85rem}
 .warn-text{color:var(--warn)}
@@ -105,6 +106,46 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 .wform label{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
 .wsum{display:flex;gap:14px;flex-wrap:wrap;font-size:.82rem;color:var(--muted);margin-top:6px}
 .wsum b{font-family:var(--f-num);color:var(--ink);font-size:1rem}
+/* 身體組成 */
+.bctiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.bctile{background:var(--sunk);border-radius:14px;padding:8px 10px;min-width:0}
+.bctile b{display:block;font-family:var(--f-num);font-size:1.25rem;line-height:1.2}
+.bctile span{font-size:.75rem;color:var(--muted)}
+.bctile i{font-style:normal;font-family:var(--f-num);font-size:.78rem;margin-left:4px}
+.dgood{color:#6CCB98} .dbad{color:#FF8A6B} .dflat{color:var(--muted)}
+.bcchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.bcchips button{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:3px 11px;cursor:pointer;font-size:.8rem;color:var(--muted)}
+.bcchips button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:#fff}
+.bcchips select{width:auto;padding:3px 10px;border-radius:999px;font-size:.8rem}
+.bctarget{font-size:.8rem;color:var(--gold,#FFD45E);margin-top:4px}
+.bcacts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.bcform{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px}
+.bcform .status{font-size:.85rem;color:var(--muted)}
+.bcform .status.busy::before{content:"";display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
+.bcform details{border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.bcform summary{cursor:pointer;font-weight:700;font-size:.9rem}
+.bcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:8px}
+.bcgrid label{font-size:.75rem;color:var(--muted);display:flex;flex-direction:column;gap:2px;min-width:0}
+.bcgrid label.ai span::after{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#FFD45E;box-shadow:0 0 6px #FFD45E;margin-left:5px;vertical-align:middle}
+.bcgrid input{padding:5px 8px}
+.bcseg{display:grid;grid-template-columns:3.2em repeat(2,minmax(0,1fr));gap:6px;align-items:center;font-size:.78rem;color:var(--muted)}
+.bcseg input{padding:5px 8px}
+.bclist{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.bclist > li > button{width:100%;display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;text-align:left;padding:8px 12px;border:1px solid var(--line);border-radius:14px;background:transparent;cursor:pointer;color:inherit;font:inherit;font-size:.88rem}
+.bclist > li > button[aria-expanded="true"]{border-color:var(--accent)}
+.bclist .num{font-weight:700}
+.bcdetail{padding:10px 4px 4px;display:flex;flex-direction:column;gap:10px}
+.bcdl{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:2px 14px;font-size:.82rem}
+.bcdl div{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding:2px 0}
+.bcdl div span{color:var(--muted)}
+.bcdl div b{font-family:var(--f-num);font-weight:600}
+.bch{font-size:.8rem;font-weight:700;color:var(--muted);margin-bottom:2px}
+.figrow{display:grid;grid-template-columns:minmax(0,1fr) 64px minmax(0,1fr);gap:6px;align-items:center;font-size:.78rem}
+.figrow .sg{background:var(--sunk);border-radius:10px;padding:4px 8px;min-width:0}
+.figrow .sg.r{text-align:right}
+.figrow .sg b{font-family:var(--f-num)}
+.figrow .hi{color:#FF8A6B} .figrow .ok{color:#6CCB98}
+.figcol{display:flex;flex-direction:column;gap:6px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
 </style>
 </head>
@@ -180,6 +221,28 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
         <h2 id="sTitle">重訓進步</h2>
         <div id="liftChart"></div>
         <ul class="prs" id="prs"></ul>
+      </section>
+      <section class="panel" id="bc" aria-labelledby="bcTitle">
+        <div class="head"><h2 id="bcTitle">身體組成</h2><span class="small muted" id="bcSub"></span></div>
+        <div id="bcTop"></div>
+        <div class="bcacts" id="bcActs">
+          <label class="btn primary" for="bcFile">上傳報告</label>
+          <button class="btn" type="button" id="bcManual">手動輸入</button>
+          <input type="file" id="bcFile" accept="image/*" hidden>
+        </div>
+        <form class="bcform" id="bcForm" hidden autocomplete="off" novalidate>
+          <p class="status" id="bcStatus"></p>
+          <div class="row2">
+            <div class="field"><span>測量日期</span><input id="bcDate" type="date"></div>
+            <div class="field"><span>時間</span><input id="bcTime" type="time"></div>
+          </div>
+          <div id="bcFields"></div>
+          <div class="actions">
+            <div><button class="btn danger sm" type="button" id="bcDel" hidden>刪除這筆</button></div>
+            <div><button class="btn ghost" type="button" id="bcCancel">取消</button> <button class="btn primary" type="submit" id="bcSave">存下這次</button></div>
+          </div>
+        </form>
+        <ul class="bclist" id="bcList"></ul>
       </section>
     </div>
   </main>
@@ -478,7 +541,253 @@ $("who").onclick = e => {
   const b = e.target.closest("[data-v]"); if (!b || b.disabled) return;
   S.view = b.dataset.v; S.lift = null; LS.set("fit.view", S.view); renderAll();
 };
-function renderAll() { renderWho(); if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); }
+function renderAll() { renderWho(); if (!prof()) return; renderWeek(); renderLogs(); renderWeight(); renderLifts(); renderBC(); mirrorBC(); }
+
+// ---------- 身體組成（體脂機報告）----------
+// 一份報告一筆，存在 data/users/<我>/bodycomp/list，文件 id = <個人資料 id>_<測量日期>（同一天只留一筆）。
+// 有分享給另一半就同時寫一份到 shared/<我>/bodycomp，對方只能看。
+// 上傳的報告照片只送給 AI 讀數字，讀完就丟，不會存起來。
+// dir：數字往哪個方向是好的（-1 越低越好、1 越高越好、0 不判斷）
+const BC_GROUPS = [
+  ["人體成分", [["weight", "體重", "kg", -1], ["fatKg", "脂肪量", "kg", -1], ["boneKg", "骨量", "kg", 0], ["proteinKg", "蛋白量", "kg", 1],
+    ["waterKg", "含水量", "kg", 0], ["muscleKg", "肌肉量", "kg", 1], ["smmKg", "骨骼肌", "kg", 1], ["ffmKg", "去脂體重", "kg", 1]]],
+  ["比例與評分", [["bmi", "BMI", "", -1], ["fatPct", "體脂率", "%", -1], ["subcutPct", "皮下脂肪", "%", -1], ["score", "身體評分", "分", 1],
+    ["bodyAge", "身體年齡", "歲", -1], ["obesityPct", "肥胖度", "%", -1], ["targetWeight", "推薦目標體重", "kg", 0]]],
+  ["代謝與內臟", [["visceral", "內臟脂肪等級", "", -1], ["bmr", "基礎代謝", "kcal", 1], ["asmi", "ASMI", "kg/m²", 1], ["whr", "腰臀比", "", -1]]],
+  ["圍度", [["neck", "頸", "cm", 0], ["arm", "臂", "cm", 0], ["chest", "胸", "cm", 0], ["waist", "腰", "cm", -1], ["hip", "臀", "cm", 0], ["thigh", "腿", "cm", 0]]],
+];
+const BC_FIELDS = BC_GROUPS.flatMap(([, f]) => f);
+const BC_BY = Object.fromEntries(BC_FIELDS.map(f => [f[0], f]));
+const BC_KEY6 = ["weight", "fatPct", "smmKg", "visceral", "waist", "score"];
+const SEGS = [["la", "左手"], ["ra", "右手"], ["tr", "軀幹"], ["ll", "左腳"], ["rl", "右腳"]];
+const IMP = [["ra", "右上肢"], ["la", "左上肢"], ["tr", "軀幹"], ["rl", "右下肢"], ["ll", "左下肢"]];
+// 報告上的標準範圍（%）：節段脂肪 80–160；節段肌肉上肢 80–115、軀幹與下肢 90–110
+const SEG_FAT_OK = [80, 160];
+const segMuscleOk = k => k === "la" || k === "ra" ? [80, 115] : [90, 110];
+
+const BC = { list: [], partner: [], metric: LS.get("fit.bcMetric", "weight"), open: null, form: null, ai: new Set(), busy: false };
+const bcCol = () => col("bodycomp");
+const bcList = () => (partnerView() ? BC.partner.filter(x => x.profileId === pp().id) : BC.list.filter(x => x.profileId === S.pid))
+  .slice().sort((a, b) => (a.date + (a.time || "")) < (b.date + (b.time || "")) ? -1 : 1);
+const fmtV = (v, unit) => v == null || v === "" ? "－" : `${+v}${unit && unit !== "分" && unit !== "歲" ? " " + unit : unit || ""}`;
+const md = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+
+function deltaHtml(key, cur, prev) {
+  if (cur == null || prev == null) return `<i class="dflat">－</i>`;
+  const d = Math.round((cur - prev) * 10) / 10;
+  if (!d) return `<i class="dflat">持平</i>`;
+  const dir = BC_BY[key]?.[3] || 0;
+  const cls = !dir ? "dflat" : (d > 0) === (dir > 0) ? "dgood" : "dbad";
+  return `<i class="${cls}">${d > 0 ? "▲" : "▼"}${Math.abs(d)}</i>`;
+}
+
+function renderBC() {
+  const list = bcList(), last = list[list.length - 1], prev = list[list.length - 2];
+  const ro = partnerView();
+  $("bcActs").hidden = ro;
+  if (ro) { $("bcForm").hidden = true; BC.form = null; }
+  $("bcSub").textContent = last ? `最新 ${md(last.date)}${last.time ? " " + last.time : ""}・共 ${list.length} 次` : "";
+  if (!last) {
+    $("bcTop").innerHTML = `<p class="empty small">${ro ? `${esc(S.partner.name)}還沒有身體組成紀錄。` : "量完體脂機後，上傳報告的照片或截圖，AI 會把數字讀出來，你確認後存下。存兩次以上就會畫出變化曲線。"}</p>`;
+    $("bcList").innerHTML = ""; return;
+  }
+  const tiles = BC_KEY6.map(k => { const f = BC_BY[k];
+    return `<div class="bctile"><b>${last[k] ?? "－"}</b><span>${f[1]}${f[2] ? " " + f[2] : ""}</span>${deltaHtml(k, last[k], prev?.[k])}</div>`; }).join("");
+  const has = BC_FIELDS.filter(f => list.some(x => x[f[0]] != null));
+  if (!has.some(f => f[0] === BC.metric)) BC.metric = has[0]?.[0] || "weight";
+  const chipKeys = ["weight", "fatPct", "smmKg", "muscleKg", "visceral", "waist", "bmr"].filter(k => has.some(f => f[0] === k));
+  const others = has.filter(f => !chipKeys.includes(f[0]));
+  const chips = chipKeys.map(k => `<button type="button" data-m="${k}" aria-pressed="${k === BC.metric}">${BC_BY[k][1]}</button>`).join("") +
+    (others.length ? `<select id="bcMore" aria-label="其他數字"><option value="">其他數字…</option>${others.map(f => `<option value="${f[0]}"${f[0] === BC.metric ? " selected" : ""}>${f[1]}</option>`).join("")}</select>` : "");
+  const f = BC_BY[BC.metric];
+  const pts = list.filter(x => x[f[0]] != null).map(x => ({ date: x.date, v: +x[f[0]] }));
+  let target = "";
+  if (BC.metric === "weight" && last.targetWeight) {
+    const gap = r1(last.weight - last.targetWeight);
+    target = `<p class="bctarget">推薦目標體重 ${last.targetWeight} kg${gap > 0 ? `，還差 ${gap} kg` : gap < 0 ? "，已經達標" : ""}</p>`;
+  }
+  $("bcTop").innerHTML = `<div class="bctiles">${tiles}</div><div class="bcchips" id="bcChips">${chips}</div>
+    <p class="small muted" style="margin-bottom:4px">${f[1]}${f[2] ? `（${f[2]}）` : ""}</p>${lineChart(pts, { unit: f[2] ? " " + f[2] : "", digits: 1 })}${target}`;
+  $("bcList").innerHTML = list.slice().reverse().map(x => `<li><button type="button" data-id="${esc(x.id)}" aria-expanded="${BC.open === x.id}">
+      <span>${esc(dayText(x.date))}${x.time ? ` <span class="muted small">${esc(x.time)}</span>` : ""}</span>
+      <span class="num">${x.weight ?? "－"} kg</span><span class="num muted">${x.fatPct != null ? x.fatPct + "%" : ""}</span></button>
+      ${BC.open === x.id ? bcDetail(x) : ""}</li>`).join("");
+}
+
+function segRow(x, kind, l, r) {
+  const seg = x[kind] || {};
+  const ok = (k, pct) => { if (pct == null) return ""; const [lo, hi] = kind === "segFat" ? SEG_FAT_OK : segMuscleOk(k); return pct < lo || pct > hi ? "hi" : "ok"; };
+  const cell = (k, cls) => { const v = seg[k] || {}; const name = SEGS.find(s => s[0] === k)[1];
+    return `<div class="sg ${cls}"><span class="muted">${name}</span><br><b>${v.kg ?? "－"}kg</b> <span class="${ok(k, v.pct)}">${v.pct != null ? v.pct + "%" : ""}</span></div>`; };
+  return [cell(l, ""), cell(r, "r")];
+}
+function figure(kind) {
+  const c = kind === "segFat" ? "var(--anger)" : "var(--envy,#2BB7B0)";
+  return `<svg width="54" height="120" viewBox="0 0 54 120" aria-hidden="true"><g fill="${c}"><circle cx="27" cy="10" r="8" opacity=".5"/><rect x="15" y="20" width="24" height="44" rx="10" opacity=".9"/><rect x="3" y="22" width="9" height="38" rx="4.5" opacity=".7"/><rect x="42" y="22" width="9" height="38" rx="4.5" opacity=".7"/><rect x="16" y="66" width="10" height="50" rx="5" opacity=".6"/><rect x="28" y="66" width="10" height="50" rx="5" opacity=".6"/></g></svg>`;
+}
+function segBlock(x, kind, title, range) {
+  if (!x[kind] || !SEGS.some(([k]) => x[kind][k]?.kg != null || x[kind][k]?.pct != null)) return "";
+  const [la, ra] = segRow(x, kind, "la", "ra"), [ll, rl] = segRow(x, kind, "ll", "rl");
+  const tr = segRow(x, kind, "tr", "tr")[0];
+  return `<div><p class="bch">${title} <span style="font-weight:400">${range}</span></p>
+    <div class="figrow"><div class="figcol">${la}${tr}${ll}</div><div>${figure(kind)}</div><div class="figcol">${ra}${rl}</div></div></div>`;
+}
+function bcDetail(x) {
+  const groups = BC_GROUPS.map(([g, fs]) => {
+    const rows = fs.filter(f => x[f[0]] != null).map(f => `<div><span>${f[1]}</span><b>${fmtV(x[f[0]], f[2])}</b></div>`).join("");
+    return rows ? `<div><p class="bch">${g}</p><div class="bcdl">${rows}</div></div>` : "";
+  }).join("");
+  const imp = x.imp && ["f20", "f100"].some(k => x.imp[k] && Object.values(x.imp[k]).some(v => v != null))
+    ? `<details><summary class="small muted">生物電阻抗（Ω）</summary><div class="bcdl" style="margin-top:6px">${["f20", "f100"].map(fq => IMP.map(([k, n]) =>
+        x.imp[fq]?.[k] != null ? `<div><span>${fq === "f20" ? "20k" : "100k"}・${n}</span><b>${x.imp[fq][k]}</b></div>` : "").join("")).join("")}</div></details>` : "";
+  return `<div class="bcdetail">${groups}${segBlock(x, "segFat", "節段脂肪", "標準 80–160%")}${segBlock(x, "segMuscle", "節段肌肉", "上肢 80–115%・軀幹下肢 90–110%")}${imp}
+    ${x.note ? `<p class="small muted">${esc(x.note)}</p>` : ""}
+    ${partnerView() ? "" : `<div><button class="btn sm" type="button" data-edit="${esc(x.id)}">修改這筆</button></div>`}</div>`;
+}
+
+$("bc").addEventListener("click", e => {
+  const m = e.target.closest("[data-m]");
+  if (m) { BC.metric = m.dataset.m; LS.set("fit.bcMetric", BC.metric); renderBC(); return; }
+  const ed = e.target.closest("[data-edit]");
+  if (ed) { const x = BC.list.find(r => r.id === ed.dataset.edit); if (x) openBCForm(x); return; }
+  const row = e.target.closest("#bcList [data-id]");
+  if (row) { BC.open = BC.open === row.dataset.id ? null : row.dataset.id; renderBC(); }
+});
+$("bc").addEventListener("change", e => { if (e.target.id === "bcMore" && e.target.value) { BC.metric = e.target.value; LS.set("fit.bcMetric", BC.metric); renderBC(); } });
+
+// ---- 表單：上傳報告（AI 讀數字）或手動輸入，確認後才存 ----
+const numOrNull = v => v === "" || v == null || !isFinite(+v) ? null : Math.round(+v * 100) / 100;
+function openBCForm(rec, status) {
+  BC.form = rec ? JSON.parse(JSON.stringify(rec)) : { date: today(), time: "" };
+  BC.editing = rec?.id || null;
+  $("bcForm").hidden = false;
+  $("bcDate").value = BC.form.date || today(); $("bcTime").value = BC.form.time || "";
+  $("bcDel").hidden = !BC.editing;
+  setBCStatus(status ?? (rec ? "修改後按「存下這次」。" : "只填你有量的欄位就好，空白的不會存。"));
+  renderBCFields();
+  $("bcForm").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function setBCStatus(t, busy) { $("bcStatus").textContent = t; $("bcStatus").className = "status" + (busy ? " busy" : ""); }
+function renderBCFields() {
+  const x = BC.form, ai = k => BC.ai.has(k) ? " ai" : "";
+  const inp = (k, label, unit, val) => `<label class="${ai(k)}"><span>${label}${unit ? `（${unit}）` : ""}</span><input data-k="${k}" type="number" inputmode="decimal" step="any" value="${val ?? ""}"></label>`;
+  const groups = BC_GROUPS.map(([g, fs]) => `<details open><summary>${g}</summary><div class="bcgrid">${fs.map(f => inp(f[0], f[1], f[2], x[f[0]])).join("")}</div></details>`).join("");
+  const seg = (kind, title) => `<details><summary>${title}</summary><div class="bcseg" style="margin-top:8px"><span></span><span>kg</span><span>%</span>${SEGS.map(([k, n]) =>
+    `<span>${n}</span><input data-s="${kind}.${k}.kg" type="number" inputmode="decimal" step="any" value="${x[kind]?.[k]?.kg ?? ""}" aria-label="${title}${n} kg"><input data-s="${kind}.${k}.pct" type="number" inputmode="decimal" step="any" value="${x[kind]?.[k]?.pct ?? ""}" aria-label="${title}${n} %">`).join("")}</div></details>`;
+  const imp = `<details><summary>生物電阻抗（Ω，選填）</summary><div class="bcseg" style="margin-top:8px"><span></span><span>20kHz</span><span>100kHz</span>${IMP.map(([k, n]) =>
+    `<span>${n}</span><input data-s="imp.f20.${k}" type="number" inputmode="decimal" step="any" value="${x.imp?.f20?.[k] ?? ""}" aria-label="20kHz ${n}"><input data-s="imp.f100.${k}" type="number" inputmode="decimal" step="any" value="${x.imp?.f100?.[k] ?? ""}" aria-label="100kHz ${n}">`).join("")}</div></details>`;
+  $("bcFields").innerHTML = groups + seg("segFat", "節段脂肪") + seg("segMuscle", "節段肌肉") + imp +
+    `<label class="field"><span>備註（選填）</span><input id="bcNote" maxlength="200" value="${esc(x.note || "")}"></label>`;
+}
+function readBCForm() {
+  const x = { date: $("bcDate").value || today(), time: $("bcTime").value || "", note: $("bcNote").value.trim() };
+  $("bcFields").querySelectorAll("[data-k]").forEach(i => { const v = numOrNull(i.value); if (v != null) x[i.dataset.k] = v; });
+  $("bcFields").querySelectorAll("[data-s]").forEach(i => {
+    const v = numOrNull(i.value); if (v == null) return;
+    const [a, b, c] = i.dataset.s.split(".");
+    ((x[a] = x[a] || {})[b] = x[a][b] || {})[c] = v;
+  });
+  if (!x.note) delete x.note;
+  return x;
+}
+$("bcManual").onclick = () => { BC.ai = new Set(); openBCForm(null); };
+$("bcCancel").onclick = () => { $("bcForm").hidden = true; BC.form = null; BC.ai = new Set(); };
+
+// 照片先縮小（報告上的字要看得清楚，長邊 2000px），只送給 AI，不存
+async function shrink(file) {
+  const img = await createImageBitmap(file);
+  const scale = Math.min(1, 2000 / Math.max(img.width, img.height));
+  const c = document.createElement("canvas"); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+  c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+  return new Promise(r => c.toBlob(r, "image/jpeg", 0.88));
+}
+const BC_PROMPT = () => `這張照片是一份體脂計（例如 Fitdays）的「人體成分分析報告」。請把報告上的數字讀出來，只回傳下面這個 JSON（數字一律用純數字，不要單位；報告上沒有或看不清楚的欄位填 null，不要猜）：
+{"date":"YYYY-MM-DD 測試日期（報告常寫成 日/月/年）","time":"HH:MM 測試時間",
+${BC_FIELDS.map(f => `"${f[0]}": ${f[1]}${f[2] ? "（" + f[2] + "）" : ""}`).join(",\n")},
+"segFat": 節段脂肪分析 {"la":{"kg":左上肢kg,"pct":左上肢%},"ra":右上肢,"tr":軀幹,"ll":左下肢,"rl":右下肢},
+"segMuscle": 肌肉均衡（節段肌肉）同樣格式,
+"imp": 生物電阻抗 {"f20":{"ra":右上肢,"la":左上肢,"tr":軀幹,"rl":右下肢,"ll":左下肢},"f100":同樣格式}}
+說明：weight 體重、fatKg 脂肪量、boneKg 骨量、proteinKg 蛋白量、waterKg 含水量、muscleKg 肌肉量、smmKg 骨骼肌、ffmKg 去脂體重；fatPct 體脂率、subcutPct 皮下脂肪（%）、score 身體評分（滿分 100 的那個分數）、obesityPct 肥胖度、targetWeight 推薦目標體重；visceral 內臟脂肪等級、bmr 基礎代謝、whr 腰臀比；圍度 neck 頸、arm 臂、chest 胸、waist 腰、hip 臀、thigh 腿（cm）。人體圖的「左」「右」以報告上標的為準。測量值後面括號裡的是標準範圍，不要讀成測量值。`;
+
+$("bcFile").onchange = async e => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file || BC.busy) return;
+  BC.ai = new Set(); openBCForm(null, "");
+  BC.busy = true; $("bcSave").disabled = true;
+  setBCStatus("AI 正在讀報告上的數字，大約要半分鐘…", true);
+  try {
+    const blob = await shrink(file);
+    const r = await S.sample.json(BC_PROMPT(), { images: blob });
+    const x = { date: /^\d{4}-\d{2}-\d{2}$/.test(r?.date) ? r.date : today(), time: /^\d{2}:\d{2}$/.test(r?.time) ? r.time : "" };
+    for (const f of BC_FIELDS) { const v = numOrNull(r?.[f[0]]); if (v != null) { x[f[0]] = v; BC.ai.add(f[0]); } }
+    for (const kind of ["segFat", "segMuscle"]) for (const [k] of SEGS) for (const u of ["kg", "pct"]) {
+      const v = numOrNull(r?.[kind]?.[k]?.[u]); if (v != null) ((x[kind] = x[kind] || {})[k] = x[kind][k] || {})[u] = v; }
+    for (const fq of ["f20", "f100"]) for (const [k] of IMP) { const v = numOrNull(r?.imp?.[fq]?.[k]); if (v != null) ((x.imp = x.imp || {})[fq] = x.imp[fq] || {})[k] = v; }
+    BC.form = x;
+    $("bcDate").value = x.date; $("bcTime").value = x.time;
+    renderBCFields();
+    setBCStatus(BC.ai.size ? `讀到 ${BC.ai.size} 個數字（旁邊有金點的）。照片已經丟掉了，請對一下有沒有讀錯，再按「存下這次」。` : "這張照片讀不到數字，可以換一張更清楚的，或直接手動填。");
+  } catch (err) {
+    setBCStatus(`${err?.message || "AI 讀取失敗"}。可以再上傳一次，或直接手動填。`);
+  } finally { BC.busy = false; $("bcSave").disabled = false; }
+};
+
+$("bcForm").onsubmit = async e => {
+  e.preventDefault();
+  if (partnerView() || BC.busy) return;
+  const p = ownProf(); if (!p) return;
+  const x = readBCForm();
+  if (!BC_FIELDS.some(f => x[f[0]] != null)) { setBCStatus("至少要填一個數字。"); return; }
+  const id = `${p.id}_${x.date}`;
+  if (id !== BC.editing && BC.list.some(r => r.id === id) && !$("bcSave").dataset.confirm) {
+    $("bcSave").dataset.confirm = "1"; $("bcSave").textContent = "蓋掉那天的紀錄";
+    setBCStatus(`${dayText(x.date)}已經有一筆了，再按一次會用這次的數字蓋掉。`); return;
+  }
+  delete $("bcSave").dataset.confirm; $("bcSave").textContent = "存下這次";
+  const rec = { ...x, profileId: p.id, ts: Date.now() };
+  $("bcSave").disabled = true;
+  try {
+    await bcCol().doc(id).set(rec);
+    if (p.shared) await shareCol("bodycomp").doc(id).set(rec).catch(() => {});
+    // 改了日期：舊的那筆要刪掉
+    if (BC.editing && BC.editing !== id) {
+      await bcCol().doc(BC.editing).delete();
+      if (p.shared) await shareCol("bodycomp").doc(BC.editing).delete().catch(() => {});
+    }
+    // 順便在體重補一筆那天的紀錄（腰圍、體脂一起帶過去）
+    if (rec.weight) {
+      const wid = `${p.id}_${rec.date}`, old = S.weights.find(w => w.id === wid);
+      const w = { ...(old ? (({ id: _, ...o }) => o)(old) : {}), profileId: p.id, date: rec.date, weight: rec.weight, ts: Date.now() };
+      if (rec.waist) w.waist = rec.waist; if (rec.fatPct) w.fat = rec.fatPct;
+      await col("weights").doc(wid).set(w);
+      if (p.shared) await shareCol("weights").doc(wid).set(w).catch(() => {});
+      const latest = S.weights.filter(v => v.profileId === p.id && v.id !== wid).every(v => v.date <= rec.date);
+      if (latest && p.weight !== rec.weight) { const { id: _, ...body } = { ...p, weight: rec.weight }; await col("profiles").doc(p.id).set(body); }
+    }
+    BC.open = id; BC.form = null; BC.ai = new Set(); $("bcForm").hidden = true;
+    toast("存好了");
+  } catch (err) { setBCStatus(err?.message || "儲存失敗，請再試一次"); }
+  finally { $("bcSave").disabled = false; }
+};
+$("bcDel").addEventListener("click", async () => {
+  const b = $("bcDel"), p = ownProf();
+  if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再按一次確定刪除"; return; }
+  try {
+    await bcCol().doc(BC.editing).delete();
+    if (p?.shared) await shareCol("bodycomp").doc(BC.editing).delete().catch(() => {});
+    $("bcForm").hidden = true; BC.form = null; BC.open = null; toast("已刪除");
+  } catch (err) { setBCStatus(err?.message || "刪除失敗"); }
+  finally { b.classList.remove("armed"); b.textContent = "刪除這筆"; }
+});
+// 分享是在飲食頁打開的；打開之前存的身體組成，這裡補寫一份到分享區
+let bcMirrored = false;
+function mirrorBC() {
+  const p = ownProf();
+  if (bcMirrored || !p?.shared || !BC.loaded || !BC.sharedLoaded) return;
+  bcMirrored = true;
+  const have = new Set(BC.mineShared.map(x => x.id));
+  BC.list.filter(x => x.profileId === p.id && !have.has(x.id)).forEach(({ id, ...x }) => shareCol("bodycomp").doc(id).set(x).catch(() => {}));
+}
 
 // ---------- 啟動 ----------
 async function boot() {
@@ -511,9 +820,12 @@ async function boot() {
   }, () => toast("讀取個人資料失敗"));
   col("exercise").onSnapshot(snap => { S.exercise = docs(snap); renderAll(); }, () => {});
   col("weights").onSnapshot(snap => { S.weights = docs(snap); renderAll(); }, () => {});
+  col("bodycomp").onSnapshot(snap => { BC.list = docs(snap); BC.loaded = true; renderAll(); }, () => {});
+  S.db.collection(`shared/${S.me.id}/bodycomp`).onSnapshot(snap => { BC.mineShared = docs(snap); BC.sharedLoaded = true; mirrorBC(); }, () => {});
   if (S.partner) {
     S.db.collection("shared").doc(String(S.partner.id)).onSnapshot(d => { S.pShare = d.exists ? d.data() : null; renderAll(); }, () => {});
     S.db.collection(`shared/${S.partner.id}/exercise`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pExercise = docs(snap); renderAll(); }, () => {});
+    S.db.collection(`shared/${S.partner.id}/bodycomp`).onSnapshot(snap => { BC.partner = docs(snap); renderAll(); }, () => {});
     S.db.collection(`shared/${S.partner.id}/weights`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pWeights = docs(snap); renderAll(); }, () => {});
   }
   $("prof").onchange = () => { S.pid = $("prof").value; LS.set("fit.pid", S.pid); S.sets = []; renderType(); renderAll(); };
