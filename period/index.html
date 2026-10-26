@@ -225,8 +225,11 @@ const SHARE_ITEMS = [
   ['calendar', '經期日曆', '過去與預測的經期日期'],
   ['symptoms', '經痛與症狀', '最近 7 天的經痛程度、經血量和症狀'],
   ['mood', '心情', '最近 7 天的心情'],
-  ['diet', '飲食對照', '匯入的飲食熱量與糖分（最近 14 天）']
+  ['diet', '飲食對照', '匯入的飲食熱量與糖分（最近 14 天）'],
+  ['care', '我希望被怎麼照顧', '你在設定裡勾選的照顧方式，他的陪伴建議會優先照這個']
 ];
+// 她自己勾「經期時希望被怎麼照顧」，分享後另一半的陪伴建議會優先用這些
+const CARE_WISH = ['想被抱抱', '想自己靜一靜', '想吃甜的', '想喝熱的', '幫我按摩', '不要問我要吃什麼，直接買', '陪我看劇', '早點睡', '家事幫我做', '少問我怎麼了，陪著就好'];
 
 /* ---------- state ---------- */
 const S = {
@@ -269,8 +272,12 @@ function compute(p, today){
   st.untilNext = D.diff(today, st.nextStart);
   st.late = st.untilNext < 0 ? -st.untilNext : 0;
   st.ovu = D.add(st.nextStart, -14);
+  st.win = winOf(sd);
   return st;
 }
+// 預測區間：最近幾次週期的變動越大，區間越寬（還不到 3 次時 ±2 天）
+function winOf(sd){ return sd == null ? 2 : Math.max(1, Math.min(5, Math.round(sd))); }
+function rangeText(start, w){ return D.md(D.add(start, -w)) + '–' + D.md(D.add(start, w)); }
 function phaseOf(st, s){
   if (!st.last) return null;
   if (st.inPeriod) return { k: 'period', label: '經期第 ' + st.periodDay + ' 天', cls: 'ph-period' };
@@ -383,7 +390,7 @@ function buildShare(){
   if (!on.length || !S.profile) return null;
   const st = compute(S.profile);
   const doc = { v: 1, fields: on, updated: Date.now() };
-  if (st.last && (sh.status || sh.pms || sh.late)) doc.cycle = { lastStart: st.last.start, lastEnd: st.last.end || null, avgCycle: st.avgCycle, avgPeriod: st.avgPeriod, pmsDays: s.pmsDays, lateDays: s.lateDays };
+  if (st.last && (sh.status || sh.pms || sh.late)) doc.cycle = { lastStart: st.last.start, lastEnd: st.last.end || null, avgCycle: st.avgCycle, avgPeriod: st.avgPeriod, pmsDays: s.pmsDays, lateDays: s.lateDays, win: st.win };
   if (sh.calendar) doc.periods = st.ps.slice(-12).map(x => ({ start: x.start, end: x.end || null }));
   if (sh.symptoms || sh.mood){
     const r = {};
@@ -394,6 +401,7 @@ function buildShare(){
       if (Object.keys(o).length) r[d] = o; }
     doc.recent = r;
   }
+  const wish = s.careWish; if (sh.care && wish && ((wish.picks || []).length || wish.note)) doc.careWish = { picks: wish.picks || [], note: wish.note || '' };
   const ds = dietSrc(); if (sh.diet && ds){ const r = {}; for (let k = 0; k < 14; k++){ const d = D.add(D.today(), -k); if (ds.days[d]) r[d] = ds.days[d]; } doc.diet = r; }
   return doc;
 }
@@ -504,7 +512,7 @@ function vToday(st){
   const ph = phaseOf(st, s);
   let big, sub;
   if (st.inPeriod){ big = '第 ' + st.periodDay + ' 天'; sub = '經期中 · ' + D.md(st.last.start) + ' 開始'; }
-  else if (st.untilNext > 0){ big = '還有 ' + st.untilNext + ' 天'; sub = '預計 ' + D.long(st.nextStart) + ' 來'; }
+  else if (st.untilNext > 0){ big = '還有 ' + st.untilNext + ' 天'; sub = '預計 ' + rangeText(st.nextStart, st.win) + ' 之間'; }
   else if (st.late){ big = '晚了 ' + st.late + ' 天'; sub = '原本預計 ' + D.long(st.nextStart); }
   else { big = '預計今天'; sub = '有來的話記得按下方按鈕'; }
   let alerts = '';
@@ -530,9 +538,9 @@ function vToday(st){
     '<section class="card"><h3>接下來</h3><dl class="kv num">' +
     (pmsLeft ? '<dt>PMS 期</dt><dd>' + pmsLeft + ' 天後（' + D.md(D.add(st.nextStart, -s.pmsDays)) + ' 起）</dd>' : '') +
     (D.diff(today, st.ovu) > 0 ? '<dt>預測排卵日</dt><dd>' + D.long(st.ovu) + '</dd>' : '') +
-    '<dt>下次經期</dt><dd>' + D.long(st.nextStart) + (st.late ? '（已晚 ' + st.late + ' 天）' : '') + '</dd>' +
-    '<dt>再下一次</dt><dd>' + D.long(D.add(st.nextStart, st.avgCycle)) + '</dd></dl>' +
-    '<p class="small muted">預測用你最近幾次的平均週期推算，只供生活規劃參考，不能用來避孕。</p></section>';
+    '<dt>下次經期</dt><dd>' + rangeText(st.nextStart, st.win) + ' 之間，最可能 ' + D.md(st.nextStart) + (st.late ? '（已晚 ' + st.late + ' 天）' : '') + '</dd>' +
+    '<dt>再下一次</dt><dd>' + rangeText(D.add(st.nextStart, st.avgCycle), st.win + 1) + ' 之間</dd></dl>' +
+    '<p class="small muted">預測用你最近幾次的平均週期推算，區間依每次週期相差多少決定（目前 ±' + st.win + ' 天）。只供生活規劃參考，不能用來避孕。</p></section>';
 }
 const SRC = {
   hpaSalt: ['國健署〈減鹽秘笈〉', 'https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=1161&pid=6648'],
@@ -633,9 +641,42 @@ function vStats(st){
     const len = p.end ? D.diff(p.start, p.end) + 1 : null;
     return '<div class="hrow"><div><div class="d">' + p.start.replace(/-/g, '/') + (p.end ? ' – ' + D.md(p.end) : ' – 進行中') + '</div><div class="small muted num">' + (len ? len + ' 天' : '尚未記錄結束日') + '</div></div><button class="btn sm" data-act="editPeriod" data-id="' + p.id + '">修改</button></div>';
   }).join('');
-  return '<section class="card"><h2>我的週期</h2>' + tiles + '</section>' +
+  return '<section class="card"><h2>我的週期</h2>' + tiles + '</section>' + symptomCard(st) +
     '<section class="card"><h2>每次週期長度</h2>' + bars + '</section>' + pmsCard + dietCard(st) +
     '<section class="card"><div class="row between"><h2>經期紀錄</h2><button class="btn sm soft" data-act="addPast">新增過去的經期</button></div><div class="hist">' + (hist || '<p class="muted">還沒有紀錄。</p>') + '</div></section>';
+}
+// 症狀規律：把每次週期「第幾天出現什麼症狀」疊在一起，找出每次都會出現的時間點
+function symptomCard(st){
+  const logs = allLogs(), ps = st.ps;
+  if (ps.length < 2) return '';
+  const tally = {}, cyclesWith = {};
+  ps.forEach((p, i) => {
+    const next = ps[i + 1]?.start || D.add(st.today, 1);
+    for (let d = p.start, n = 1; d < next && n <= 45; d = D.add(d, 1), n++){
+      const l = logs[d]; if (!l) continue;
+      const items = [...(l.sym || []), ...(l.pain >= 2 ? ['經痛'] : []), ...(l.mood && ['敏感', '低落', '焦慮', '煩躁'].includes(l.mood) ? ['心情' + l.mood] : [])];
+      // 經期前的天數用「離下次第一天還有幾天」比較準
+      const before = ps[i + 1] ? D.diff(d, ps[i + 1].start) : null;
+      for (const k of items){
+        const key = before != null && before <= 10 && n > 10 ? k + '|pre' + before : k + '|d' + n;
+        (tally[key] = tally[key] || new Set()).add(i);
+        (cyclesWith[k] = cyclesWith[k] || new Set()).add(i);
+      }
+    }
+  });
+  const total = ps.length, rows = [];
+  for (const k in cyclesWith){
+    if (cyclesWith[k].size < 2) continue;
+    const spots = Object.keys(tally).filter(t => t.startsWith(k + '|')).map(t => ({ t, n: tally[t].size })).sort((a, b) => b.n - a.n);
+    const best = spots.slice(0, 3).filter(x => x.n >= 2);
+    if (!best.length) continue;
+    const when = best.map(x => { const v = x.t.split('|')[1]; return v.startsWith('pre') ? '經期前 ' + v.slice(3) + ' 天' : '第 ' + v.slice(1) + ' 天'; });
+    rows.push({ k, n: cyclesWith[k].size, when });
+  }
+  rows.sort((a, b) => b.n - a.n);
+  return '<section class="card"><h2>症狀規律</h2>' + (rows.length
+    ? '<dl class="kv">' + rows.slice(0, 8).map(r => '<dt>' + esc(r.k) + '</dt><dd>' + total + ' 次週期中有 ' + r.n + ' 次，常在' + r.when.join('、') + '</dd>').join('') + '</dl><p class="small muted">至少兩次週期都出現才會列出。知道規律後，可以提早準備，例如前一天先備好熱敷袋。</p>'
+    : '<p class="muted">每天記錄症狀和心情，累積兩次週期以上就能看出規律。</p>') + '</section>';
 }
 function dietCard(){
   const DS = dietSrc();
@@ -661,6 +702,9 @@ function vSet(){
   const st = compute(S.profile);
   return '<section class="card"><h2>分享給另一半</h2><p class="small muted">你勾選的項目，另一半打開經期頁時會在「她的狀態」看到。沒勾的項目只有你自己看得到，隨時可以關掉。</p>' +
     (cloud ? '' : '<p class="small muted">目前沒有登入雲端，無法分享。</p>') + shareRows + '</section>' +
+    '<section class="card"><h2>我希望被怎麼照顧</h2><p class="small muted">經期或 PMS 期時，你希望另一半怎麼陪你？勾選後，在上面開啟「我希望被怎麼照顧」的分享，他的陪伴建議就會優先照你說的。</p><div class="chips">' +
+    CARE_WISH.map(x => '<button class="chip" data-act="wish" data-v="' + esc(x) + '" aria-pressed="' + (s.careWish?.picks || []).includes(x) + '">' + esc(x) + '</button>').join('') + '</div>' +
+    '<label class="fld">想補充的話（選填）<input type="text" id="wish-note" maxlength="120" value="' + esc(s.careWish?.note || '') + '" placeholder="例如：第一天最需要熱敷"></label><button class="btn sm soft" data-act="wishNote">儲存補充</button></section>' +
     '<section class="card"><h2>提醒</h2>' +
     '<div class="tg"><div class="txt"><span>PMS 期</span><span class="small muted">經期前幾天算 PMS 期</span></div>' + stepper('pmsDays', s.pmsDays, 2, 14, '天') + '</div>' +
     '<div class="tg"><div class="txt"><span>晚來提醒</span><span class="small muted">超過預計日幾天還沒來就提醒</span></div>' + stepper('lateDays', s.lateDays, 1, 14, '天') + '</div>' +
@@ -696,7 +740,7 @@ function partnerCard(id, d){
     const ps = { pmsDays: d.cycle.pmsDays || 7 };
     const ph = phaseOf(st, ps);
     if (f.has('status')){
-      let line = st.inPeriod ? '經期第 ' + st.periodDay + ' 天' : st.untilNext > 0 ? '離下次經期還有 ' + st.untilNext + ' 天（預計 ' + D.long(st.nextStart) + '）' : st.late ? '比預計晚了 ' + st.late + ' 天' : '預計今天來';
+      let line = st.inPeriod ? '經期第 ' + st.periodDay + ' 天' : st.untilNext > 0 ? '離下次經期還有 ' + st.untilNext + ' 天（預計 ' + rangeText(st.nextStart, d.cycle.win || 2) + ' 之間）' : st.late ? '比預計晚了 ' + st.late + ' 天' : '預計今天來';
       html += '<div class="row"><span class="phase ' + ph.cls + '">' + ph.label + '</span></div><p class="num">' + line + '</p>';
       tip = ph.k === 'period' ? '經期中容易累和腹痛。可以幫她準備熱敷袋或溫熱飲，行程排輕鬆一點。' : ph.k === 'pms' ? 'PMS 期情緒和身體都比較敏感，多一點耐心，少一點說教。' : '';
     } else if (f.has('pms')){
@@ -813,13 +857,16 @@ function careCard(id, d){
   const set = CARE[key], prefs = S.care || {}, x = careExtras(d), seed = D.today() + ':' + (S.careShuffle || 0);
   const ai = careAiGet(id);
   const list = (arr, c) => '<ul class="sug" style="--c:' + c + '">' + arr.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul>';
-  const care = ai ? ai.care : x.care.slice(0, 2).concat(pickCare(set.care, 3, seed + 'c', prefs)).slice(0, 4);
+  const wish = d.careWish && (d.careWish.picks || []).length ? d.careWish.picks : [];
+  const care = ai ? ai.care : wish.slice(0, 2).concat(x.care.slice(0, 2), pickCare(set.care, 3, seed + 'c', prefs)).slice(0, 4);
   const dessert = ai ? ai.desserts : x.dessert.concat(pickCare(set.dessert, 3, seed + 'd', prefs)).slice(0, 3);
   const dish = ai ? ai.dishes : x.dish.concat(pickCare(set.dish, 3, seed + 'm', prefs)).slice(0, 3);
   const avoid = ai ? ai.avoid : [...new Set(set.avoid.concat(x.avoid))];
   html += '<p class="small muted">' + (ai ? 'AI 依她最近的狀態想的' : '依「' + set.label + '」') + (pp.ph.k === 'period' ? '・經期第 ' + pp.st.periodDay + ' 天' : '') + '</p>';
   if (ai && ai.summary) html += '<p class="tip">' + esc(ai.summary) + '</p>';
+  if (d.careWish && ((d.careWish.picks || []).length || d.careWish.note)) html += '<p class="tip"><b>' + esc(name) + '說她希望：</b>' + esc([...(d.careWish.picks || []), d.careWish.note].filter(Boolean).join('、')) + '</p>';
   if (x.warn) html += alert('rose', '!', '<b>' + x.warn + '</b>');
+  html += clashHtml(d);
   html += '<h3>陪伴</h3>' + list(care, 'var(--emb)') +
     '<div class="care2"><div><h3>甜點</h3>' + list(dessert, 'var(--gold)') + '</div><div><h3>菜餚</h3>' + list(dish, 'var(--envy)') + '</div></div>' +
     (avoid.length ? '<h3>先避開</h3><p>' + esc(avoid.join('、')) + '</p>' : '') +
@@ -829,6 +876,35 @@ function careCard(id, d){
   const pl = prefList(prefs.likes), pd = prefList(prefs.dislikes);
   if (pl.length || pd.length) html += '<p class="small muted">' + [pl.length ? '她喜歡：' + esc(pl.join('、')) : '', pd.length ? '不吃：' + esc(pd.join('、')) : ''].filter(Boolean).join('・') + '</p>';
   return html + '<p class="small muted">這些是一般的照顧方向，不是醫療建議。</p></section>';
+}
+// 旅程島、紀念日落在她預測的經期時提醒（接下來 100 天，只用她有分享的週期）
+async function loadPlans(){
+  if (S.plans || S.plansLoading || !window.FiveJS?.api) return;
+  S.plansLoading = true;
+  try {
+    const [isl, dt] = await Promise.all([FiveJS.api('/api/split/islands'), FiveJS.api('/api/together/dates')]);
+    const t = D.today(), end = D.add(t, 100), plans = [];
+    for (const i of isl.islands || []) if (i.id && i.start_date && (i.end_date || i.start_date) >= t && i.start_date <= end) plans.push({ name: i.name + '（旅程）', from: i.start_date, to: i.end_date || i.start_date });
+    for (const x of dt.items || []) {
+      let day = x.date;
+      if (x.yearly){ for (const y of [+t.slice(0, 4), +t.slice(0, 4) + 1]){ const c = y + x.date.slice(4); if (c >= t){ day = D.ok(c) ? c : y + '-02-28'; break; } } }
+      if (day >= t && day <= end) plans.push({ name: x.title, from: day, to: day });
+    }
+    S.plans = plans;
+  } catch (e) { S.plans = []; }
+  S.plansLoading = false; render();
+}
+function clashHtml(d){
+  if (!d.cycle) return '';
+  if (!S.plans){ loadPlans(); return ''; }
+  const pp = partnerPhase(d); if (!pp) return '';
+  const w = d.cycle.win || 2, len = d.cycle.avgPeriod || 5, out = [];
+  for (let c = 0; c < 4; c++){
+    const start = D.add(pp.st.nextStart, c * pp.st.avgCycle), from = D.add(start, -w), to = D.add(start, w + len - 1);
+    for (const p of S.plans) if (p.from <= to && p.to >= from) out.push('<b>' + esc(p.name) + '</b>（' + D.md(p.from) + (p.to !== p.from ? '–' + D.md(p.to) : '') + '）可能遇到她的經期（預計 ' + rangeText(start, w) + ' 開始）');
+  }
+  if (pp.st.inPeriod) for (const p of S.plans) if (p.from <= D.add(pp.st.last.start, len - 1) && p.to >= D.today()) out.push('<b>' + esc(p.name) + '</b>（' + D.md(p.from) + '）在她這次經期內');
+  return out.length ? alert('', '!', '<b>行程提醒</b><span>' + [...new Set(out)].join('<br>') + '。可以提早調整行程，或準備好熱敷袋、止痛藥。</span>') : '';
 }
 const careAiKey = id => 'care.ai.' + id + '.' + D.today();
 function careAiGet(id){ try { return JSON.parse(localStorage.getItem(careAiKey(id)) || 'null'); } catch (e) { return null; } }
@@ -840,6 +916,7 @@ async function careAI(id){
   const diet = Object.keys(d.diet || {}).sort().reverse().slice(0, 5).map(k => k + '：' + Math.round(d.diet[k].kcal || 0) + ' 大卡、糖 ' + Math.round(d.diet[k].sugar || 0) + ' 克');
   const prompt = '你在幫一位男生照顧他的女朋友。她現在的週期階段：' + (pp ? pp.ph.label + (pp.ph.k === 'period' ? '（經期第 ' + pp.st.periodDay + ' 天）' : '') : '不清楚') + '。\n' +
     (recent.length ? '她最近幾天的紀錄：\n' + recent.join('\n') + '\n' : '') + (diet.length ? '她最近吃的熱量與糖：\n' + diet.join('\n') + '\n' : '') +
+    (d.careWish ? '她自己說經期時希望：' + [...(d.careWish.picks || []), d.careWish.note].filter(Boolean).join('、') + '（陪伴建議要優先照這個）\n' : '') +
     (prefList(prefs.likes).length ? '她喜歡：' + prefList(prefs.likes).join('、') + '\n' : '') + (prefList(prefs.dislikes).length ? '她不吃：' + prefList(prefs.dislikes).join('、') + '（一定要避開）\n' : '') +
     '請用台灣繁體中文、口語、具體可以馬上做的建議。甜點和菜餚用台灣常見、買得到或簡單做得出來的。不要給醫療診斷；很痛或異常時建議陪她看醫生。\n' +
     '只回傳 JSON：{"summary":"一句話說明她現在的狀態和照顧重點","care":["陪伴建議 3 到 4 個"],"desserts":["3 個"],"dishes":["3 個"],"avoid":["0 到 3 個要避開的"]}';
@@ -1035,7 +1112,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (a === 'scrim'){ if (e.target === b) closeSheet(); return; }
-  if (S.readOnly && ['setup', 'doStart', 'doEnd', 'dsave', 'dclear', 'savePeriod', 'delPeriod', 'share', 'step', 'saveSetup', 'usePms', 'markStart', 'markEnd'].includes(a)){ toast('你的權限只能看，無法修改。'); return; }
+  if (S.readOnly && ['wish', 'wishNote', 'setup', 'doStart', 'doEnd', 'dsave', 'dclear', 'savePeriod', 'delPeriod', 'share', 'step', 'saveSetup', 'usePms', 'markStart', 'markEnd'].includes(a)){ toast('你的權限只能看，無法修改。'); return; }
   switch (a){
     case 'tab': S.view = v; render(); window.scrollTo(0, 0); break;
     case 'setup': {
@@ -1061,6 +1138,8 @@ document.addEventListener('click', e => {
       const d = S.sheet.date; closeSheet(); saveLog(d, empty ? null : e2); toast(empty ? '這天沒有記錄任何內容。' : '已儲存 ' + D.md(d) + ' 的紀錄。'); break; }
     case 'dclear': { const d = S.sheet.date; closeSheet(); saveLog(d, null); toast('已清除。'); break; }
     case 'close': closeSheet(); break;
+    case 'wish': { const s2 = settings(); const w = Object.assign({ picks: [], note: '' }, s2.careWish); w.picks = w.picks.includes(v) ? w.picks.filter(x => x !== v) : [...w.picks, v]; s2.careWish = w; S.profile.settings = s2; saveProfile(); break; }
+    case 'wishNote': { const s2 = settings(); s2.careWish = Object.assign({ picks: [] }, s2.careWish, { note: $('#wish-note').value.trim() }); S.profile.settings = s2; saveProfile(); toast('已儲存。'); break; }
     case 'careShuffle': S.careShuffle = (S.careShuffle || 0) + 1; try { localStorage.removeItem(careAiKey(S.shared[0]?.id)); } catch (e) {} render(); break;
     case 'careAI': careAI(v); break;
     case 'carePrefs': openSheet({ type: 'carePrefs' }); break;
