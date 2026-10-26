@@ -22,7 +22,16 @@ const FUTURE = ["reserve", "short", "mid", "long"];
 const NAMES = { need: "必要支出", reserve: "預備金", short: "短期 2 年", mid: "中期 6 年", long: "長期 10 年以上", protect: "保障金" };
 const NEED_CATS = ["食", "衣", "住", "行", "育", "債"];
 const INCOME_CATS = ["薪水", "獎金", "其他收入"];
-const KIND_TABS = [["need", "必要支出"], ["income", "收入"], ["save", "存進未來"], ["protect", "保費"], ["reserve", "從預備金花"]];
+const KIND_TABS = [["need", "必要支出"], ["income", "收入"], ["save", "存進未來"], ["protect", "保費"], ["reserve", "從預備金花"], ["cardpay", "繳卡費"]];
+const PAYS = [["cash", "現金"], ["card", "信用卡"], ["transfer", "轉帳"]];
+const PAY_NAME = Object.fromEntries(PAYS);
+const lastPay = () => { try { return localStorage.getItem("lg.pay") || ""; } catch (e) { return ""; } };
+// 時薪：直接填的，或月薪 ÷ 每月工時。0 代表還沒設定
+function wageRate() {
+  const w = L.data?.settings?.wage || {};
+  return w.mode === "monthly" ? (w.monthly && w.hours ? w.monthly / w.hours : 0) : +w.hourly || 0;
+}
+const hoursText = amount => { const r = wageRate(); if (!r || !(amount > 0)) return ""; const h = amount / r; return h < 1 ? `約 ${Math.max(1, Math.round(h * 60))} 分鐘的工作` : `約 ${Math.round(h * 10) / 10} 小時的工作`; };
 const C = { need: "var(--sad)", future: "var(--envy)", protect: "var(--anx)", gold: "var(--gold)" };
 
 const L = { data: null, month: taipeiToday().slice(0, 7), form: null, editing: null, sheet: null, busy: false, loaded: false };
@@ -45,19 +54,21 @@ const reload = () => load().catch(e => toast(e.message));
 // ---------- 記一筆的表單狀態 ----------
 function blankForm(kind = "need") {
   return { kind, amount: "", category: kind === "income" ? "薪水" : "食", want: null, bucket: "short", goal: "", title: "",
-           date: L.month === taipeiToday().slice(0, 7) ? taipeiToday() : L.month + "-01", note: "", fav: false, sinking: "" };
+           date: L.month === taipeiToday().slice(0, 7) ? taipeiToday() : L.month + "-01", note: "", fav: false, sinking: "", pay: lastPay() };
 }
 function entryToForm(e) {
-  const kind = e.kind === "income" ? "income" : e.kind === "save" ? "save" : e.bucket === "need" ? "need" : e.bucket === "protect" ? "protect" : "reserve";
+  const kind = e.kind === "income" ? "income" : e.kind === "save" ? "save" : e.kind === "cardpay" ? "cardpay" : e.bucket === "need" ? "need" : e.bucket === "protect" ? "protect" : "reserve";
   const isSink = (L.data.sinking || []).some(s => s.id === e.item_id);
   return { kind, amount: String(e.amount), category: e.category || (kind === "income" ? "薪水" : "食"), want: e.want, bucket: e.bucket || "short",
            goal: e.kind === "save" && e.item_id && !isSink ? String(e.item_id) : "", title: e.title, date: e.date, note: e.note, fav: false,
-           sinking: isSink ? String(e.item_id) : "", spendBucket: kind === "reserve" ? e.bucket : "reserve" };
+           sinking: isSink ? String(e.item_id) : "", spendBucket: kind === "reserve" ? e.bucket : "reserve", pay: e.pay || "" };
 }
 function formToBody(f) {
   const amount = Math.round(+f.amount);
   const base = { date: f.date, amount, title: f.title.trim(), note: f.note.trim() };
   if (f.kind === "income") return { ...base, kind: "income", category: f.category };
+  if (f.kind === "cardpay") return { ...base, kind: "cardpay", title: base.title || "繳信用卡費" };
+  base.pay = f.pay || "";
   if (f.kind === "save") return { ...base, kind: "save", bucket: f.bucket, item_id: f.goal ? +f.goal : null };
   if (f.kind === "protect") return { ...base, kind: "expense", bucket: "protect", title: base.title || "保費" };
   if (f.kind === "reserve") return { ...base, kind: "expense", bucket: f.spendBucket || "reserve", item_id: f.goal ? +f.goal : null };
@@ -144,6 +155,8 @@ function renderForm() {
   if (f.kind === "need") {
     fields += `<div class="field"><span>分類</span><div class="seg">${seg(NEED_CATS.map(c => [c, c]), f.category, "fCat")}</div></div>
       <div class="field"><span>需要還是想要</span><div class="seg">${seg([["need", "需要"], ["want", "想要"], ["", "不分"]], f.want === true ? "want" : f.want === false ? "need" : "", "fWant")}</div></div>`;
+    if (f.want === true && hoursText(+f.amount)) fields += `<p class="lg-hours">這筆等於 <b>${hoursText(+f.amount)}</b>，值得嗎？</p>`;
+    else if (f.want === true && !wageRate()) fields += `<p class="small muted">在「比例與設定」填時薪，想要的花費會換算成工作幾小時。</p>`;
     if (d.sinking.length) fields += `<div class="field"><span>從年度平攤付（選填）</span><select data-f="sinking"><option value="">不是，算這個月的預算</option>${d.sinking.map(s => `<option value="${s.id}"${String(s.id) === f.sinking ? " selected" : ""}>${esc(s.name)}（預留 ${money(s.pool)}）</option>`).join("")}</select></div>`;
   } else if (f.kind === "income") {
     fields += `<div class="field"><span>分類</span><div class="seg">${seg(INCOME_CATS.map(c => [c, c]), f.category, "fCat")}</div></div>`;
@@ -156,13 +169,18 @@ function renderForm() {
     const gs = goalsFor(f.spendBucket || "reserve");
     if (gs.length) fields += `<div class="field"><span>用在哪個目標（選填）</span><select data-f="goal"><option value="">不指定</option>${gs.map(g => `<option value="${g.id}"${String(g.id) === f.goal ? " selected" : ""}>${esc(g.name)}</option>`).join("")}</select></div>`;
   }
+  if (f.kind === "cardpay") {
+    const c = d.card || {};
+    fields += `<p class="small muted">刷卡那天已經算進花費了，繳卡費只是把錢付給銀行，不會再算一次。${c.used ? `目前信用卡還沒繳 <b>${money(c.unpaid)}</b>。` : ""}</p>`;
+  }
+  if (["need", "protect", "reserve"].includes(f.kind)) fields += `<div class="field"><span>付款方式</span><div class="seg">${seg([...PAYS, ["", "不記"]], f.pay || "", "fPay")}</div></div>`;
   const favs = d.settings.favorites || [];
   $("lgForm").innerHTML = `<div class="head"><h2>${L.editing ? "修改這筆" : "記一筆"}</h2>${L.editing ? "" : `<label class="btn sm ghost lg-snap">拍收據<input type="file" accept="image/*" id="lgSnap" hidden></label>`}</div>
     ${!L.editing && favs.length ? `<div class="lg-favs"><span class="small muted">常用</span>${favs.map((x, i) => `<button type="button" data-act="fav" data-v="${i}">${esc(x.title)} ${money(x.amount)}</button>`).join("")}</div>` : ""}
     <div class="seg kinds">${seg(KIND_TABS, f.kind, "fKind")}</div>
     <div class="field money"><input data-f="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="0" aria-label="金額（元）" value="${esc(f.amount)}"></div>
     ${fields}
-    <div class="row2"><div class="field"><span>${f.kind === "income" ? "說明（選填）" : "品項"}</span><input data-f="title" maxlength="60" value="${esc(f.title)}" placeholder="${f.kind === "need" ? "例如：午餐便當" : f.kind === "protect" ? "例如：醫療險" : f.kind === "reserve" ? "例如：喜宴紅包" : ""}"></div>
+    <div class="row2"><div class="field"><span>${f.kind === "income" || f.kind === "cardpay" ? "說明（選填）" : "品項"}</span><input data-f="title" maxlength="60" value="${esc(f.title)}" placeholder="${f.kind === "need" ? "例如：午餐便當" : f.kind === "protect" ? "例如：醫療險" : f.kind === "reserve" ? "例如：喜宴紅包" : f.kind === "cardpay" ? "例如：國泰卡 10 月帳單" : ""}"></div>
       <div class="field"><span>日期</span><input data-f="date" type="date" value="${esc(f.date)}"></div></div>
     <div class="field"><span>備註（選填）</span><input data-f="note" maxlength="300" value="${esc(f.note)}"></div>
     ${f.kind === "need" && !L.editing ? `<label class="chk"><input type="checkbox" data-f="fav"${f.fav ? " checked" : ""}> 存成常用項目（下次一鍵記）</label>` : ""}
@@ -197,15 +215,21 @@ function renderCorners() {
   const sink = `<div class="lg-corner" style="--c:${C.gold}"><div class="ch"><h3><i class="orb"></i>年度大額支出平攤</h3><button class="link" type="button" data-act="sinking">＋ 新增</button></div>
     ${d.sinking.length ? d.sinking.map(s => `<button class="goal" type="button" data-act="sinking" data-v="${s.id}"><span class="gh"><b>${esc(s.name)}</b><span class="small muted">全年 ${money(s.yearly)}・每月預留 ${money(s.monthly)}${s.dueMonth ? `・${s.dueMonth} 月要付` : ""}</span></span><span class="num">預留 ${money(s.pool)}</span></button>`).join("")
       : `<p class="small muted">過年紅包、牌照稅、年費這類一年一次的錢，設好全年金額，每月先預留 1/12。付的時候選「從年度平攤付」，不會吃掉那個月的預算。</p>`}</div>`;
-  $("lgCorners").innerHTML = need + future + protect + sink;
+  const c = d.card || {};
+  const card = c.used ? `<div class="lg-corner" style="--c:var(--fear)"><div class="ch"><h3><i class="orb"></i>信用卡對帳</h3><button class="link" type="button" data-act="payCard">繳卡費</button></div>
+    <div class="acct"><div class="ah"><b>還沒繳</b><span class="num">${money(c.unpaid)}</span></div>
+    <div class="ah small muted"><span>這個月刷了 ${money(c.monthCharged)}・繳了 ${money(c.monthPaid)}</span></div></div>
+    <p class="small muted">刷卡那天就算花費；繳卡費不會再算一次。月底跟銀行帳單對一下「還沒繳」的金額。</p></div>` : "";
+  $("lgCorners").innerHTML = need + future + protect + sink + card;
 }
 
 function entryLine(e) {
   const tag = e.kind === "income" ? ["收入", "var(--disgust)"] : e.kind === "save" ? [NAMES[e.bucket], e.bucket === "protect" ? C.protect : C.future]
-    : e.kind === "cover" ? ["挪用", C.future] : e.kind === "adjust" ? ["校正", "var(--muted)"] : e.kind === "nospend" ? ["沒花錢", C.gold]
+    : e.kind === "cover" ? ["挪用", C.future] : e.kind === "adjust" ? ["校正", "var(--muted)"] : e.kind === "nospend" ? ["沒花錢", C.gold] : e.kind === "cardpay" ? ["卡費", "var(--fear)"]
     : e.bucket === "need" ? [e.category, C.need] : [NAMES[e.bucket], e.bucket === "protect" ? C.protect : C.future];
   const sign = e.kind === "income" ? "+" : e.kind === "expense" ? "-" : "";
-  const sub = [e.split ? e.note : "", e.want === true ? "想要" : "", e.sinking ? "年度平攤" : "", !e.split && e.note ? e.note : ""].filter(Boolean).join("・");
+  const sub = [e.split ? e.note : "", e.want === true ? "想要" + (hoursText(e.amount) ? `（${hoursText(e.amount)}）` : "") : "", e.sinking ? "年度平攤" : "",
+    PAY_NAME[e.pay] || "", !e.split && e.note ? e.note : ""].filter(Boolean).join("・");
   return `<button class="item${e.split ? " split" : ""}" type="button" data-act="${e.split ? "openSplit" : "edit"}" data-v="${e.id}">
     <span class="tag" style="--t:${tag[1]}">${esc(tag[0])}</span><span class="main"><b>${esc(e.kind === "nospend" ? "今天沒花錢" : e.title)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}</span>
     <span class="amt">${e.kind === "nospend" ? "" : sign + money(e.amount).replace("-", "")}</span></button>`;
@@ -317,6 +341,12 @@ function renderSheet() {
       <h3>財務金三角的比例（加起來 100%）</h3>
       <div class="row2"><label>必要支出 %<input type="number" min="0" max="100" data-ratio="need" value="${r.need}"></label><label>必要支出警示 %<input type="number" min="1" max="100" id="stWarn" value="${st.needWarn}"></label>
       ${FUTURE.map(b => `<label>${NAMES[b]} %<input type="number" min="0" max="100" data-ratio="${b}" value="${r[b]}"></label>`).join("")}<label>風險保障 %<input type="number" min="0" max="100" data-ratio="protect" value="${r.protect}"></label></div>
+      <h3>時薪（換算「這筆等於工作幾小時」）</h3>
+      <div class="row2"><label>怎麼算<select id="stWageMode"><option value="hourly"${st.wage?.mode !== "monthly" ? " selected" : ""}>直接填時薪</option><option value="monthly"${st.wage?.mode === "monthly" ? " selected" : ""}>月薪 ÷ 每月工時</option></select></label>
+      <label>時薪<input type="number" inputmode="numeric" min="0" id="stHourly" value="${st.wage?.hourly || ""}" placeholder="例如 250"></label>
+      <label>月薪（實拿）<input type="number" inputmode="numeric" min="0" id="stMonthly" value="${st.wage?.monthly || ""}"></label>
+      <label>每月工時<input type="number" inputmode="numeric" min="1" id="stHours" value="${st.wage?.hours || 176}"></label></div>
+      <p class="small muted">只有你看得到。標成「想要」的花費會顯示等於工作幾小時，下手前多想一秒。</p>
       <h3>分帳帶進來時算在哪</h3><p class="small muted">日常島依分類；旅程島每座自己選（預設預備金）。</p>
       <div class="row2">${splitCats.map(k => `<label>日常・${esc(k)}<select data-scat="${esc(k)}">${target(st.splitCat[k])}</select></label>`).join("")}
       ${trips.map(t => `<label>島・${esc(t.name)}<select data-trip="${t.id}">${target(st.tripMap[t.id] || "reserve")}</select></label>`).join("")}</div>
@@ -348,7 +378,7 @@ async function saveEntry() {
   const f = L.form;
   const amount = Math.round(+f.amount);
   if (!(amount > 0)) return toast("請填金額");
-  if (["need", "reserve", "protect"].includes(f.kind) && !f.title.trim() && f.kind !== "protect") return toast("請填品項");
+  if (["need", "reserve"].includes(f.kind) && !f.title.trim()) return toast("請填品項");
   L.busy = true; renderForm();
   try {
     const body = formToBody(f);
@@ -385,6 +415,8 @@ document.addEventListener("click", async ev => {
   else if (a === "fWant") { f.want = v === "want" ? true : v === "need" ? false : null; renderForm(); }
   else if (a === "fBucket") { f.bucket = v; f.goal = ""; renderForm(); }
   else if (a === "fSpend") { f.spendBucket = v; f.goal = ""; renderForm(); }
+  else if (a === "fPay") { f.pay = v; try { localStorage.setItem("lg.pay", v); } catch (e) {} renderForm(); }
+  else if (a === "payCard") { L.editing = null; L.form = { ...blankForm("cardpay"), amount: String(Math.max(0, d.card?.unpaid || 0) || "") }; renderForm(); $("lgForm").scrollIntoView({ behavior: "smooth", block: "start" }); }
   else if (a === "save") saveEntry();
   else if (a === "cancel") { L.editing = null; L.form = blankForm(); renderForm(); }
   else if (a === "edit") { const e = d.entries.find(x => String(x.id) === v); if (!e) return;
@@ -449,7 +481,8 @@ async function sheetAction(sh, v) {
       const tripMap = { ...L.data.settings.tripMap }; document.querySelectorAll("[data-trip]").forEach(i => tripMap[i.dataset.trip] = i.value);
       const sum = Object.values(ratios).reduce((a, b) => a + b, 0);
       if (sum !== 100) return toast(`比例加起來是 ${sum}%，要剛好 100%`);
-      await call("/api/ledger/settings", { method: "PUT", body: { ratios, needWarn: Math.round(+$("stWarn").value || 60), start, splitCat, tripMap, setupDone: true } });
+      const wage = { mode: $("stWageMode").value, hourly: Math.max(0, Math.round(+$("stHourly").value || 0)), monthly: Math.max(0, Math.round(+$("stMonthly").value || 0)), hours: Math.max(1, Math.round(+$("stHours").value || 176)) };
+      await call("/api/ledger/settings", { method: "PUT", body: { ratios, needWarn: Math.round(+$("stWarn").value || 60), start, splitCat, tripMap, wage, setupDone: true } });
     } else if (sh === "delFav") {
       const favs = L.data.settings.favorites.filter((_, i) => i !== +v);
       await call("/api/ledger/settings", { method: "PUT", body: { favorites: favs } });
@@ -465,7 +498,7 @@ document.addEventListener("input", ev => {
   L.form[k] = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value;
 });
 document.addEventListener("change", ev => {
-  const k = ev.target.dataset?.f; if (k && $("lgForm").contains(ev.target)) L.form[k] = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value;
+  const k = ev.target.dataset?.f; if (k && $("lgForm").contains(ev.target)) { L.form[k] = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value; if (k === "amount" && L.form.want === true) renderForm(); }
   if (ev.target.id === "lgSnap") { const file = ev.target.files[0]; ev.target.value = ""; if (file) snap(file); }
 });
 
