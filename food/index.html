@@ -1,6 +1,6 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html lang="zh-Hant" data-mod="food" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>飲食紀錄 · 大小豬的小空間</title>
-<meta name="theme-color" content="#FFF5F2">
+<meta name="theme-color" content="#15102A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="大小豬食記">
@@ -506,6 +506,7 @@ body{font-size:calc(15px * var(--fs, 1))}
 .hub-link{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--muted);text-decoration:none;margin-bottom:2px}
 .hub-link:hover{color:var(--accent)}
 </style>
+<link rel="stylesheet" href="../common/hq-port.css">
 </head><body>
 
 <div class="app">
@@ -513,8 +514,8 @@ body{font-size:calc(15px * var(--fs, 1))}
     <div class="brand">
       <span class="pigs" aria-hidden="true"><span data-pig="happy" data-size="54" data-live="1"></span><span class="pg-small" data-pig="bow" data-size="38"></span></span>
       <div>
-        <a class="hub-link" href="../">‹ 大小豬的小空間</a>
-        <h1>大小豬健康食記</h1>
+        <a class="hub-link" href="../">‹ 總部</a>
+        <h1>飲食</h1>
         <p>拍一張照片，記下每一餐的熱量與三大營養素</p>
       </div>
     </div>
@@ -2808,7 +2809,7 @@ $('#fab').addEventListener('click', () => { $('#capPanel').scrollIntoView({ beha
   let th = LS.get('dxz.theme', 'auto'); if (!themes.includes(th)) th = 'auto';
   let fi = LS.get('dxz.fs', 0); if (!(fi >= 0 && fi < sizes.length)) fi = 0;
   const apply = () => {
-    if (th === 'auto') root.removeAttribute('data-theme'); else root.dataset.theme = th;
+    root.dataset.theme = 'dark';  // 總部固定是夜色（外觀按鈕已隱藏）
     root.style.setProperty('--fs', sizes[fi]);
     const tb = $('#themeBtn'); tb.innerHTML = icon[th]; tb.setAttribute('aria-label', `外觀：${themeName[th]}（點一下切換）`); tb.title = `外觀：${themeName[th]}`;
     const fb = $('#fsBtn'); fb.setAttribute('aria-label', `字體大小：${sizeName[fi]}（點一下切換）`); fb.title = `字體大小：${sizeName[fi]}`;
@@ -2860,4 +2861,5 @@ initDownloads();
 })();
 </script>
 
+<script src="../common/hq.js"></script>
 </body></html>

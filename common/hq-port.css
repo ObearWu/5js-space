@@ -1,0 +1,64 @@
+/*
+ * 從舊 Artifact 搬來的兩頁（飲食 /food、經期 /period）換成「記憶球總部」外觀。
+ *
+ * 這兩頁有自己整套的 CSS 變數和頁首，程式很大，不重寫：這支樣式表放在它們
+ * 自己的 <style> 後面，用 !important 把底色、文字、強調色換成總部的夜色與
+ * 該功能的情緒色，頁首（header.top）改成情緒色光帶。<html> 上帶
+ * data-theme="dark"，其餘沒被覆蓋的顏色（營養素、症狀色…）用它們原本的深色版。
+ */
+:root{
+  --joy:#F6C744; --emb:#EE6FA0; --gold:#FFD45E; --disgust:#5DBB63; --sad:#4E7FE0; --anger:#E5483B; --envy:#2BB7B0;
+  --mod:var(--joy); --on-mod:#2A2140; --tabbar:64px;
+  --bg:#15102A !important; --dot:transparent !important; --surface:#211A3C !important; --sunk:#2C2452 !important;
+  --ink:#F3EEFF !important; --muted:#B9AEDA !important; --line:#3B3168 !important; --shadow:rgba(0,0,0,.28) !important;
+  --f-round:"Huninn","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  color-scheme:dark;
+}
+:root[data-mod="food"]{
+  --accent:var(--joy) !important; --accent-deep:#FFE08A !important; --accent-soft:#4A3F2E !important; --on-accent:#2A2140 !important;
+}
+:root[data-mod="period"]{
+  --mod:var(--emb); --on-mod:#2A1020;
+  --rose:var(--emb) !important; --rose-ink:#2A1020 !important; --rose-soft:#4A2342 !important; --berry:#FF9EC4 !important;
+}
+html,body{background-color:var(--bg) !important}
+body{background-image:
+    radial-gradient(1px 1px at 12% 18%,#fff9 50%,transparent 51%),
+    radial-gradient(1px 1px at 68% 9%,#fff8 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 86% 34%,#fff7 50%,transparent 51%),
+    radial-gradient(1px 1px at 34% 46%,#fff6 50%,transparent 51%),
+    radial-gradient(1px 1px at 92% 72%,#fff6 50%,transparent 51%),
+    radial-gradient(120% 70% at 50% 0%,#2B2150 0%,#1B1530 55%,#15102A 100%) !important;
+  background-size:auto !important;background-attachment:fixed !important}
+
+/* 頁首 → 情緒色光帶；光帶裡的文字改深色 */
+header.top{margin-top:14px;border:0 !important;border-radius:8px 26px 26px 8px;padding:12px 16px 14px !important;
+  background:linear-gradient(100deg,var(--mod),color-mix(in srgb,var(--mod) 55%,#120c22));
+  box-shadow:0 0 34px color-mix(in srgb,var(--mod) 40%,transparent);
+  --ink:var(--on-mod) !important; --muted:color-mix(in srgb,var(--on-mod) 72%,transparent) !important;
+  --line:color-mix(in srgb,var(--on-mod) 22%,transparent) !important; --surface:rgba(255,255,255,.28) !important;
+  --sunk:rgba(255,255,255,.2) !important; --berry:var(--on-mod) !important;
+  color:var(--on-mod)}
+header.top h1{font-family:var(--f-round);font-weight:400;letter-spacing:.04em}
+header.top .hub-link{color:var(--on-mod);opacity:.85}
+
+/* 飲食：外觀一律是總部夜色，拿掉淺色／深色切換；浮動按鈕避開底部導覽列 */
+:root[data-mod="food"] #themeBtn{display:none}
+:root[data-mod="food"] .fab{bottom:calc(var(--tabbar) + 16px + env(safe-area-inset-bottom,0px)) !important}
+:root[data-mod="food"] .toast{bottom:calc(var(--tabbar) + 20px + env(safe-area-inset-bottom,0px)) !important}
+:root[data-mod="food"] body{padding-bottom:calc(var(--tabbar) + 40px + env(safe-area-inset-bottom,0px)) !important}
+
+/* 經期：本來就有自己的底部分頁，換成夜色 */
+:root[data-mod="period"] nav.tabs{background:rgba(12,9,24,.86) !important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top-color:rgba(255,255,255,.07) !important}
+
+/* 總部共用的底部導覽列（common/hq.js 加上；經期頁不加）*/
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;
+  padding:6px max(8px,env(safe-area-inset-left,0)) calc(6px + env(safe-area-inset-bottom,0)) max(8px,env(safe-area-inset-right,0));
+  background:rgba(12,9,24,.82);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,.07);
+  font-family:"Noto Sans TC",system-ui,sans-serif}
+.tabbar nav{display:flex;justify-content:space-around;width:100%;max-width:560px}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;font-size:.72rem;color:#B9AEDA;text-decoration:none;min-width:0}
+.tabbar .orb{width:18px;height:18px;border-radius:50%;display:block;opacity:.7;
+  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.95) 0 8%,rgba(255,255,255,.3) 17%,transparent 34%),radial-gradient(circle at 50% 55%,var(--c) 0 55%,color-mix(in srgb,var(--c) 62%,#000) 100%)}
+.tabbar a[aria-current="page"]{color:#fff;font-weight:700}
+.tabbar a[aria-current="page"] .orb{opacity:1;box-shadow:0 0 0 2px rgba(255,255,255,.8),0 0 12px var(--c)}

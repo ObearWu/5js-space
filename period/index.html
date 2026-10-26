@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+<!doctype html><html lang="zh-Hant" data-mod="period" data-theme="dark" data-no-tabbar><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 <title>經期 · 大小豬的小空間</title>
 <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
@@ -171,6 +171,7 @@ nav.tabs svg{width:22px;height:22px}
 .kv dt{color:var(--muted)} .kv dd{margin:0}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
+<link rel="stylesheet" href="../common/hq-port.css">
 </head><body>
 
 <div class="wrap" id="app"><div class="loading">讀取中…</div></div>
@@ -470,7 +471,7 @@ function render(){
   $('#tabsIn').innerHTML = tabs.map(([k, l]) => '<button data-act="tab" data-v="' + k + '"' + (S.view === k ? ' aria-current="page"' : '') + '>' + ICON[k] + '<span>' + l + '</span></button>').join('');
   const st = S.profile ? compute(S.profile) : null;
   const ph = st && st.last ? phaseOf(st, settings()) : null;
-  const head = '<header class="top">' + pop(ph ? EXPR[ph.k] : 'happy') + '<div class="ttl"><a class="hub-link" href="../">‹ 大小豬的小空間</a><h1>小豬經期日記</h1></div><div class="mode-wrap"><span class="mode">' + (S.mode === 'cloud' ? '雲端同步中' : '未同步') + '</span></div></header>';
+  const head = '<header class="top">' + pop(ph ? EXPR[ph.k] : 'happy') + '<div class="ttl"><a class="hub-link" href="../">‹ 總部</a><h1>經期</h1></div><div class="mode-wrap"><span class="mode">' + (S.mode === 'cloud' ? '雲端同步中' : '未同步') + '</span></div></header>';
   let body = '';
   if (!S.profile && S.view !== 'partner') body = vSetup();
   else body = ({ today: vToday, cal: vCal, stats: vStats, set: vSet, partner: vPartner }[S.view] || vSetup)(st);
@@ -1078,4 +1079,5 @@ boot();
 })();
 </script>
 
+<script src="../common/hq.js"></script>
 </body></html>

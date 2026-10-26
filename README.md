@@ -24,7 +24,9 @@ index.html            入口頁：Google 登入、五個功能卡片
 common/config.js      後端網址與 Google OAuth Client ID（全站只寫在這裡）
 common/auth.js        登入、session、API 呼叫、依登入者切換配色
 common/mascot.js      吉祥物：藍色／粉紅色棒棒糖（沿用舊的大小豬健康食記）
-common/style.css      共用樣式與藍／粉兩套配色、深色模式
+common/style.css      「記憶球總部」共用樣式：夜色背景、各功能情緒色（<html data-mod>）、光帶標題、記憶球
+common/hq.js          功能清單與情緒色、手機底部導覽列、心情對應的顏色（新增功能時加在這裡）
+common/hq-port.css    把舊 Artifact 搬來的飲食、經期兩頁換成總部外觀
 manifest.webmanifest  加到手機主畫面當 App 用
 icons/                主畫面圖示
 common/claude-shim.js 把舊 Artifact 用的 window.claude（資料庫、AI、下載）換成呼叫我們的後端（飲食、經期共用）

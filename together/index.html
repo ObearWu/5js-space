@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-mod="together">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>互動 · 大小豬的小空間</title>
-<meta name="theme-color" content="#FFF5F2">
+<meta name="theme-color" content="#15102A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="../manifest.webmanifest">
@@ -16,8 +16,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="../common/style.css">
 <style>
-.back{font-size:.82rem;color:var(--muted);text-decoration:none}
-.back:hover{color:var(--accent)}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
@@ -37,7 +35,7 @@ textarea{resize:vertical;min-height:84px}
 
 /* 在一起第幾天 */
 .days{display:flex;align-items:center;gap:14px}
-.days .n{font-family:var(--f-num);font-size:2.4rem;font-weight:700;line-height:1;color:var(--accent-deep)}
+.days .n{font-family:var(--f-num);font-size:2.4rem;font-weight:700;line-height:1;color:#FFE59A;text-shadow:0 0 18px color-mix(in srgb,var(--gold) 60%,transparent)}
 .days .t{font-family:var(--f-round)}
 .dlist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
 .dlist li{display:flex;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
@@ -47,6 +45,7 @@ textarea{resize:vertical;min-height:84px}
 .dlist .cd{font-family:var(--f-num);font-weight:700;white-space:nowrap;text-align:right}
 .dlist .cd small{display:block;font-family:var(--f-body,inherit);font-weight:400;font-size:.72rem;color:var(--muted)}
 .dlist li.soon{border-color:var(--accent);background:var(--accent-soft)}
+.dlist li.today{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 18%,var(--surface));box-shadow:0 0 18px color-mix(in srgb,var(--gold) 30%,transparent)}
 .dform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--line)}
 .dform .full{grid-column:1/-1}
 .dform label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
@@ -61,33 +60,46 @@ textarea{resize:vertical;min-height:84px}
 .ans .bubble{flex:1;min-width:0;background:var(--sunk);border-radius:4px 16px 16px 16px;padding:8px 12px;white-space:pre-wrap;word-break:break-word}
 .ans .bubble.locked{color:var(--muted);font-style:italic}
 .qacts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.born{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.88rem;color:#FFE59A}
+.born .orb{--s:22px;animation:born .9s ease-out}
+@keyframes born{from{transform:scale(.2);opacity:0}70%{transform:scale(1.25)}to{transform:scale(1);opacity:1}}
 .hist{margin-top:14px;border-top:2px dashed var(--line);padding-top:10px}
 .hist details{border-bottom:1px solid var(--line);padding:6px 0}
 .hist summary{cursor:pointer;font-size:.9rem}
 .hist summary span{color:var(--muted);font-size:.8rem;margin-right:6px}
 
 /* 心情 */
-.moods{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-.moods button{border:2px solid var(--line);background:var(--surface);border-radius:14px;padding:6px 2px;cursor:pointer;font-family:var(--f-round);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:2px}
-.moods button i{font-style:normal;font-size:1.5rem;line-height:1}
-.moods button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.moods{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
+.moods button{border:0;background:none;border-radius:14px;padding:4px 2px;cursor:pointer;font-family:var(--f-round);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted)}
+.moods button .orb{--s:38px;transition:transform .15s}
+.moods button:hover .orb{transform:scale(1.08)}
+.moods button[aria-pressed="true"]{color:#fff}
+.moods button[aria-pressed="true"] .orb{box-shadow:0 0 0 3px #fff,0 0 18px var(--c)}
 .mnote{display:flex;gap:8px;margin-top:8px}
 .today2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .today2 .who{background:var(--sunk);border-radius:14px;padding:8px 10px;display:flex;gap:8px;align-items:center;min-width:0}
-.today2 .who i{font-style:normal;font-size:1.7rem}
+.today2 .who .orb{--s:30px}
 .today2 .who div{min-width:0}
 .today2 .who b{display:block;font-size:.85rem}
 .today2 .who span{font-size:.8rem;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .strip{display:grid;grid-template-columns:auto repeat(14,1fr);gap:2px;margin-top:12px;font-size:.7rem;align-items:center;text-align:center}
 .strip .nm{text-align:left;padding-right:4px;color:var(--muted);white-space:nowrap}
-.strip .c{font-size:1rem;line-height:1.4;border-radius:6px}
-.strip .c.today{background:var(--accent-soft)}
+.strip .c{display:flex;justify-content:center;align-items:center;aspect-ratio:1;border-radius:50%}
+.strip .c .orb{--s:100%;max-width:18px;max-height:18px;box-shadow:none}
+.strip .c.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
 
 /* 照片牆 */
-.wall{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.wall button{position:relative;border:0;padding:0;border-radius:12px;overflow:hidden;cursor:pointer;aspect-ratio:1;background:var(--sunk)}
+/* 記憶架：每張照片裝在一顆記憶球裡，紀念日拍的是金色核心記憶 */
+.wall{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}
+.wall button{border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted);font-size:.72rem;min-width:0}
+.wall .ball{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:var(--sunk);
+  box-shadow:0 0 0 2px color-mix(in srgb,var(--envy) 55%,transparent),0 0 18px color-mix(in srgb,var(--envy) 35%,transparent);transition:transform .15s}
+.wall .ball::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.55) 0 7%,transparent 26%),radial-gradient(circle at 50% 50%,transparent 58%,rgba(0,0,0,.28) 100%)}
+.wall button:hover .ball{transform:scale(1.04)}
+.wall button.gold .ball{box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold)}
+.wall button.gold{color:var(--gold)}
 .wall img{width:100%;height:100%;object-fit:cover;display:block}
-.wall button span{position:absolute;left:0;right:0;bottom:0;font-size:.7rem;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55));padding:10px 6px 4px;text-align:left}
+.wall button > span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .upl{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .upl .prev{display:flex;gap:8px;align-items:center}
 .upl .prev img{width:64px;height:64px;object-fit:cover;border-radius:10px}
@@ -102,11 +114,9 @@ textarea{resize:vertical;min-height:84px}
 </head>
 <body>
 <div class="page">
-  <header class="top">
-    <a class="brand" href="../">
-      <span class="pigs" id="brandPigs"></span>
-      <span><span class="back">‹ 大小豬的小空間</span><h1>互動</h1></span>
-    </a>
+  <header class="band">
+    <a class="back" href="../">‹ 總部</a>
+    <div class="row"><h1>互動</h1><span class="bstat" id="bandStat"></span></div>
   </header>
 
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
@@ -129,7 +139,7 @@ textarea{resize:vertical;min-height:84px}
     </div>
 
     <div class="col">
-      <section class="panel" aria-labelledby="dTitle">
+      <section class="panel" id="days" aria-labelledby="dTitle">
         <div class="head"><h2 id="dTitle">我們的日子</h2><button class="btn sm" type="button" id="dAdd">新增紀念日</button></div>
         <div id="dDays"></div>
         <ul class="dlist" id="dList"></ul>
@@ -145,8 +155,8 @@ textarea{resize:vertical;min-height:84px}
         </form>
       </section>
 
-      <section class="panel" aria-labelledby="pTitle">
-        <div class="head"><h2 id="pTitle">照片牆</h2><label class="btn sm" for="pFile">上傳照片</label></div>
+      <section class="panel" id="photos" aria-labelledby="pTitle">
+        <div class="head"><h2 id="pTitle">照片記憶架</h2><label class="btn sm" for="pFile">上傳照片</label></div>
         <input type="file" id="pFile" accept="image/*" hidden>
         <div class="upl" id="pUpl" hidden>
           <div class="prev"><img id="pPrev" alt=""><span class="small muted" id="pInfo"></span></div>
@@ -159,7 +169,7 @@ textarea{resize:vertical;min-height:84px}
     </div>
   </main>
 
-  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
+  <footer class="foot">
     <span>每日一問要兩個人都回答才會看到對方的答案。日期以台灣時間計。</span>
   </footer>
 </div>
@@ -169,6 +179,7 @@ textarea{resize:vertical;min-height:84px}
 <script src="../common/config.js"></script>
 <script src="../common/auth.js"></script>
 <script src="../common/mascot.js"></script>
+<script src="../common/hq.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
@@ -181,7 +192,7 @@ const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 86400000);
 const addDays = (s, n) => { const d = parse(s); d.setUTCDate(d.getUTCDate() + n); return iso(d); };
 const dayText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日（${WEEK[d.getUTCDay()]}）`; };
 const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
-const MOOD_ICON = { "超開心": "🥰", "開心": "😊", "平靜": "😌", "累": "😪", "有點煩": "😣", "難過": "😢", "生氣": "😠", "想你": "🥺" };
+const moodOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MOOD_COLOR[mood] || "var(--muted)"}"></i>`;
 
 const state = { me: null, partner: null, q: null, moods: null, pickMood: null, dates: [], editDate: null,
                 photos: [], photosDone: false, upload: null, histBefore: null };
@@ -220,7 +231,8 @@ function renderQuestion(editing = false) {
     if (editing) $("qCancel").onclick = () => renderQuestion(false);
     return;
   }
-  box.innerHTML = `<p class="q">${esc(q.question)}</p>${answersHtml(q)}
+  const born = q.partner != null ? `<p class="born"><i class="orb gold"></i>兩個人都答了，新的記憶球收進記憶架</p>` : "";
+  box.innerHTML = `<p class="q">${esc(q.question)}</p>${answersHtml(q)}${born}
     <div class="qacts"><button class="link" type="button" id="qEdit">修改我的答案</button></div>`;
   $("qEdit").onclick = () => renderQuestion(true);
 }
@@ -258,17 +270,17 @@ function renderMoods() {
   const todayOf = id => m.items.find(x => x.date === today && x.user_id === id);
   $("mToday").innerHTML = people().map(p => {
     const t = todayOf(p.id);
-    return `<div class="who"><i>${t ? MOOD_ICON[t.mood] || "🙂" : "·"}</i><div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></div>`;
+    return `<div class="who">${t ? moodOrb(t.mood) : moodOrb("", " empty")}<div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></div>`;
   }).join("");
   const mine = todayOf(state.me.id);
   if (state.pickMood == null) { state.pickMood = mine?.mood || null; $("mNote").value = mine?.note || ""; }
-  $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}"><i>${MOOD_ICON[o] || "🙂"}</i>${esc(o)}</button>`).join("");
+  $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}" style="--c:${FiveJS.MOOD_COLOR[o] || "var(--muted)"}">${moodOrb(o)}${esc(o)}</button>`).join("");
   $("mSave").textContent = mine ? "更新" : "打卡";
   const days = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
   $("mStrip").innerHTML = `<span></span>` + days.map(d => `<span class="muted">${+d.slice(8)}</span>`).join("") +
     people().map(p => `<span class="nm">${esc(p.name)}</span>` + days.map(d => {
       const x = m.items.find(i => i.date === d && i.user_id === p.id);
-      return `<span class="c${d === today ? " today" : ""}" title="${esc(x ? `${dayText(d)} ${x.mood}${x.note ? "・" + x.note : ""}` : dayText(d))}">${x ? MOOD_ICON[x.mood] || "🙂" : ""}</span>`;
+      return `<span class="c${d === today ? " today" : ""}" title="${esc(x ? `${dayText(d)} ${x.mood}${x.note ? "・" + x.note : ""}` : dayText(d))}">${x ? moodOrb(x.mood) : ""}</span>`;
     }).join("")).join("");
 }
 $("mPick").onclick = e => {
@@ -306,13 +318,19 @@ function renderDates() {
   } else {
     $("dDays").innerHTML = `<p class="small muted">新增一個「在一起的日子」，這裡就會顯示在一起第幾天。</p>`;
   }
+  // 紀念日當天整頁換成金色
+  const special = state.dates.find(d => nextOf(d, today).days === 0);
+  document.documentElement.style.setProperty("--mod", special ? "var(--gold)" : "");
+  document.documentElement.style.setProperty("--on-mod", special ? "#2A2140" : "");
+  $("bandStat").innerHTML = special ? `今天是${esc(special.title)} 🎉`
+    : start && start.date <= today ? `在一起第 <b>${(diffDays(start.date, today) + 1).toLocaleString("en-US")}</b> 天` : "";
   const rows = state.dates.map(d => ({ d, nx: nextOf(d, today) }))
     .sort((a, b) => (a.nx.days < 0) - (b.nx.days < 0) || (a.nx.days < 0 ? b.nx.days - a.nx.days : a.nx.days - b.nx.days));
   $("dList").innerHTML = rows.length ? rows.map(({ d, nx }) => {
     let sub = KIND_TEXT[d.kind];
     if (d.yearly && nx.years > 0) sub = d.kind === "birthday" ? `${nx.years} 歲生日` : `${nx.years} 週年`;
     const when = nx.days === 0 ? `<span>就是今天</span>` : nx.days > 0 ? `<span>還有 ${nx.days} 天</span>` : `<span>${-nx.days} 天前</span>`;
-    return `<li class="${nx.days >= 0 && nx.days <= 7 ? "soon" : ""}" data-id="${d.id}" style="cursor:pointer">
+    return `<li class="${nx.days === 0 ? "today" : nx.days > 0 && nx.days <= 7 ? "soon" : ""}" data-id="${d.id}" style="cursor:pointer">
       <div class="main"><b>${esc(d.title)}</b><span>${esc(dayText(nx.date))}${sub ? "・" + esc(sub) : ""}${d.yearly ? "" : "・不重複"}</span></div>
       <div class="cd">${when}<small>${esc(d.date)}</small></div></li>`;
   }).join("") : `<li class="empty" style="border:0">還沒有紀念日</li>`;
@@ -344,7 +362,7 @@ $("dDel").onclick = async () => {
   try { await call(`/api/together/dates/${state.editDate}`, { method: "DELETE" }); $("dForm").hidden = true; await loadDates(); toast("已刪除"); }
   catch (err) { toast(err.message); }
 };
-async function loadDates() { const r = await call("/api/together/dates"); state.dates = r.items; state.datesToday = r.today; renderDates(); }
+async function loadDates() { const r = await call("/api/together/dates"); state.dates = r.items; state.datesToday = r.today; renderDates(); if (state.photos.length) renderWall(); }
 
 // ---------- 照片牆 ----------
 function compress(file, maxSide, quality) {
@@ -390,9 +408,13 @@ $("pSend").onclick = async () => {
   $("pSend").disabled = false; $("pSend").textContent = "放上照片牆";
 };
 
+// 拍照那天剛好是紀念日（同月同日；不重複的要同一天）的照片是金色核心記憶
+function isSpecial(day) {
+  return state.dates.some(d => d.yearly ? d.date.slice(5) === day.slice(5) && day >= d.date : d.date === day);
+}
 function renderWall() {
   $("wall").innerHTML = state.photos.length ? state.photos.map(p =>
-    `<button type="button" data-id="${p.id}" aria-label="${esc(p.caption || p.taken_on)}"><img loading="lazy" src="${photoUrl(p.thumb)}" alt=""><span>${esc(p.taken_on.slice(5).replace("-", "/"))}${p.caption ? " " + esc(p.caption) : ""}</span></button>`
+    `<button type="button" data-id="${p.id}" class="${isSpecial(p.taken_on) ? "gold" : ""}" aria-label="${esc(p.caption || p.taken_on)}"><span class="ball"><img loading="lazy" src="${photoUrl(p.thumb)}" alt=""></span><span>${esc(p.taken_on.slice(5).replace("-", "/"))}${p.caption ? " " + esc(p.caption) : ""}</span></button>`
   ).join("") : `<p class="empty" style="grid-column:1/-1">還沒有照片，上傳第一張吧</p>`;
   $("pMoreBox").hidden = state.photosDone;
 }
@@ -456,7 +478,6 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   state.me = info.user; state.partner = info.partner;
-  $("brandPigs").innerHTML = pig(state.me, "happy", 44) + pig(state.partner, "wave", 35);
   try {
     await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory()]);
   } catch (e) { toast(e.message); }

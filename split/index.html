@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-mod="split">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>分帳 · 大小豬的小空間</title>
-<meta name="theme-color" content="#FFF5F2">
+<meta name="theme-color" content="#15102A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="../manifest.webmanifest">
@@ -16,8 +16,38 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="../common/style.css">
 <style>
-.back{font-size:.82rem;color:var(--muted);text-decoration:none}
-.back:hover{color:var(--accent)}
+/* 島嶼地圖：每座島是一趟旅程，日常島放平常的花費 */
+.sky{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(1px 1px at 18% 22%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 76% 14%,#fff 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 88% 58%,#fffa 50%,transparent 51%),radial-gradient(1px 1px at 42% 78%,#fff9 50%,transparent 51%),
+    linear-gradient(#22305E 0%,#2B2150 60%,#1B1530 100%)}
+.sky svg.trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.isle{position:absolute;width:118px;margin-left:-59px;display:flex;flex-direction:column;align-items:center;text-align:center;
+  background:none;border:0;padding:0;cursor:pointer;color:var(--ink);font:inherit}
+.isle .flag{width:40px;height:52px;transition:transform .15s}
+.isle:hover .flag,.isle:focus-visible .flag{transform:translateY(-3px)}
+.isle .land{display:block;width:92px;height:24px;border-radius:50%;margin-top:-8px;
+  background:radial-gradient(ellipse at 50% 30%,color-mix(in srgb,var(--c) 65%,#fff),var(--c));box-shadow:0 6px 14px rgba(0,0,0,.4)}
+.isle b{font-family:var(--f-round);font-weight:400;font-size:.95rem;margin-top:4px;line-height:1.3}
+.isle small{font-size:.75rem;color:var(--muted);line-height:1.3}
+.isle[aria-pressed="true"] .land{box-shadow:0 0 0 3px #fff,0 0 22px var(--c)}
+.isle[aria-pressed="true"] b{color:#fff}
+.isle.gold .land{--c:var(--gold)}
+.isle.gold small{color:var(--gold)}
+.isle.new .land{background:transparent;border:2px dashed rgba(255,255,255,.4);box-shadow:none}
+.isle.new .flag{opacity:.45}
+
+.ihead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+.ihead h2{margin:0;display:flex;align-items:center;gap:8px}
+.ihead .orb{--s:18px}
+.ihead p{margin:2px 0 0;font-size:.82rem;color:var(--muted)}
+.tform{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tform .full{grid-column:1/-1}
+.tform label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:3px}
+.swatch{display:flex;gap:8px;flex-wrap:wrap}
+.swatch button{border:0;background:none;padding:2px;border-radius:50%;cursor:pointer}
+.swatch button .orb{--s:28px}
+.swatch button[aria-pressed="true"]{box-shadow:0 0 0 2px #fff}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start}
 @media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
@@ -26,7 +56,7 @@
 .balance{display:flex;align-items:center;gap:14px}
 .balance .pigs .lollipop{width:64px;height:64px}
 .balance .who{font-family:var(--f-round);font-size:1rem}
-.balance .amt{font-family:var(--f-num);font-size:2.1rem;font-weight:700;line-height:1.1;color:var(--accent-deep)}
+.balance .amt{font-family:var(--f-num);font-size:2.1rem;font-weight:700;line-height:1.1;color:var(--isle,var(--accent-deep))}
 .balance .even{font-family:var(--f-round);font-size:1.25rem}
 .balance .act{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
 
@@ -46,6 +76,7 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .preview{font-size:.88rem;color:var(--muted);margin:-4px 0 12px}
 .actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
 .btn.danger{color:var(--warn);border-color:var(--warn-soft)}
+.btn.sm{padding:4px 12px;font-size:.85rem}
 .btn:disabled{opacity:.55;cursor:default}
 
 .monthbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
@@ -76,18 +107,36 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 </head>
 <body>
 <div class="page">
-  <header class="top">
-    <a class="brand" href="../">
-      <span class="pigs" id="brandPigs"></span>
-      <span><span class="back">‹ 大小豬的小空間</span><h1>分帳</h1></span>
-    </a>
+  <header class="band">
+    <a class="back" href="../">‹ 總部</a>
+    <div class="row"><h1>分帳</h1><span class="bstat" id="bandStat"></span></div>
   </header>
 
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
 
   <main class="grid" id="app" hidden>
     <div class="col">
-      <section class="panel" aria-label="目前餘額"><div class="balance" id="balance"></div></section>
+      <section class="sky" id="sky" aria-label="旅程島嶼"></section>
+
+      <section class="panel" id="tripPanel" hidden aria-labelledby="tripTitle">
+        <h2 id="tripTitle" style="font-size:1.1rem;margin-bottom:12px">新的旅程</h2>
+        <form class="tform" id="tForm" autocomplete="off">
+          <label class="full">島的名字<input id="tName" maxlength="30" placeholder="例如：沖繩島、台南島" required></label>
+          <label>出發<input id="tStart" type="date"></label>
+          <label>回來<input id="tEnd" type="date"></label>
+          <div class="full"><span class="small muted">島的顏色</span><div class="swatch" id="tColor"></div></div>
+          <div class="full actions">
+            <div><button class="btn danger sm" type="button" id="tDel" hidden>刪除這座島</button></div>
+            <div><button class="btn ghost" type="button" id="tCancel">取消</button> <button class="btn primary" type="submit" id="tSave">建立</button></div>
+          </div>
+          <p class="msg err full" id="tErr" hidden></p>
+        </form>
+      </section>
+
+      <section class="panel" aria-label="這座島的餘額">
+        <div class="ihead"><div><h2 id="isleName"></h2><p id="isleSub"></p></div><button class="btn sm" type="button" id="isleEdit" hidden>編輯</button></div>
+        <div class="balance" id="balance"></div>
+      </section>
 
       <section class="panel" aria-labelledby="formTitle">
         <h2 id="formTitle">記一筆</h2>
@@ -101,8 +150,9 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
           <p class="preview" id="preview"></p>
           <div class="row2">
             <div class="field"><span>日期</span><input id="fDate" type="date" required></div>
-            <div class="field"><span>備註（選填）</span><input id="fNote" maxlength="300"></div>
+            <div class="field"><span>在哪座島</span><select id="fTrip"></select></div>
           </div>
+          <div class="field"><span>備註（選填）</span><input id="fNote" maxlength="300"></div>
           <div class="actions">
             <div><button class="btn danger" type="button" id="delBtn" hidden>刪除</button></div>
             <div><button class="btn ghost" type="button" id="cancelBtn" hidden>取消</button>
@@ -125,8 +175,8 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
     </div>
   </main>
 
-  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
-    <span>金額以新台幣整數元計。兩個人都可以修改或刪除任何一筆。</span>
+  <footer class="foot">
+    <span>每趟旅行一座島，各自算誰欠誰；平常的花費在日常島。金額以新台幣整數元計，兩個人都可以修改或刪除任何一筆。</span>
   </footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -134,6 +184,7 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 <script src="../common/config.js"></script>
 <script src="../common/auth.js"></script>
 <script src="../common/mascot.js"></script>
+<script src="../common/hq.js"></script>
 <script>
 (() => {
 const $ = id => document.getElementById(id);
@@ -144,25 +195,139 @@ const shiftMonth = (m, n) => { const [y, mo] = m.split("-").map(Number); const d
 const monthText = m => { const [y, mo] = m.split("-").map(Number); return `${y} 年 ${mo} 月`; };
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 const dayText = s => { const [y, m, d] = s.split("-").map(Number); return `${m}月${d}日（${WEEK[new Date(y, m - 1, d).getDay()]}）`; };
+const shortDate = s => s ? `${+s.slice(5, 7)}/${+s.slice(8)}` : "";
+const cssColor = c => `var(--${c || "envy"})`;
+const COLOR_NAME = { envy: "海水青", sad: "夜空藍", emb: "櫻花粉", joy: "陽光黃", anx: "夕陽橘", fear: "薰衣草紫", anger: "珊瑚紅", ennui: "深海靛" };
 
-const state = { me: null, partner: null, month: taipeiToday().slice(0, 7), data: null, editing: null,
-                kind: "expense", paid: null, mode: "half", cat: "餐飲", categories: ["餐飲", "日用", "交通", "居家", "娛樂", "旅行", "禮物", "其他"] };
+// trip：目前選的島，null 是日常島
+const state = { me: null, partner: null, islands: [], colors: Object.keys(COLOR_NAME), trip: null, month: taipeiToday().slice(0, 7), data: null,
+                editing: null, kind: "expense", paid: null, mode: "half", cat: "餐飲", formTrip: null, tripEditing: undefined, tripColor: "envy",
+                categories: ["餐飲", "日用", "交通", "居家", "娛樂", "旅行", "禮物", "其他"] };
 const people = () => [state.me, state.partner].filter(Boolean);
 const nameOf = id => people().find(p => p.id === +id)?.name || "?";
 const other = id => people().find(p => p.id !== +id);
+const island = id => state.islands.find(i => i.id === id) || state.islands[0];
 
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
 
-// ---------- 餘額 ----------
+// 島上插的棒棒糖旗子：白色外圈、島的顏色漩渦（照兩人的棒棒糖娃娃）
+function flag(color) {
+  return `<svg class="flag" viewBox="0 0 100 130" aria-hidden="true"><rect x="44" y="84" width="12" height="44" rx="6" fill="#F7F7FA"/>
+    <path d="M50 96c-6-7-17-8-17 0s11 7 17 0c6 7 17 8 17 0s-11-7-17 0z" fill="#F7A9C4"/>
+    <circle cx="50" cy="48" r="44" fill="#F7F7FA"/><circle cx="50" cy="48" r="34" fill="${color}"/>
+    <path d="M50 48c0-3 4-4 6-1 3 4-1 10-7 10-8 0-12-8-10-15 3-10 15-13 23-7 10 7 9 22-1 29-11 8-28 4-33-9" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;
+}
+
+// 一座島底下那行字：誰欠誰、或已經結清
+function owesText(bal) {
+  const me = state.me, pa = state.partner, mine = +(bal?.[me.id] || 0);
+  if (!pa || !mine) return "兩清";
+  return mine > 0 ? `${pa.name}欠 ${money(mine)}` : `${me.name}欠 ${money(-mine)}`;
+}
+
+// ---------- 島嶼地圖 ----------
+// 島沿著一條蜿蜒的路線往下排，左右交錯；最後一座是「＋ 新的旅程」
+function renderSky() {
+  const items = [...state.islands, { new: true }];
+  const ROW = 118, TOP = 18;
+  const xs = [26, 72, 38, 78, 22, 64];
+  const pos = items.map((_, i) => ({ x: xs[i % xs.length], y: TOP + i * ROW }));
+  const h = TOP + items.length * ROW + 6;
+  const sky = $("sky");
+  sky.style.height = h + "px";
+  // 路線：連起每座島的中心（旗子底下的陸地）
+  const pts = pos.map(p => [p.x, p.y + 60]);
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; const my = (y0 + y1) / 2; d += ` C${x0} ${my}, ${x1} ${my}, ${x1} ${y1}`; }
+  sky.innerHTML = `<svg class="trail" viewBox="0 0 100 ${h}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.6" stroke-dasharray="4 6" vector-effect="non-scaling-stroke"/></svg>` +
+    items.map((it, i) => {
+      const st = `left:${pos[i].x}%;top:${pos[i].y}px`;
+      if (it.new) return `<button class="isle new" type="button" style="${st};--c:var(--muted)" data-new="1">${flag("rgba(255,255,255,.25)")}<span class="land"></span><b>＋ 新的旅程</b><small>出去玩就建一座島</small></button>`;
+      const color = it.id === null ? "var(--disgust)" : it.settled ? "var(--gold)" : cssColor(it.color);
+      const dates = it.start_date ? `${shortDate(it.start_date)}${it.end_date && it.end_date !== it.start_date ? "–" + shortDate(it.end_date) : ""}` : "";
+      const sub = it.settled ? "✨ 已結清・核心記憶" : it.count ? owesText(it.balance) : it.id === null ? "平常的花費" : (dates || "還沒有紀錄");
+      return `<button class="isle${it.settled ? " gold" : ""}" type="button" style="${st};--c:${color}" data-id="${it.id ?? "daily"}" aria-pressed="${it.id === state.trip}">
+        ${flag(color)}<span class="land"></span><b>${esc(it.name)}</b><small>${esc(sub)}${it.count && dates ? `<br>${dates}` : ""}</small></button>`;
+    }).join("");
+}
+$("sky").addEventListener("click", e => {
+  const b = e.target.closest(".isle"); if (!b) return;
+  if (b.dataset.new) { openTrip(null); return; }
+  const id = b.dataset.id === "daily" ? null : +b.dataset.id;
+  if (id === state.trip) return;
+  selectIsland(id);
+});
+
+function selectIsland(id, keepMonth) {
+  state.trip = id;
+  try { history.replaceState(null, "", id === null ? location.pathname : `#trip-${id}`); } catch (e) {}
+  if (!keepMonth) state.month = taipeiToday().slice(0, 7);
+  $("tripPanel").hidden = true;
+  if (!state.editing) { state.formTrip = id; }
+  renderSky(); renderForm();
+  loadEntries();
+}
+
+// ---------- 旅程（島）表單 ----------
+function openTrip(trip) {
+  state.tripEditing = trip ? trip.id : null;
+  state.tripColor = trip?.color || state.colors.find(c => !state.islands.some(i => i.color === c)) || "envy";
+  $("tripTitle").textContent = trip ? `編輯${trip.name}` : "新的旅程";
+  $("tName").value = trip?.name || ""; $("tStart").value = trip?.start_date || ""; $("tEnd").value = trip?.end_date || "";
+  $("tDel").hidden = !trip; $("tSave").textContent = trip ? "儲存" : "建立這座島"; $("tErr").hidden = true;
+  renderSwatch();
+  $("tripPanel").hidden = false;
+  $("tripPanel").scrollIntoView({ behavior: "smooth", block: "center" });
+  $("tName").focus({ preventScroll: true });
+}
+function renderSwatch() {
+  $("tColor").innerHTML = state.colors.map(c => `<button type="button" data-c="${c}" aria-pressed="${c === state.tripColor}" aria-label="${COLOR_NAME[c] || c}" title="${COLOR_NAME[c] || c}"><i class="orb" style="--c:${cssColor(c)}"></i></button>`).join("");
+}
+$("tColor").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (b) { state.tripColor = b.dataset.c; renderSwatch(); } });
+$("tCancel").onclick = () => { $("tripPanel").hidden = true; };
+$("isleEdit").onclick = () => { const t = island(state.trip); if (t?.id) openTrip(t); };
+$("tForm").addEventListener("submit", async ev => {
+  ev.preventDefault();
+  const body = { name: $("tName").value.trim(), color: state.tripColor, start_date: $("tStart").value || null, end_date: $("tEnd").value || null };
+  const err = m => { $("tErr").textContent = m; $("tErr").hidden = false; };
+  if (!body.name) return err("請幫這座島取個名字。");
+  $("tSave").disabled = true;
+  try {
+    const r = state.tripEditing
+      ? await FiveJS.api(`/api/split/trips/${state.tripEditing}`, { method: "PUT", body })
+      : await FiveJS.api("/api/split/trips", { method: "POST", body });
+    toast(state.tripEditing ? "已更新" : `${body.name}出現了！`);
+    await loadIslands();
+    selectIsland(r.trip.id);
+  } catch (e) { err(e.message); }
+  finally { $("tSave").disabled = false; }
+});
+$("tDel").addEventListener("click", async () => {
+  const b = $("tDel");
+  if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再按一次確定刪除"; return; }
+  try { await FiveJS.api(`/api/split/trips/${state.tripEditing}`, { method: "DELETE" }); toast("已刪除這座島"); await loadIslands(); selectIsland(null); }
+  catch (e) { $("tErr").textContent = e.message; $("tErr").hidden = false; }
+  finally { b.classList.remove("armed"); b.textContent = "刪除這座島"; }
+});
+
+// ---------- 這座島的餘額 ----------
 function renderBalance() {
-  const bal = state.data?.balance || {};
+  const isl = island(state.trip);
+  const color = isl.id === null ? "var(--disgust)" : isl.settled ? "var(--gold)" : cssColor(isl.color);
+  $("isleName").innerHTML = `<i class="orb" style="--c:${color}"></i>${esc(isl.name)}`;
+  const dates = isl.start_date ? `${shortDate(isl.start_date)}${isl.end_date ? " – " + shortDate(isl.end_date) : ""}・` : "";
+  $("isleSub").textContent = isl.id === null ? "平常的花費都記在這裡" : `${dates}${isl.count} 筆・共 ${money(isl.total)}`;
+  $("isleEdit").hidden = isl.id === null;
+  const bal = state.data?.island_balance || {};
   const me = state.me, pa = state.partner;
   const mine = +(bal[me.id] || 0);
   const box = $("balance");
+  box.style.setProperty("--isle", `color-mix(in srgb, ${color} 75%, #fff)`);
   const art = (a, am, b, bm) => `<span class="pigs">${FiveJS.lollipop(a.theme, am, 64)}${b ? FiveJS.lollipop(b.theme, bm, 52) : ""}</span>`;
   if (!pa) { box.innerHTML = `${art(me, "happy")}<div class="even">還沒有另一半的帳號</div>`; return; }
   if (mine === 0) {
-    box.innerHTML = `${art(me, "sparkle", pa, "sparkle")}<div><div class="even">目前兩清，誰也不欠誰</div><div class="small muted">新增花費後這裡會算出誰該給誰多少</div></div>`;
+    const msg = isl.settled ? "這趟的帳結清了，收進核心記憶 ✨" : isl.count ? "這座島目前兩清" : "這座島還沒有紀錄";
+    box.innerHTML = `${art(me, "sparkle", pa, "sparkle")}<div><div class="even">${msg}</div><div class="small muted">新增花費後這裡會算出誰該給誰多少</div></div>`;
     return;
   }
   const debtor = mine > 0 ? pa : me, creditor = mine > 0 ? me : pa, amt = Math.abs(mine);
@@ -171,6 +336,12 @@ function renderBalance() {
     <div class="amt num">${money(amt)}</div>
     <div class="act"><button class="btn" type="button" id="settleBtn">記一筆還錢</button></div></div>`;
   $("settleBtn").onclick = () => startSettle(debtor, creditor, amt);
+}
+function renderBand() {
+  const net = +(state.data?.balance?.[state.me.id] || 0), pa = state.partner;
+  const trips = state.islands.length - 1;
+  const total = !pa || !net ? "全部兩清" : net > 0 ? `${pa.name}總共要給你 <b>${money(net)}</b>` : `你總共要給${esc(pa.name)} <b>${money(-net)}</b>`;
+  $("bandStat").innerHTML = `${trips ? `${trips} 座旅程島・` : ""}${total}`;
 }
 
 // ---------- 表單 ----------
@@ -200,10 +371,12 @@ function shares() {
 function renderForm() {
   const ps = people(), [x, y] = ps;
   const settle = state.kind === "settle";
-  $("formTitle").textContent = state.editing ? (settle ? "修改還錢紀錄" : "修改這筆") : (settle ? "記一筆還錢" : "記一筆");
+  const where = island(state.formTrip).name;
+  $("formTitle").textContent = state.editing ? (settle ? "修改還錢紀錄" : "修改這筆") : (settle ? `在${where}記一筆還錢` : `在${where}記一筆`);
   $("titleField").hidden = settle; $("catField").hidden = settle; $("splitField").hidden = settle;
   $("fTitle").required = !settle;
   $("payLabel").textContent = settle ? "誰還錢" : "誰付的";
+  $("fTrip").innerHTML = state.islands.map(i => `<option value="${i.id ?? ""}"${i.id === state.formTrip ? " selected" : ""}>${esc(i.name)}</option>`).join("");
   seg($("fCats"), state.categories.map(c => [c, c]), state.cat, v => { state.cat = v; renderForm(); });
   seg($("fPaid"), ps.map(p => [p.id, p.name]), state.paid, v => { state.paid = +v; renderForm(); });
   if (y) {
@@ -228,6 +401,7 @@ function renderForm() {
   $("saveBtn").textContent = state.editing ? "儲存修改" : "記下來";
   renderPreview();
 }
+$("fTrip").addEventListener("change", () => { state.formTrip = $("fTrip").value === "" ? null : +$("fTrip").value; renderForm(); });
 function renderPreview() {
   const a = amount(), el = $("preview");
   if (!a) { el.textContent = ""; return; }
@@ -240,9 +414,16 @@ $("fAmount").addEventListener("input", () => {
   renderPreview();
 });
 
+function defaultDate() {
+  // 在旅程島上記帳時，今天不在旅程日期內就預設旅程第一天
+  const isl = island(state.formTrip), t = taipeiToday();
+  if (isl.id && isl.start_date && (t < isl.start_date || (isl.end_date && t > isl.end_date))) return isl.start_date;
+  return t;
+}
 function resetForm() {
-  state.editing = null; state.kind = "expense"; state.mode = "half"; state.cat = "餐飲"; state.paid = state.me.id;
-  $("form").reset(); $("fDate").value = taipeiToday(); $("formErr").hidden = true;
+  state.editing = null; state.kind = "expense"; state.mode = "half"; state.cat = state.trip === null ? "餐飲" : "旅行"; state.paid = state.me.id;
+  state.formTrip = state.trip;
+  $("form").reset(); $("fDate").value = defaultDate(); $("formErr").hidden = true;
   renderForm();
 }
 function startSettle(debtor, creditor, amt) {
@@ -253,7 +434,7 @@ function startSettle(debtor, creditor, amt) {
   $("form").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 function startEdit(e) {
-  state.editing = e.id; state.kind = e.kind; state.paid = e.paid_by; state.cat = e.category || "其他";
+  state.editing = e.id; state.kind = e.kind; state.paid = e.paid_by; state.cat = e.category || "其他"; state.formTrip = e.trip_id ?? null;
   $("fAmount").value = e.amount; $("fTitle").value = e.kind === "settle" ? "" : e.title; $("fDate").value = e.date; $("fNote").value = e.note || "";
   const [x, y] = people();
   const s = e.shares;
@@ -281,29 +462,35 @@ $("form").addEventListener("submit", async ev => {
   const s = shares();
   if (Object.values(s).reduce((t, v) => t + v, 0) !== a) return err("兩個人負擔的金額加起來要等於總金額。");
   const body = { kind: state.kind, date: $("fDate").value || taipeiToday(), title: $("fTitle").value.trim(), category: state.cat,
-                 amount: a, paid_by: state.paid, shares: s, note: $("fNote").value.trim() };
+                 amount: a, paid_by: state.paid, shares: s, note: $("fNote").value.trim(), trip_id: state.formTrip };
   const btn = $("saveBtn"); btn.disabled = true;
   try {
     if (state.editing) await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "PUT", body });
     else await FiveJS.api("/api/split/entries", { method: "POST", body });
-    toast(state.editing ? "已儲存修改" : state.kind === "settle" ? "已記下還錢" : "記好了");
-    const m = body.date.slice(0, 7);
+    toast(state.editing ? "已儲存修改" : state.kind === "settle" ? "已記下還錢" : `記在${island(body.trip_id).name}了`);
+    const target = body.trip_id;
+    state.editing = null;
+    await loadIslands();
+    if (target === null) state.month = body.date.slice(0, 7);
+    state.trip = target;
     resetForm();
-    state.month = m; await load();
+    selectIsland(target, true);
   } catch (e) { err(e.message); }
   finally { btn.disabled = false; }
 });
 $("delBtn").addEventListener("click", async () => {
   const b = $("delBtn");
   if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再按一次確定刪除"; return; }
-  try { await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "DELETE" }); toast("已刪除"); resetForm(); await load(); }
+  try { await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "DELETE" }); toast("已刪除"); resetForm(); await reload(); }
   catch (e) { $("formErr").textContent = e.message; $("formErr").hidden = false; }
   finally { b.classList.remove("armed"); b.textContent = "刪除"; }
 });
 
-// ---------- 月份 ----------
-function renderMonth() {
-  $("monthTitle").textContent = monthText(state.month);
+// ---------- 紀錄列表（日常島分月看，旅程島看整趟）----------
+function renderList() {
+  const daily = state.trip === null;
+  $("prevMonth").hidden = !daily; $("nextMonth").hidden = !daily;
+  $("monthTitle").textContent = daily ? monthText(state.month) : `${island(state.trip).name}的帳`;
   const list = state.data?.entries || [];
   const exp = list.filter(e => e.kind === "expense");
   const total = exp.reduce((t, e) => t + e.amount, 0);
@@ -311,10 +498,10 @@ function renderMonth() {
   const byCat = {}; exp.forEach(e => { byCat[e.category || "其他"] = (byCat[e.category || "其他"] || 0) + e.amount; });
   const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
   const max = cats[0]?.[1] || 1;
-  let html = `<div class="stats"><div class="stat"><b>${money(total)}</b><span>這個月花費</span></div>` +
+  let html = `<div class="stats"><div class="stat"><b>${money(total)}</b><span>${daily ? "這個月花費" : "這趟花費"}</span></div>` +
     people().map(p => `<div class="stat"><b>${money(owe(p.id))}</b><span>${esc(p.name)}負擔</span></div>`).join("") + `</div>`;
   if (cats.length) html += `<div class="cats">${cats.map(([c, v]) => `<div class="cat"><span>${esc(c)}</span><span class="bar"><i style="width:${Math.max(3, v / max * 100)}%"></i></span><span class="num">${money(v)}</span></div>`).join("")}</div>`;
-  if (!list.length) html += `<p class="empty">這個月還沒有紀錄。</p>`;
+  if (!list.length) html += `<p class="empty">${daily ? "這個月還沒有紀錄。" : "這座島還沒有紀錄，在左邊記第一筆吧。"}</p>`;
   let lastDay = "";
   html += list.map(e => {
     const head = e.date !== lastDay ? `<p class="day">${dayText(e.date)}</p>` : ""; lastDay = e.date;
@@ -332,19 +519,34 @@ $("monthBody").addEventListener("click", e => {
   const b = e.target.closest("[data-id]"); if (!b) return;
   const entry = state.data.entries.find(x => x.id === +b.dataset.id); if (entry) startEdit(entry);
 });
-$("prevMonth").onclick = () => { state.month = shiftMonth(state.month, -1); load(); };
-$("nextMonth").onclick = () => { state.month = shiftMonth(state.month, 1); load(); };
+$("prevMonth").onclick = () => { state.month = shiftMonth(state.month, -1); loadEntries(); };
+$("nextMonth").onclick = () => { state.month = shiftMonth(state.month, 1); loadEntries(); };
 
-async function load() {
-  try {
-    state.data = await FiveJS.api(`/api/split/entries?month=${state.month}`);
-    if (Array.isArray(state.data.categories)) state.categories = state.data.categories;
-    renderBalance(); renderMonth();
-  } catch (e) {
-    if (e instanceof FiveJS.AuthError) { location.href = "../?next=split"; return; }
-    toast(e.message);
-  }
+function handleErr(e) {
+  if (e instanceof FiveJS.AuthError) { location.href = "../?next=split"; return; }
+  toast(e.message);
 }
+async function loadIslands() {
+  try {
+    const r = await FiveJS.api("/api/split/islands");
+    state.islands = r.islands;
+    if (Array.isArray(r.colors)) state.colors = r.colors;
+    if (Array.isArray(r.categories)) state.categories = r.categories;
+    if (!state.islands.some(i => i.id === state.trip)) state.trip = null;
+    renderSky();
+  } catch (e) { handleErr(e); }
+}
+async function loadEntries() {
+  const trip = state.trip;
+  try {
+    const q = trip === null ? `month=${state.month}` : `trip=${trip}`;
+    const data = await FiveJS.api(`/api/split/entries?${q}`);
+    if (trip !== state.trip) return;  // 讀取途中換了島
+    state.data = data;
+    renderBalance(); renderBand(); renderList();
+  } catch (e) { handleErr(e); }
+}
+async function reload() { await loadIslands(); renderForm(); await loadEntries(); }
 
 async function boot() {
   const slow = setTimeout(() => { $("bootMsg").textContent = "正在叫醒後端，第一次打開可能要等一分鐘…"; }, 3000);
@@ -356,12 +558,18 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   state.me = info.user; state.partner = info.partner;
-  $("brandPigs").innerHTML = FiveJS.lollipop(state.me.theme, "happy", 44) + (state.partner ? FiveJS.lollipop(state.partner.theme, "wave", 35) : "");
+  await loadIslands();
+  // 網址帶 #trip-3 就打開那座島；不然打開正在進行的旅程（今天在旅程日期內），都沒有就是日常島
+  const m = location.hash.match(/^#trip-(\d+)$/);
+  const t = taipeiToday();
+  const ongoing = state.islands.find(i => i.id && i.start_date && i.start_date <= t && t <= (i.end_date || i.start_date));
+  state.trip = m && state.islands.some(i => i.id === +m[1]) ? +m[1] : ongoing ? ongoing.id : null;
   $("booting").hidden = true; $("app").hidden = false;
   resetForm();
-  await load();
+  renderSky();
+  await loadEntries();
   // 另一半新增的紀錄：回到這個分頁時重新整理
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) reload(); });
 }
 boot();
 })();

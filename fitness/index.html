@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-mod="fitness">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>運動 · 大小豬的小空間</title>
-<meta name="theme-color" content="#FFF5F2">
+<meta name="theme-color" content="#15102A">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="../manifest.webmanifest">
@@ -16,8 +16,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="../common/style.css">
 <style>
-.back{font-size:.82rem;color:var(--muted);text-decoration:none}
-.back:hover{color:var(--accent)}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
@@ -45,6 +43,10 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 .seg.small button{padding:3px 10px;font-size:.8rem}
 
 /* 本週 */
+.dorbs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:.75rem;color:var(--muted);margin-bottom:14px}
+.dorbs .orb{--s:34px;margin:0 auto 3px;display:block}
+.dorbs .orb.empty{border-color:rgba(255,255,255,.2)}
+.dorbs .today{color:#fff;font-weight:700}
 .week{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .week.one{grid-template-columns:1fr}
 .wk{background:var(--sunk);border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:center;min-width:0}
@@ -84,14 +86,15 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 .chart{width:100%;height:auto;display:block;overflow:visible}
 .chart .axis{stroke:var(--line);stroke-width:1}
 .chart text{fill:var(--muted);font-size:10px;font-family:var(--f-num)}
-.chart .ln{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+.chart .ln{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round;filter:drop-shadow(0 0 4px var(--accent))}
 .chart .pt{fill:var(--surface);stroke:var(--accent);stroke-width:2}
-.chart .last{fill:var(--accent)}
+.chart .last{fill:#fff;filter:drop-shadow(0 0 5px var(--accent))}
 .prs{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:4px}
 .prs li{display:grid;grid-template-columns:1fr auto auto;gap:10px;font-size:.88rem;padding:6px 10px;border-radius:12px;cursor:pointer}
 .prs li[aria-selected="true"]{background:var(--accent-soft)}
 .prs li span{font-family:var(--f-num);font-weight:700}
 .prs li small{color:var(--muted);font-size:.75rem}
+.prs li.pr span,.prs li.pr b{color:var(--gold)}
 .wform{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;margin-bottom:12px;align-items:end}
 @media (max-width:420px){.wform{grid-template-columns:1fr 1fr}}
 .wform label{font-size:.78rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
@@ -102,12 +105,10 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 </head>
 <body>
 <div class="page">
-  <header class="top">
-    <a class="brand" href="../">
-      <span class="pigs" id="brandPigs"></span>
-      <span><span class="back">‹ 大小豬的小空間</span><h1>運動</h1></span>
-    </a>
-    <label class="small muted" id="profBox" hidden>記錄對象 <select id="prof" style="width:auto;padding:4px 10px"></select></label>
+  <header class="band">
+    <a class="back" href="../">‹ 總部</a>
+    <div class="row"><h1>運動</h1><span class="bstat" id="bandStat"></span></div>
+    <label class="small" id="profBox" hidden>記錄對象 <select id="prof"></select></label>
   </header>
 
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
@@ -121,6 +122,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
     <div class="col">
       <section class="panel" aria-labelledby="wkTitle">
         <h2 id="wkTitle">這週</h2>
+        <div class="dorbs" id="dorbs" aria-label="這週每天有沒有運動"></div>
         <div class="week" id="week"></div>
         <div class="heat" id="heat" aria-label="最近 12 週有運動的日子"></div>
         <p class="streak" id="streak"></p>
@@ -175,7 +177,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
     </div>
   </main>
 
-  <footer class="foot" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:.8rem;color:var(--muted);padding-top:8px;border-top:2px dashed var(--line)">
+  <footer class="foot">
     <span>運動和體重跟飲食頁是同一份紀錄：在這裡記的，飲食頁也看得到；有分享給另一半的話，對方也看得到。</span>
   </footer>
 </div>
@@ -184,6 +186,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 <script src="../common/config.js"></script>
 <script src="../common/auth.js"></script>
 <script src="../common/mascot.js"></script>
+<script src="../common/hq.js"></script>
 <script>window.CLAUDE_SHIM = { module: "fitness", prefix: "" };</script>
 <script src="../common/claude-shim.js"></script>
 <script>
@@ -224,6 +227,16 @@ function renderWeek() {
   const cards = [[S.me, prof()?.name, mineEx()]];
   const pp = S.pShare?.profiles?.[0];
   if (S.partner && pp) cards.push([S.partner, pp.name, S.pExercise.filter(x => x.profileId === pp.id)]);
+  // 這週七天七顆球：有運動的那天亮起來，動越久越亮
+  const mon = mondayOf(today()), mins = {};
+  mineEx().forEach(x => { mins[x.date] = (mins[x.date] || 0) + (+x.minutes || 30); });
+  $("dorbs").innerHTML = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(mon, i), m = mins[d] || 0;
+    const orb = m ? `<i class="orb" style="--c:color-mix(in srgb, var(--anger) ${m >= 60 ? 100 : m >= 30 ? 82 : 62}%, #3a1a2a)"></i>` : `<i class="orb empty"></i>`;
+    return `<span class="${d === today() ? "today" : ""}" title="${esc(dayText(d))}${m ? ` ${r0(m)} 分鐘` : ""}">${orb}${WEEK[(i + 1) % 7]}</span>`;
+  }).join("");
+  const me = weekStats(mineEx());
+  $("bandStat").innerHTML = `這週 <b>${me.n}</b> 天・${r0(me.min)} 分鐘`;
   $("week").className = "week" + (cards.length === 1 ? " one" : "");
   $("week").innerHTML = cards.map(([u, name, list]) => {
     const w = weekStats(list);
@@ -413,8 +426,8 @@ function renderLifts() {
   const by = {};
   for (const x of mineEx()) for (const s of x.sets || []) {
     if (!s.lift) continue;
-    const o = by[s.lift] = by[s.lift] || { best: 0, bestReps: 0, last: "", days: {} };
-    if (+s.kg > o.best || (+s.kg === o.best && s.reps > o.bestReps)) { o.best = +s.kg; o.bestReps = s.reps; }
+    const o = by[s.lift] = by[s.lift] || { best: 0, bestReps: 0, bestDate: "", last: "", days: {} };
+    if (+s.kg > o.best || (+s.kg === o.best && s.reps > o.bestReps) || (+s.kg === o.best && +s.reps === +o.bestReps && x.date < o.bestDate)) { o.best = +s.kg; o.bestReps = s.reps; o.bestDate = x.date; }
     if (x.date > o.last) o.last = x.date;
     o.days[x.date] = Math.max(o.days[x.date] || 0, +s.kg);
   }
@@ -423,7 +436,10 @@ function renderLifts() {
   if (!S.lift || !by[S.lift]) S.lift = lifts[0][0];
   const pts = Object.entries(by[S.lift].days).sort().map(([date, v]) => ({ date, v }));
   $("liftChart").innerHTML = `<p class="small muted" style="margin-bottom:4px">${esc(S.lift)}：每次訓練的最大重量</p>` + lineChart(pts, { unit: " kg", digits: 1 });
-  $("prs").innerHTML = lifts.map(([l, o]) => `<li data-l="${esc(l)}" aria-selected="${l === S.lift}"><b>${esc(l)}</b><span>${o.best ? `${o.best} kg × ${o.bestReps}` : `${o.bestReps} 下`}</span><small>${esc(o.last.slice(5).replace("-", "/"))}</small></li>`).join("");
+  // 最近一週破紀錄的動作變成金色核心記憶（第一次做的不算）
+  const recent = addDays(today(), -6);
+  const isPr = o => o.bestDate >= recent && Object.keys(o.days).some(d => d < o.bestDate);
+  $("prs").innerHTML = lifts.map(([l, o]) => `<li data-l="${esc(l)}" aria-selected="${l === S.lift}" class="${isPr(o) ? "pr" : ""}"><b>${isPr(o) ? "✨ " : ""}${esc(l)}</b><span>${o.best ? `${o.best} kg × ${o.bestReps}` : `${o.bestReps} 下`}</span><small>${esc(o.last.slice(5).replace("-", "/"))}</small></li>`).join("");
 }
 $("prs").onclick = e => { const li = e.target.closest("[data-l]"); if (li) { S.lift = li.dataset.l; renderLifts(); } };
 
@@ -440,7 +456,6 @@ async function boot() {
   clearTimeout(slow);
   if (!info) { $("bootMsg").textContent = "連不上後端，請稍後重新整理頁面。"; return; }
   S.me = info.user; S.partner = info.partner;
-  $("brandPigs").innerHTML = FiveJS.lollipop(S.me.theme, "happy", 44) + (S.partner ? FiveJS.lollipop(S.partner.theme, "wave", 35) : "");
   [S.db, S.sample] = await Promise.all([window.claude.use("db"), window.claude.use("sample")]);
   $("fDate").value = today(); $("fName").value = S.type;
   renderType();
