@@ -3,6 +3,7 @@
  * - MODS：各功能的名稱、路徑與情緒色（新增功能時加在這裡，首頁和導覽列都會跟著出現）。
  * - 手機底部導覽列：依 <html data-mod> 標出目前在哪一頁，載入時自動加到頁面最下面。
  * - MOOD_COLOR：互動頁心情打卡的八種心情對應的情緒色（首頁記憶架也用）。
+ * - 註冊 sw.js（手機推播）。
  */
 (() => {
   const MODS = [
@@ -33,6 +34,10 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tabbar);
   else tabbar();
+
+  // 推播用的 service worker（只收通知，不快取）。註冊在網站根目錄，整個網站都收得到。
+  const ROOT = (document.documentElement.dataset.mod || "hq") === "hq" ? "" : "../";
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register(ROOT + "sw.js").catch(() => {});
 
   window.FiveJS = Object.assign(window.FiveJS || {}, { MODS, MOOD_COLOR });
 })();

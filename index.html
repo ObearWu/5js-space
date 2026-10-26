@@ -38,6 +38,14 @@ body.locked .tabbar{display:none}
 .core b .num{font-size:1.6rem;margin:0 3px}
 .core span.s{font-size:.88rem;color:var(--muted)}
 
+/* 通知設定 */
+.notif h2{font-size:1rem;margin-bottom:8px}
+.notif .rows{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.notif label{display:flex;align-items:center;gap:8px;font-size:.92rem}
+.notif label input{width:18px;height:18px;accent-color:var(--gold)}
+.notif .acts{display:flex;gap:8px;flex-wrap:wrap}
+.notif p{margin:0;font-size:.85rem}
+
 /* 想你 */
 .pingbar{display:flex;align-items:center;gap:12px;padding:12px 16px}
 .pingbar .t{flex:1;min-width:0;font-size:.9rem}
@@ -95,7 +103,7 @@ body.locked .tabbar{display:none}
   <main id="hub" hidden style="display:flex;flex-direction:column;gap:18px">
     <header class="hqhead">
       <div><h1 id="helloTitle"></h1><p id="helloDate"></p></div>
-      <div><span class="small muted" id="accountName"></span> <button class="btn ghost" type="button" id="logoutBtn">登出</button></div>
+      <div><span class="small muted" id="accountName"></span> <button class="btn ghost" type="button" id="notifBtn" aria-expanded="false">通知</button> <button class="btn ghost" type="button" id="logoutBtn">登出</button></div>
     </header>
 
     <a class="panel core" href="together/#days" id="core">
@@ -103,6 +111,7 @@ body.locked .tabbar{display:none}
       <span><span class="k">核心記憶</span><b id="coreTitle">我們的小空間</b><span class="s" id="coreSub"></span></span>
     </a>
 
+    <section class="panel notif" id="notif" hidden aria-labelledby="notifTitle"></section>
     <section class="panel pingbar" id="pingbar" hidden aria-label="想你"></section>
     <a class="panel yearcard" id="yearCard" hidden></a>
     <section class="panel weekcard" id="weekCard" hidden aria-labelledby="wkTitle"></section>
@@ -322,6 +331,65 @@ function enter(me) {
   renderConsole(null);
   loadSummary();
 }
+
+// ---------- 手機推播 ----------
+// 每台裝置各自開；iPhone 要先「加入主畫面」，從主畫面打開才有通知權限（iOS 16.4 以上）。
+const NOTIF_KINDS = [["answer", "另一半回答了每日一問"], ["ping", "另一半送來「想你」"], ["ledger", "晚上 8 點半還沒記帳"], ["period", "預計經期的前一天"], ["dates", "紀念日前 3 天"]];
+const pushOk = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
+const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const b64ToBytes = s => { const b = atob((s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
+async function currentSub() { if (!pushOk()) return null; const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+async function renderNotif(msg) {
+  const el = $("notif");
+  let html = `<h2 id="notifTitle">手機通知</h2>`;
+  if (!pushOk()) {
+    html += `<p class="muted">${isIOS() && !standalone() ? "iPhone 要先把這個網站「加入主畫面」（分享 → 加入主畫面），再從主畫面的圖示打開，才能開通知。需要 iOS 16.4 以上。" : "這個瀏覽器不支援網頁通知。"}</p>`;
+    el.innerHTML = html; return;
+  }
+  const sub = await currentSub().catch(() => null);
+  let prefs = null;
+  try { prefs = (await FiveJS.api("/api/push/prefs")).prefs; } catch (e) {}
+  const denied = Notification.permission === "denied";
+  html += sub
+    ? `<p>這台裝置已經開啟通知。</p>`
+    : `<p class="muted">${denied ? "通知被這個瀏覽器封鎖了，要到瀏覽器（或手機設定）的網站權限裡允許通知。" : "開啟後，這台裝置會收到下面勾選的提醒。每台手機或電腦要各自開。"}</p>`;
+  if (prefs) html += `<div class="rows">${NOTIF_KINDS.map(([k, t]) => `<label><input type="checkbox" data-pref="${k}"${prefs[k] ? " checked" : ""}>${t}</label>`).join("")}</div>`;
+  html += `<div class="acts">${sub ? `<button class="btn" type="button" id="pushTest">傳一則測試通知</button><button class="btn ghost" type="button" id="pushOff">關閉這台的通知</button>`
+    : denied ? "" : `<button class="btn primary" type="button" id="pushOn">開啟這台裝置的通知</button>`}</div>
+    ${msg ? `<p style="margin-top:8px">${esc(msg)}</p>` : ""}
+    <p class="small muted" style="margin-top:8px">定時提醒（記帳、經期、紀念日）要靠每 10 分鐘的保活呼叫帶動，時間可能晚幾分鐘。</p>`;
+  el.innerHTML = html;
+  $("pushOn") && ($("pushOn").onclick = enablePush);
+  $("pushOff") && ($("pushOff").onclick = disablePush);
+  $("pushTest") && ($("pushTest").onclick = async () => { try { await FiveJS.api("/api/push/test", { method: "POST" }); renderNotif("送出了，幾秒內應該會收到。"); } catch (e) { renderNotif(e.message); } });
+}
+async function enablePush() {
+  try {
+    if (await Notification.requestPermission() !== "granted") return renderNotif("沒有允許通知，所以沒有開啟。");
+    const { publicKey } = await FiveJS.api("/api/push/key");
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(publicKey) });
+    await FiveJS.api("/api/push/subscribe", { method: "POST", body: sub.toJSON() });
+    renderNotif("開好了！可以按「傳一則測試通知」試試看。");
+  } catch (e) { renderNotif(`開啟失敗：${e.message || e}`); }
+}
+async function disablePush() {
+  try {
+    const sub = await currentSub();
+    if (sub) { await FiveJS.api("/api/push/unsubscribe", { method: "POST", body: { endpoint: sub.endpoint } }).catch(() => {}); await sub.unsubscribe(); }
+    renderNotif("這台裝置不會再收到通知。");
+  } catch (e) { renderNotif(e.message); }
+}
+$("notifBtn").onclick = () => {
+  const el = $("notif"), open = el.hidden;
+  el.hidden = !open; $("notifBtn").setAttribute("aria-expanded", String(open));
+  if (open) { el.innerHTML = `<p class="small muted">讀取中…</p>`; renderNotif(); }
+};
+$("notif").addEventListener("change", async e => {
+  const c = e.target.closest("[data-pref]"); if (!c) return;
+  try { await FiveJS.api("/api/push/prefs", { method: "PUT", body: { [c.dataset.pref]: c.checked } }); } catch (err) { c.checked = !c.checked; }
+});
 
 $("logoutBtn").onclick = async () => { await FiveJS.logout(); showGate("已登出。"); };
 document.addEventListener("visibilitychange", () => { if (!document.hidden && ME) loadSummary(); });
