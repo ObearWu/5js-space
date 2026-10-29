@@ -42,7 +42,9 @@
     return mePromise;
   }
 
-  const netErr = msg => ({ code: "unavailable", message: msg || "連不上後端，請稍後再試。" });
+  // net:true 表示「這次沒送到」（沒網路或後端還在醒來），可以先存起來之後補送；
+  // 後端明確拒絕（資料不合法、沒權限）不是 net，補送也不會成功。
+  const netErr = (msg, net) => ({ code: "unavailable", message: msg || "連不上後端，請稍後再試。", net: !!net });
 
   async function post(path, body, { signal } = {}) {
     let res;
@@ -54,16 +56,16 @@
       });
     } catch (e) {
       if (e?.name === "AbortError") throw { code: "cancelled", message: "已停止" };
-      throw netErr();
+      throw netErr(null, true);
     }
-    if (res.status === 401) { FiveJS.setToken(null); location.href = `../?next=${OPT.module}`; throw netErr("登入已逾期"); }
+    if (res.status === 401) { FiveJS.setToken(null); location.href = `../?next=${OPT.module}`; throw netErr("登入已逾期", true); }
     return res;
   }
   async function postJSON(path, body) {
     const res = await post(path, body);
     const data = await res.json().catch(() => ({}));
     if (res.status === 403) throw { code: "permission_denied", message: data.error || "沒有權限" };
-    if (!res.ok) throw netErr(data.error);
+    if (!res.ok) throw netErr(data.error, [502, 503, 504].includes(res.status));
     return data;
   }
 
@@ -139,6 +141,7 @@
             r.docs.forEach(d => { const data = fromServer(d.data); if (matches(data, l.where)) l.map.set(d.id, data); else l.map.delete(d.id); });
           }
           l.since = now;
+          overlayPending(l);
           if (r.full || r.docs.length || r.removed.length || !l.ready) { l.ready = true; emit(l); saveCache(l); }
         }
         shots.forEach(s => s.resolve(snapshotOf(new Map((results[s.key]?.docs || []).map(d => [d.id, fromServer(d.data)])))));
@@ -168,9 +171,55 @@
     schedule(100);
   }
 
+  // ---------- 離線暫存 ----------
+  // 寫入沒送到（沒網路、後端還在醒來）時，不丟掉也不退回畫面：存在這台瀏覽器，
+  // 之後自動補送。同一份文件只留最新一次；補送前它先蓋在畫面資料上，同步不會把它洗掉。
+  const outKey = () => `fivejsOutbox:${FiveJS.cachedMe?.()?.user?.id || 0}`;
+  const readOut = () => { try { return JSON.parse(localStorage.getItem(outKey()) || "[]"); } catch (e) { return []; } };
+  const writeOut = list => {
+    try { list.length ? localStorage.setItem(outKey(), JSON.stringify(list)) : localStorage.removeItem(outKey()); } catch (e) {}
+    window.dispatchEvent(new Event("fivejs:outbox"));
+  };
+  const sameDoc = (a, b) => a.c === b.c && a.id === b.id;
+  function stash(ops) {
+    let list = readOut();
+    for (const op of ops) list = list.filter(x => !sameDoc(x, op)).concat(op);
+    writeOut(list.slice(-500));
+    armReplay();
+  }
+  function overlayPending(l) {
+    for (const op of readOut()) {
+      if (op.c !== l.c) continue;
+      if (op.op === "set" && matches(fromServer(op.data), l.where)) l.map.set(op.id, fromServer(op.data)); else l.map.delete(op.id);
+    }
+  }
+  let replaying = false, replayTimer = null;
+  function armReplay() { if (!replayTimer) replayTimer = setInterval(replay, 15000); }
+  async function replay() {
+    if (replaying || navigator.onLine === false || queue.length) return;
+    let list = readOut();
+    if (!list.length) { clearInterval(replayTimer); replayTimer = null; return; }
+    replaying = true;
+    try {
+      while (list.length) {
+        const chunk = list.slice(0, 100);
+        try { await postJSON("/api/docs/write", { ops: chunk }); }
+        catch (e) { if (e.net) break; }  // 其他錯誤是後端明確拒絕：這幾筆補送也不會成功，丟掉
+        list = readOut().filter(x => !chunk.some(c => sameDoc(c, x) && JSON.stringify(c.data) === JSON.stringify(x.data) && c.op === x.op));
+        writeOut(list);
+        new Set(chunk.map(c => c.c)).forEach(resyncCollection);
+      }
+    } finally { replaying = false; }
+  }
+  window.addEventListener("online", () => setTimeout(replay, 300));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) replay(); });
+  if (readOut().length) { armReplay(); setTimeout(replay, 1500); }
+
   // ---------- 寫入：同一瞬間的多筆寫入合併成一個請求 ----------
   let queue = [], flushTimer = null;
   function enqueue(op) {
+    // 新的一次寫入會取代還沒補送的舊版，免得補送時把新資料蓋回去
+    const old = readOut(); if (old.some(x => sameDoc(x, op))) writeOut(old.filter(x => !sameDoc(x, op)));
     return new Promise((resolve, reject) => {
       queue.push({ op, resolve, reject });
       if (!flushTimer) flushTimer = setTimeout(flush, 20);
@@ -184,7 +233,8 @@
         await postJSON("/api/docs/write", { ops: batch.map(b => b.op), import: !!window.__fivejsImporting });
         batch.forEach(b => b.resolve());
       } catch (e) {
-        batch.forEach(b => { b.reject(e); resyncCollection(b.op.c); });
+        if (e.net && !window.__fivejsImporting) { stash(batch.map(b => b.op)); batch.forEach(b => b.resolve()); }
+        else batch.forEach(b => { b.reject(e); resyncCollection(b.op.c); });
       }
     }
     schedule(800);

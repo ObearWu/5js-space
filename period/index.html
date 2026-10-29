@@ -152,6 +152,20 @@ nav.tabs button[aria-current="page"]{color:var(--berry);font-weight:700}
 nav.tabs svg{width:22px;height:22px}
 /* sheet */
 .scrim{position:fixed;inset:0;z-index:30;background:rgba(30,15,20,.45);display:flex;align-items:flex-end;justify-content:center}
+.docT{width:100%;border-collapse:collapse;font-size:.9rem}
+.docT th,.docT td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+@media print{
+  body > *:not(#sheetRoot){display:none !important}
+  body *{visibility:hidden !important}
+  html,body{background:#fff !important}
+  #sheetRoot,#sheetRoot .scrim,#sheetRoot .sheet,.docsum,.docsum *{visibility:visible !important}
+  .sheet .grab{display:none !important}
+  .scrim{position:static !important;background:none !important}
+  .sheet{position:absolute !important;left:0;top:0;width:100% !important;max-width:none !important;max-height:none !important;overflow:visible !important;background:#fff !important;color:#000 !important;box-shadow:none !important}
+  .docsum{color:#000 !important}
+  .docsum .muted{color:#444 !important}
+  .noprint{display:none !important}
+}
 .sheet{background:var(--bg);width:100%;max-width:600px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;
   padding:18px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
 .sheet .grab{width:40px;height:4px;border-radius:9px;background:var(--line);margin:0 auto}
@@ -179,6 +193,7 @@ nav.tabs svg{width:22px;height:22px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 <link rel="stylesheet" href="../common/hq-port.css">
+<script src="../common/lock.js"></script>
 </head><body>
 
 <div class="wrap" id="app"><div class="loading">讀取中…</div></div>
@@ -642,7 +657,7 @@ function vStats(st){
     return '<div class="hrow"><div><div class="d">' + p.start.replace(/-/g, '/') + (p.end ? ' – ' + D.md(p.end) : ' – 進行中') + '</div><div class="small muted num">' + (len ? len + ' 天' : '尚未記錄結束日') + '</div></div><button class="btn sm" data-act="editPeriod" data-id="' + p.id + '">修改</button></div>';
   }).join('');
   return '<section class="card"><h2>我的週期</h2>' + tiles + '</section>' + symptomCard(st) +
-    '<section class="card"><h2>每次週期長度</h2>' + bars + '</section>' + pmsCard + dietCard(st) +
+    '<section class="card"><h2>每次週期長度</h2>' + bars + '</section>' + pmsCard + doctorCard(st) + dietCard(st) +
     '<section class="card"><div class="row between"><h2>經期紀錄</h2><button class="btn sm soft" data-act="addPast">新增過去的經期</button></div><div class="hist">' + (hist || '<p class="muted">還沒有紀錄。</p>') + '</div></section>';
 }
 // 症狀規律：把每次週期「第幾天出現什麼症狀」疊在一起，找出每次都會出現的時間點
@@ -677,6 +692,55 @@ function symptomCard(st){
   return '<section class="card"><h2>症狀規律</h2>' + (rows.length
     ? '<dl class="kv">' + rows.slice(0, 8).map(r => '<dt>' + esc(r.k) + '</dt><dd>' + total + ' 次週期中有 ' + r.n + ' 次，常在' + r.when.join('、') + '</dd>').join('') + '</dl><p class="small muted">至少兩次週期都出現才會列出。知道規律後，可以提早準備，例如前一天先備好熱敷袋。</p>'
     : '<p class="muted">每天記錄症狀和心情，累積兩次週期以上就能看出規律。</p>') + '</section>';
+}
+// ---------- 就醫摘要：最近 6 次經期整理成一頁（只在自己的畫面產生，不會分享給任何人）----------
+function doctorData(st){
+  const logs = allLogs(), ps = st.ps.slice(-6), rows = [], symN = {}, flowN = {};
+  let painMax = 0, painDays = 0, loggedDays = 0;
+  ps.forEach(p => {
+    const end = p.end || D.add(p.start, Math.max(1, st.avgPeriod) - 1), len = p.end ? D.diff(p.start, p.end) + 1 : null;
+    const cyc = st.cycles.find(c => c.start === p.start);
+    rows.push({ start: p.start, end: p.end || null, len, cycle: cyc ? cyc.len : null });
+    for (let d = p.start; d <= end && d <= st.today; d = D.add(d, 1)){
+      const l = logs[d]; if (!l) continue;
+      loggedDays++;
+      (l.sym || []).forEach(k => symN[k] = (symN[k] || 0) + 1);
+      if (l.flow) flowN[FLOW[l.flow]] = (flowN[FLOW[l.flow]] || 0) + 1;
+      if (l.pain) painMax = Math.max(painMax, l.pain);
+      if (l.pain >= 2) painDays++;
+    }
+  });
+  const cycles = rows.map(r => r.cycle).filter(Boolean);
+  return { rows, cycles, symN, flowN, painMax, painDays, loggedDays, avgCycle: st.avgCycle, avgPeriod: st.avgPeriod,
+    range: cycles.length ? [Math.min(...cycles), Math.max(...cycles)] : null };
+}
+function doctorText(st){
+  const d = doctorData(st);
+  const sym = Object.entries(d.symN).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([k, n]) => k + '（' + n + ' 天）').join('、');
+  const flow = Object.entries(d.flowN).sort((a, b) => b[1] - a[1]).map(([k, n]) => k + ' ' + n + ' 天').join('、');
+  return ['月經紀錄摘要（自行記錄，整理於 ' + D.today().replace(/-/g, '/') + '）',
+    '平均週期 ' + d.avgCycle + ' 天' + (d.range ? '（最短 ' + d.range[0] + '、最長 ' + d.range[1] + ' 天）' : '') + '，平均經期 ' + d.avgPeriod + ' 天。',
+    '最近 ' + d.rows.length + ' 次：', ...d.rows.map(r => '・' + r.start.replace(/-/g, '/') + (r.end ? ' – ' + D.md(r.end) + '，' + r.len + ' 天' : ' 起，進行中') + (r.cycle ? '，與下次間隔 ' + r.cycle + ' 天' : '')),
+    d.loggedDays ? '經期間有記錄的 ' + d.loggedDays + ' 天：' + (flow ? '經血量 ' + flow + '；' : '') + (d.painMax ? '最痛程度「' + PAIN[d.painMax] + '」，會痛以上 ' + d.painDays + ' 天；' : '無經痛記錄；') + (sym ? '常見症狀：' + sym + '。' : '沒有記錄症狀。') : '經期間沒有逐日記錄。',
+    '這是自己的記錄整理，不是診斷。'].join('\n');
+}
+function doctorCard(st){
+  if (!st.ps.length) return '';
+  return '<section class="card"><h2>就醫摘要</h2><p class="small muted">把最近 6 次經期整理成一頁，看診時可以直接給醫師看。只有你自己看得到，不會分享給任何人。</p><div class="row"><button class="btn soft" data-act="doctorSum">產生摘要</button></div></section>';
+}
+function sheetDoctor(){
+  const st = compute(S.profile), d = doctorData(st);
+  const sym = Object.entries(d.symN).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  return '<div class="docsum"><h2>月經紀錄摘要</h2><p class="small muted">自行記錄，整理於 ' + D.today().replace(/-/g, '/') + '</p>' +
+    '<div class="tiles"><div class="tile"><div class="small muted">平均週期</div><div class="v num">' + d.avgCycle + ' <small>天</small></div>' + (d.range ? '<div class="small muted">' + d.range[0] + '–' + d.range[1] + ' 天</div>' : '') + '</div>' +
+    '<div class="tile"><div class="small muted">平均經期</div><div class="v num">' + d.avgPeriod + ' <small>天</small></div></div></div>' +
+    '<h3>最近 ' + d.rows.length + ' 次</h3><table class="docT"><tr><th>第一天</th><th>結束</th><th>經期</th><th>週期</th></tr>' +
+    d.rows.map(r => '<tr><td>' + r.start.replace(/-/g, '/') + '</td><td>' + (r.end ? D.md(r.end) : '進行中') + '</td><td>' + (r.len ? r.len + ' 天' : '—') + '</td><td>' + (r.cycle ? r.cycle + ' 天' : '—') + '</td></tr>').join('') + '</table>' +
+    (d.loggedDays ? '<h3>經期間的記錄（' + d.loggedDays + ' 天）</h3><p>' + (Object.keys(d.flowN).length ? '經血量：' + Object.entries(d.flowN).sort((a, b) => b[1] - a[1]).map(([k, n]) => esc(k) + ' ' + n + ' 天').join('、') + '<br>' : '') +
+      (d.painMax ? '經痛：最痛「' + PAIN[d.painMax] + '」，會痛以上 ' + d.painDays + ' 天<br>' : '經痛：沒有記錄<br>') +
+      (sym.length ? '常見症狀：' + sym.map(([k, n]) => esc(k) + '（' + n + ' 天）').join('、') : '症狀：沒有記錄') + '</p>' : '<p class="muted">經期間沒有逐日記錄。</p>') +
+    '<p class="small muted">這是自己的記錄整理，不是診斷。</p></div>' +
+    '<div class="row noprint"><button class="btn primary" data-act="docPrint">列印／存成 PDF</button><button class="btn soft" data-act="docCopy">複製文字</button><button class="btn ghost" data-act="close">關閉</button></div>';
 }
 function dietCard(){
   const DS = dietSrc();
@@ -951,6 +1015,7 @@ function renderSheet(){
   else if (sh.type === 'dietPick') inner = sheetDietPick(sh);
   else if (sh.type === 'login') inner = sheetLogin();
   else if (sh.type === 'carePrefs') inner = sheetCarePrefs();
+  else if (sh.type === 'doctor') inner = sheetDoctor();
   else if (sh.type === 'migrate') inner = '<h2>把這台裝置的紀錄上傳到雲端？</h2><p>這台裝置上有 ' + (sh.local.profile?.periods?.length || 0) + ' 次經期紀錄，雲端目前還沒有資料。上傳後換手機也看得到，也可以開啟分享。</p><div class="row"><button class="btn primary" data-act="migrateYes">上傳到雲端</button><button class="btn ghost" data-act="close">先不要</button></div>';
   else if (sh.type === 'confirm') inner = '<h2>' + sh.title + '</h2><p>' + sh.text + '</p><div class="row"><button class="btn ' + (sh.danger ? 'danger' : 'primary') + '" data-act="confirmYes">' + sh.yes + '</button><button class="btn ghost" data-act="close">取消</button></div>';
   root.innerHTML = '<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>' + inner + '</div></div>';
@@ -1121,6 +1186,9 @@ document.addEventListener('click', e => {
       const end = D.add(start, per - 1);
       S.profile = { v: 1, setup: { cycle: cyc, period: per }, settings: { pmsDays: 7, lateDays: 3, share: Object.fromEntries(SHARE_ITEMS.map(x => [x[0], true])) }, periods: [{ id: uid8(), start, end: end < D.today() ? end : null }] };
       S.view = 'today'; saveProfile(); toast('設定完成！'); break; }
+    case 'doctorSum': openSheet({ type: 'doctor' }); break;
+    case 'docPrint': window.print(); break;
+    case 'docCopy': navigator.clipboard.writeText(doctorText(compute(S.profile))).then(() => toast('已複製。'), () => toast('這個瀏覽器不能複製，請改用列印。')); break;
     case 'startSheet': openSheet({ type: 'start' }); break;
     case 'endSheet': openSheet({ type: 'end' }); break;
     case 'doStart': { const d = $('#mk-date').value; closeSheet(); doStart(d); break; }

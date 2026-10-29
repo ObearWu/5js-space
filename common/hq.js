@@ -35,7 +35,30 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tabbar);
   else tabbar();
 
-  // 推播用的 service worker（只收通知，不快取）。註冊在網站根目錄，整個網站都收得到。
+  // 離線／還沒補送的提示條：沒網路時說一聲可以照常記；有東西還沒送出時列出筆數與前幾筆。
+  // 實際的暫存與補送在 auth.js（帳）和 claude-shim.js（飲食、運動、經期）。
+  function pendingBar() {
+    let el = null;
+    const draw = () => {
+      let n = 0, items = [];
+      try { const p = FiveJS.pending?.(); if (p) { n = p.api.length + p.docs.length; items = p.api.map(x => x.label).filter(Boolean).slice(0, 3); } } catch (e) {}
+      const off = navigator.onLine === false;
+      if (!n && !off) { if (el) el.hidden = true; return; }
+      if (!el) {
+        el = document.createElement("div"); el.id = "fivejsPendingBar"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite");
+        el.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 6px);z-index:45;max-width:calc(100% - 24px);background:#3a3050;color:#fff;border-radius:999px;padding:6px 14px;font-size:.78rem;line-height:1.4;box-shadow:0 2px 10px rgba(0,0,0,.25);text-align:center;pointer-events:none";
+        document.body.appendChild(el);
+      }
+      el.hidden = false;
+      el.textContent = (off ? "離線中" : "") + (off && n ? "，" : "") + (n ? `${n} 筆還沒送出（已存在手機）${items.length ? "：" + items.join("、") : ""}，有網路會自動補送` : "，可以照常記，之後自動補送");
+    };
+    window.addEventListener("online", draw); window.addEventListener("offline", draw); window.addEventListener("fivejs:outbox", draw);
+    setInterval(draw, 4000); draw();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pendingBar);
+  else pendingBar();
+
+  // 推播用的 service worker（收通知，也把頁面和程式存起來，沒網路時還打得開）。註冊在網站根目錄，整個網站都收得到。
   const ROOT = (document.documentElement.dataset.mod || "hq") === "hq" ? "" : "../";
   if ("serviceWorker" in navigator) navigator.serviceWorker.register(ROOT + "sw.js").catch(() => {});
 

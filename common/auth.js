@@ -18,7 +18,55 @@
 
   class AuthError extends Error {}
 
-  async function api(path, { method = "GET", body } = {}) {
+  // ---------- 離線補送（新增一筆帳／分帳） ----------
+  // api(path, {method:"POST", body, queue:true}) 沒送到（沒網路、後端還在醒來）時，
+  // 不報錯：存在這台瀏覽器，回傳 {queued:true}，之後自動補送。每筆帶一個 client_id，
+  // 後端看到同一個 client_id 只記一次，所以「其實送到了但回應掉了」重送也不會記兩筆。
+  const OUT_PREFIX = "fivejsApiOutbox:";
+  const outKey = () => `${OUT_PREFIX}${cachedMe()?.user?.id || 0}`;
+  const readOut = () => { try { return JSON.parse(localStorage.getItem(outKey()) || "[]"); } catch (e) { return []; } };
+  const writeOut = list => {
+    try { list.length ? localStorage.setItem(outKey(), JSON.stringify(list)) : localStorage.removeItem(outKey()); } catch (e) {}
+    window.dispatchEvent(new Event("fivejs:outbox"));
+  };
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const retryable = status => status === 502 || status === 503 || status === 504;
+  function stashApi(path, method, body) {
+    const label = [body.title || body.kind, body.amount != null ? `$${body.amount}` : ""].filter(Boolean).join(" ");
+    const list = readOut().concat({ path, method, body, label, at: Date.now() }).slice(-200);
+    try { localStorage.setItem(outKey(), JSON.stringify(list)); }
+    catch (e) { throw new Error("離線中，而且手機的儲存空間不夠，先存不下這筆。"); }  // 例如帶了大張收據照片
+    window.dispatchEvent(new Event("fivejs:outbox"));
+    armOut();
+    return { queued: true };
+  }
+  let outTimer = null, outBusy = false;
+  function armOut() { if (!outTimer) outTimer = setInterval(flushOut, 15000); }
+  async function flushOut() {
+    if (outBusy || navigator.onLine === false) return;
+    let list = readOut();
+    if (!list.length) { clearInterval(outTimer); outTimer = null; return; }
+    outBusy = true; let sent = 0, dropped = 0;
+    try {
+      for (const it of list) {
+        let res;
+        try {
+          res = await fetch(API_BASE + it.path, { method: it.method, headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` }, body: JSON.stringify(it.body) });
+        } catch (e) { break; }
+        if (res.status === 401 || retryable(res.status)) break;
+        if (res.ok) sent++; else dropped++;  // 後端明確拒絕（資料不合法）：補送也不會成功，丟掉
+        writeOut(readOut().filter(x => !(x.at === it.at && x.body.client_id === it.body.client_id)));
+      }
+    } finally { outBusy = false; }
+    if (sent || dropped) window.dispatchEvent(new CustomEvent("fivejs:synced", { detail: { sent, dropped } }));
+  }
+  window.addEventListener("online", () => setTimeout(flushOut, 300));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) flushOut(); });
+  if (readOut().length) { armOut(); setTimeout(flushOut, 1500); }
+
+  async function api(path, { method = "GET", body, queue } = {}) {
+    if (queue && method === "POST" && body && !Array.isArray(body.entries)) body = { ...body, client_id: body.client_id || newId() };
+    else queue = false;
     const headers = {};
     const token = getToken();
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -27,8 +75,10 @@
     try {
       res = await fetch(API_BASE + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
     } catch (e) {
+      if (queue) return stashApi(path, method, body);
       throw new Error("連不上後端，可能正在喚醒中，請稍後再試一次。");
     }
+    if (queue && retryable(res.status)) return stashApi(path, method, body);
     const data = await res.json().catch(() => ({}));
     if (res.status === 401) throw new AuthError(data.error || "登入已逾期，請重新登入。");
     if (!res.ok) throw new Error(data.error || `發生錯誤（${res.status}）`);
@@ -51,8 +101,9 @@
   function peek(path) {
     try { const v = JSON.parse(localStorage.getItem(cacheKey(path)) || "null"); return v ? v.data : null; } catch (e) { return null; }
   }
-  function clearCache() {
-    try { Object.keys(localStorage).filter(k => k.startsWith(CACHE_PREFIX) || k.startsWith("fivejsDocs:")).forEach(k => localStorage.removeItem(k)); } catch (e) {}
+  // all=true（登出）連還沒補送的也清掉；快取空間不夠時只清快取，不動還沒補送的
+  function clearCache(all) {
+    try { Object.keys(localStorage).filter(k => k.startsWith(CACHE_PREFIX) || k.startsWith("fivejsDocs:") || (all && (k.startsWith("fivejsOutbox:") || k.startsWith(OUT_PREFIX)))).forEach(k => localStorage.removeItem(k)); } catch (e) {}
   }
 
   // 後端休眠時，第一個請求要等它醒來。頁面一打開就先叫醒它，不碰資料庫。
@@ -98,7 +149,7 @@
   async function logout() {
     try { await api("/auth/logout", { method: "POST" }); } catch (e) {}
     setToken(null);
-    clearCache();
+    clearCache(true);
     try { localStorage.removeItem(ME_KEY); } catch (e) {}
     if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   }
@@ -120,5 +171,8 @@
     }
   }
 
-  window.FiveJS = Object.assign(window.FiveJS || {}, { api, wake, status, getToken, setToken, AuthError, renderGoogleButton, logout, requireLogin, cachedMe, applyTheme, peek, clearCache });
+  // 還沒補送的筆數與簡短說明（頁面上方的提示條用）
+  const pending = () => ({ api: readOut(), docs: (() => { try { return JSON.parse(localStorage.getItem(`fivejsOutbox:${cachedMe()?.user?.id || 0}`) || "[]"); } catch (e) { return []; } })() });
+
+  window.FiveJS = Object.assign(window.FiveJS || {}, { pending, api, wake, status, getToken, setToken, AuthError, renderGoogleButton, logout, requireLogin, cachedMe, applyTheme, peek, clearCache });
 })();

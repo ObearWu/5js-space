@@ -102,6 +102,12 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .item .main span{font-size:.8rem;color:var(--muted)}
 .item .amt{font-family:var(--f-num);font-weight:700;font-size:1.05rem;white-space:nowrap}
 .empty{text-align:center;color:var(--muted);padding:18px 0}
+.fx summary{cursor:pointer;color:var(--muted);font-size:.9rem}
+.fx[open] summary{margin-bottom:8px}
+.fxrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.fxrow select{width:auto;flex:none}.fxrow input{flex:1;min-width:7em}
+.rcpt{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.rcpt img{width:72px;height:72px;object-fit:cover;border-radius:12px;border:2px solid var(--line)}
 .toastact{border:0;background:none;color:var(--gold);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0 0 0 6px}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar,64px) + 16px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:50;max-width:calc(100% - 32px)}
 
@@ -186,6 +192,7 @@ svg.trend{display:block;width:100%}
 .yl{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
 @media (min-width:761px){.lg-sheet{align-items:center}.lg-sheet .sheet{border-radius:22px}}
 </style>
+<script src="../common/lock.js"></script>
 </head>
 <body>
 <div class="page">
@@ -239,6 +246,16 @@ svg.trend{display:block;width:100%}
             <div class="field"><span>在哪座島</span><select id="fTrip"></select></div>
           </div>
           <div class="field"><span>備註（選填）</span><input id="fNote" maxlength="300"></div>
+          <details class="field fx" id="fxBox"><summary>外幣或收據（選填）</summary>
+            <div class="fxrow">
+              <select id="fCur" aria-label="幣別"></select>
+              <input id="fOrig" type="number" inputmode="decimal" step="any" min="0" placeholder="外幣金額" aria-label="外幣金額">
+              <input id="fRate" type="number" inputmode="decimal" step="any" min="0" placeholder="1 外幣＝幾元台幣" aria-label="匯率（1 外幣換多少新台幣）">
+            </div>
+            <div class="fxrow"><button class="btn sm ghost" type="button" id="fRateBtn">帶入今日匯率</button><span class="small muted" id="fxHint">選外幣後填金額和匯率，上面的金額會自動換成新台幣；實際刷卡金額不同的話，可以直接改上面的金額。</span></div>
+            <div class="rcpt"><label class="btn sm ghost">拍收據／選照片<input type="file" accept="image/*" id="fRcpt" hidden></label>
+              <img id="rcptImg" alt="收據" hidden><button class="btn sm ghost" type="button" id="rcptDel" hidden>移除收據</button></div>
+          </details>
           <div class="actions">
             <div><button class="btn danger" type="button" id="delBtn" hidden>刪除</button></div>
             <div><button class="btn ghost" type="button" id="cancelBtn" hidden>取消</button>
@@ -537,11 +554,67 @@ function defaultDate() {
   if (isl.id && isl.start_date && (t < isl.start_date || (isl.end_date && t > isl.end_date))) return isl.start_date;
   return t;
 }
+// ---------- 外幣與收據 ----------
+const CURS = [["JPY", "日圓"], ["KRW", "韓元"], ["USD", "美元"], ["EUR", "歐元"], ["THB", "泰銖"], ["HKD", "港幣"], ["CNY", "人民幣"], ["GBP", "英鎊"], ["SGD", "新加坡幣"], ["MYR", "馬幣"], ["VND", "越南盾"], ["AUD", "澳幣"]];
+const apiBase = () => (window.FIVEJS_CONFIG || {}).API_BASE || "";
+$("fCur").innerHTML = `<option value="TWD">新台幣</option>` + CURS.map(([c, n]) => `<option value="${c}">${n} ${c}</option>`).join("");
+const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+function fxCalc() {
+  const cur = $("fCur").value, orig = +$("fOrig").value, rate = +$("fRate").value;
+  $("fOrig").disabled = $("fRate").disabled = $("fRateBtn").disabled = cur === "TWD";
+  if (cur === "TWD") { $("fxHint").textContent = "選外幣後填金額和匯率，上面的金額會自動換成新台幣；實際刷卡金額不同的話，可以直接改上面的金額。"; return; }
+  if (rate > 0) lsSet("sp.rate." + cur, String(rate));
+  if (orig > 0 && rate > 0) {
+    const twd = Math.round(orig * rate);
+    $("fAmount").value = twd; $("fAmount").dispatchEvent(new Event("input", { bubbles: true }));
+    $("fxHint").textContent = `${orig.toLocaleString()} ${cur} × ${rate} ≈ NT$${twd.toLocaleString()}`;
+  } else $("fxHint").textContent = "填外幣金額和匯率（1 外幣換多少新台幣）。";
+}
+$("fCur").onchange = () => { const cur = $("fCur").value; if (cur !== "TWD" && !+$("fRate").value) $("fRate").value = lsGet("sp.rate." + cur) || ""; fxCalc(); };
+$("fOrig").oninput = $("fRate").oninput = fxCalc;
+$("fRateBtn").onclick = async () => {
+  const cur = $("fCur").value; if (cur === "TWD") return;
+  $("fxHint").textContent = "查詢中…";
+  try {
+    const r = await fetch(`https://open.er-api.com/v6/latest/${cur}`); const j = await r.json();
+    const v = j?.rates?.TWD; if (!(v > 0)) throw new Error("no rate");
+    $("fRate").value = String(Math.round(v * 10000) / 10000); fxCalc();
+    $("fxHint").textContent += "（網路上的參考匯率，跟刷卡實際匯率會有差，可以自己改）";
+  } catch (e) { $("fxHint").textContent = "抓不到匯率，請自己輸入。"; }
+};
+// 收據：縮成最長邊 1200px 的 JPEG 再送，存在後端 photos；receipt 是 undefined（沒動）、null（移除）、{id}（原本那張）或 {data}（新照片）
+function compressImage(file, max = 1200) {
+  return new Promise((ok, no) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      ok(c.toDataURL("image/jpeg", 0.72));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error("讀不到這張照片")); };
+    img.src = url;
+  });
+}
+function renderReceipt() {
+  const r = state.receipt, src = r?.data || (r?.id ? `${apiBase()}/api/photos/${r.id}` : "");
+  $("rcptImg").hidden = !src; $("rcptDel").hidden = !src; if (src) $("rcptImg").src = src;
+}
+$("fRcpt").onchange = async () => {
+  const f = $("fRcpt").files[0]; if (!f) return;
+  try { state.receipt = { data: await compressImage(f) }; renderReceipt(); } catch (e) { toast(e.message); }
+  $("fRcpt").value = "";
+};
+$("rcptDel").onclick = () => { state.receipt = state.receiptHad ? null : undefined; renderReceipt(); };
+$("rcptImg").onclick = () => { if ($("rcptImg").src) window.open($("rcptImg").src, "_blank", "noopener"); };
+function resetFx() { state.receipt = undefined; state.receiptHad = false; $("fxBox").open = false; $("fCur").value = "TWD"; fxCalc(); renderReceipt(); }
+
 function resetForm() {
   state.editing = null; state.kind = "expense"; state.mode = "half"; state.cat = state.trip === null ? "餐飲" : "旅行"; state.paid = state.me.id;
   state.formTrip = state.trip;
   $("form").reset(); $("fDate").value = defaultDate(); $("formErr").hidden = true;
-  renderForm();
+  renderForm(); resetFx();
 }
 function startSettle(debtor, creditor, amt) {
   resetForm();
@@ -565,6 +638,9 @@ function startEdit(e) {
   } else state.mode = "half";
   $("formErr").hidden = true;
   renderForm();
+  resetFx();
+  if (e.currency && e.currency !== "TWD") { $("fCur").value = e.currency; $("fOrig").value = e.orig_amount; $("fRate").value = e.fx_rate; fxCalc(); $("fAmount").value = e.amount; $("fxBox").open = true; }
+  if (e.receipt) { state.receipt = { id: e.receipt }; state.receiptHad = true; renderReceipt(); $("fxBox").open = true; }
   if (state.mode === "custom") { $("c" + x.id).value = s[x.id] || 0; $("c" + y.id).value = s[y.id] || 0; renderPreview(); }
   $("form").scrollIntoView({ behavior: "smooth", block: "center" });
 }
@@ -580,10 +656,19 @@ $("form").addEventListener("submit", async ev => {
   if (Object.values(s).reduce((t, v) => t + v, 0) !== a) return err("兩個人負擔的金額加起來要等於總金額。");
   const body = { kind: state.kind, date: $("fDate").value || taipeiToday(), title: $("fTitle").value.trim(), category: state.cat,
                  amount: a, paid_by: state.paid, shares: s, note: $("fNote").value.trim(), trip_id: state.formTrip };
+  const cur = $("fCur").value;
+  if (state.kind === "expense" && cur !== "TWD") {
+    if (!(+$("fOrig").value > 0 && +$("fRate").value > 0)) return err("外幣要填金額和匯率；不想用外幣的話，把幣別改回新台幣。");
+    Object.assign(body, { currency: cur, orig_amount: +$("fOrig").value, fx_rate: +$("fRate").value });
+  }
+  if (state.kind === "expense" && state.receipt !== undefined) body.receipt = state.receipt === null ? null : (state.receipt.data || state.receipt.id);
   const btn = $("saveBtn"); btn.disabled = true;
   try {
     if (state.editing) await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "PUT", body });
-    else await FiveJS.api("/api/split/entries", { method: "POST", body });
+    else {
+      const r = await FiveJS.api("/api/split/entries", { method: "POST", body, queue: true });
+      if (r?.queued) { toast("離線中，已先存在手機，有網路會自動補送"); resetForm(); return; }
+    }
     toast(state.editing ? "已儲存修改" : state.kind === "settle" ? "已記下還錢" : `記在${island(body.trip_id).name}了`);
     const target = body.trip_id;
     state.editing = null;
@@ -627,7 +712,7 @@ function renderList() {
       : `${esc(nameOf(e.paid_by))}付 · ` + people().map(p => `${esc(p.name)} ${money(e.shares[p.id] || 0)}`).join(" / ");
     return `${head}<button class="item${e.kind === "settle" ? " settle" : ""}" type="button" data-id="${e.id}">
       <span class="tag">${e.kind === "settle" ? "還錢" : esc(e.category || "其他")}</span>
-      <span class="main"><b>${esc(e.title)}</b><span>${sub}${e.note ? " · " + esc(e.note) : ""}</span></span>
+      <span class="main"><b>${esc(e.title)}${e.receipt ? " 🧾" : ""}</b><span>${sub}${e.currency && e.currency !== "TWD" ? ` · ${(+e.orig_amount).toLocaleString()} ${esc(e.currency)}` : ""}${e.note ? " · " + esc(e.note) : ""}</span></span>
       <span class="amt">${money(e.amount)}</span></button>`;
   }).join("");
   $("monthBody").innerHTML = html;
@@ -672,6 +757,7 @@ async function loadEntries() {
   } catch (e) { handleErr(e); }
 }
 async function reload() { await loadIslands(); renderForm(); await loadEntries(); }
+window.addEventListener("fivejs:synced", () => reload().catch(() => {}));
 
 // 「記帳」（只有自己）和「分帳」（兩人共用）兩個分頁
 function showTab(tab) {

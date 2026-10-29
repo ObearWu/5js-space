@@ -97,6 +97,7 @@ body.locked .tabbar{display:none}
 .shelf .legend span{display:inline-flex;align-items:center;gap:4px}
 .shelf .legend .orb{--s:10px;box-shadow:none}
 </style>
+<script src="common/lock.js"></script>
 </head>
 <body class="locked">
 <div class="page">
@@ -363,6 +364,43 @@ const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
 const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const b64ToBytes = s => { const b = atob((s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
 async function currentSub() { if (!pushOk()) return null; const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+// ---------- App 上鎖（這台裝置自己的 PIN，見 common/lock.js）----------
+let lockNote = "";
+const lockHtml = () => {
+  if (!window.FiveLock?.supported()) return "";
+  const on = FiveLock.enabled(), idle = FiveLock.idle();
+  const sel = `<label class="small">多久沒用就上鎖 <select id="lkIdle">${FiveLock.IDLE_CHOICES.map(([v, t]) => `<option value="${v}"${v === idle ? " selected" : ""}>${t}</option>`).join("")}</select></label>`;
+  const pin = (id, ph) => `<input id="${id}" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="${ph}" style="width:7.5em">`;
+  return `<hr class="sep"><h2>App 上鎖</h2>
+    <p class="muted">${on ? "這台裝置已經上鎖：離開一陣子再回來，要先輸入 PIN。" : "設一組 4 碼 PIN，這台裝置離開一陣子再回來就要輸入。每台裝置各自設定。"}這是擋住旁人隨手翻看的鎖，不是加密；忘記 PIN 的話，登出再用 Google 登入就能重設。</p>
+    <div class="rows">${sel}</div>
+    ${on ? `<div class="acts">${pin("lkCur", "目前 PIN")}${pin("lkNew", "新 PIN")}<button class="btn" type="button" id="lkChange">改 PIN</button></div>
+      <div class="acts" style="margin-top:8px"><button class="btn ghost" type="button" id="lkNow">現在就上鎖</button>${pin("lkOffPin", "輸入 PIN")}<button class="btn ghost" type="button" id="lkOff">關閉上鎖</button></div>`
+      : `<div class="acts">${pin("lkNew", "4 碼 PIN")}${pin("lkNew2", "再輸入一次")}<button class="btn primary" type="button" id="lkSet">開啟上鎖</button></div>`}
+    <p style="margin-top:8px" id="lkNote"${lockNote ? "" : " hidden"}>${esc(lockNote)}</p>`;
+};
+function wireLock() {
+  if (!window.FiveLock?.supported()) return;
+  const say = t => { lockNote = t; renderNotif(); };
+  const v = id => ($(id)?.value || "").trim();
+  $("lkIdle") && ($("lkIdle").onchange = () => { FiveLock.setIdle(+$("lkIdle").value); });
+  $("lkSet") && ($("lkSet").onclick = async () => {
+    if (!/^\d{4}$/.test(v("lkNew"))) return say("PIN 要剛好 4 個數字。");
+    if (v("lkNew") !== v("lkNew2")) return say("兩次輸入的 PIN 不一樣。");
+    await FiveLock.set(v("lkNew"), +$("lkIdle").value); say("開好了。下次離開一陣子再回來就會要求輸入。");
+  });
+  $("lkChange") && ($("lkChange").onclick = async () => {
+    if (!(await FiveLock.verify(v("lkCur")))) return say("目前的 PIN 不對。");
+    if (!/^\d{4}$/.test(v("lkNew"))) return say("新 PIN 要剛好 4 個數字。");
+    await FiveLock.set(v("lkNew")); say("PIN 已經改好。");
+  });
+  $("lkOff") && ($("lkOff").onclick = async () => {
+    if (!(await FiveLock.verify(v("lkOffPin")))) return say("要先輸入正確的 PIN 才能關閉。");
+    FiveLock.disable(); say("已關閉上鎖。");
+  });
+  $("lkNow") && ($("lkNow").onclick = () => FiveLock.lockNow());
+}
+
 // ---------- 全站備份 ----------
 const backupHtml = (note) => `<hr class="sep"><h2>備份資料</h2>
   <p class="muted">把你在這個網站的資料整包存成一個檔案：飲食、運動、經期、記帳、分帳，以及互動裡你寫的答案和上傳的照片。別人的記帳和經期不會在你的檔案裡。</p>
@@ -398,8 +436,8 @@ async function renderNotif(msg) {
   const el = $("notif");
   let html = `<h2 id="notifTitle">手機通知</h2>`;
   if (!pushOk()) {
-    html += `<p class="muted">${isIOS() && !standalone() ? "iPhone 要先把這個網站「加入主畫面」（分享 → 加入主畫面），再從主畫面的圖示打開，才能開通知。需要 iOS 16.4 以上。" : "這個瀏覽器不支援網頁通知。"}</p>` + backupHtml();
-    el.innerHTML = html; wireBackup(); return;
+    html += `<p class="muted">${isIOS() && !standalone() ? "iPhone 要先把這個網站「加入主畫面」（分享 → 加入主畫面），再從主畫面的圖示打開，才能開通知。需要 iOS 16.4 以上。" : "這個瀏覽器不支援網頁通知。"}</p>` + lockHtml() + backupHtml();
+    el.innerHTML = html; wireLock(); wireBackup(); return;
   }
   const sub = await currentSub().catch(() => null);
   let prefs = null, sched = null;
@@ -412,8 +450,8 @@ async function renderNotif(msg) {
   html += `<div class="acts">${sub ? `<button class="btn" type="button" id="pushTest">傳一則測試通知</button><button class="btn ghost" type="button" id="pushOff">關閉這台的通知</button>`
     : denied ? "" : `<button class="btn primary" type="button" id="pushOn">開啟這台裝置的通知</button>`}</div>
     ${msg ? `<p style="margin-top:8px">${esc(msg)}</p>` : ""}
-    <p class="small muted" style="margin-top:8px">定時提醒（記帳、經期、紀念日）要靠每 10 分鐘的保活呼叫帶動，時間可能晚幾分鐘。</p>${schedHtml(sched)}` + backupHtml();
-  el.innerHTML = html; wireBackup();
+    <p class="small muted" style="margin-top:8px">定時提醒（記帳、經期、紀念日）要靠每 10 分鐘的保活呼叫帶動，時間可能晚幾分鐘。</p>${schedHtml(sched)}` + lockHtml() + backupHtml();
+  el.innerHTML = html; wireLock(); wireBackup();
   $("pushOn") && ($("pushOn").onclick = enablePush);
   $("pushOff") && ($("pushOff").onclick = disablePush);
   $("pushTest") && ($("pushTest").onclick = async () => { try { await FiveJS.api("/api/push/test", { method: "POST" }); renderNotif("送出了，幾秒內應該會收到。"); } catch (e) { renderNotif(e.message); } });
@@ -438,7 +476,7 @@ async function disablePush() {
 $("notifBtn").onclick = () => {
   const el = $("notif"), open = el.hidden;
   el.hidden = !open; $("notifBtn").setAttribute("aria-expanded", String(open));
-  if (open) { el.innerHTML = `<p class="small muted">讀取中…</p>`; renderNotif(); }
+  if (open) { lockNote = ""; el.innerHTML = `<p class="small muted">讀取中…</p>`; renderNotif(); }
 };
 $("notif").addEventListener("change", async e => {
   const c = e.target.closest("[data-pref]"); if (!c) return;

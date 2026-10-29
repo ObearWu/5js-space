@@ -390,7 +390,14 @@ async function saveEntry() {
   try {
     const body = formToBody(f);
     if (L.editing) await call(`/api/ledger/entries/${L.editing}`, { method: "PUT", body });
-    else await call("/api/ledger/entries", { method: "POST", body });
+    else {
+      const r = await call("/api/ledger/entries", { method: "POST", body, queue: true });
+      if (r?.queued) {
+        toast("離線中，已先存在手機，有網路會自動補送");
+        L.form = blankForm(f.kind === "income" ? "need" : f.kind);
+        L.busy = false; return renderForm();
+      }
+    }
     if (f.fav && f.kind === "need") {
       const favs = [...(L.data.settings.favorites || []).filter(x => x.title !== body.title), { title: body.title, amount, category: f.category }].slice(-12);
       await call("/api/ledger/settings", { method: "PUT", body: { favorites: favs } });
@@ -402,7 +409,7 @@ async function saveEntry() {
   } catch (e) { toast(e.message); }
   L.busy = false; renderForm();
 }
-async function post(body, msg) { try { await call("/api/ledger/entries", { method: "POST", body }); if (msg) toast(msg); await load(); } catch (e) { toast(e.message); } }
+async function post(body, msg) { try { const r = await call("/api/ledger/entries", { method: "POST", body, queue: true }); if (r?.queued) return toast("離線中，已先存在手機，有網路會自動補送"); if (msg) toast(msg); await load(); } catch (e) { toast(e.message); } }
 function markGoals() {
   // 第一次看到目標達成時記下日期（年底總結用），並恭喜一下
   for (const g of L.data.goals) if (g.done && !g.doneAt) {
@@ -541,4 +548,9 @@ $("lgNext").onclick = () => { L.month = shiftMonth(L.month, 1); L.form = null; L
 $("lgSheet").addEventListener("click", ev => { if (ev.target === $("lgSheet") && L.sheet?.type !== "setup" && L.sheet?.type !== "snap") closeSheet(); });
 
 window.FiveJSLedger = { load: reload, loaded: () => L.loaded };
+// 這支比頁面上的啟動程式晚載入：啟動程式若已經先把「記帳」分頁打開（有快取時很快），補讀一次
+if (!$("ledger").hidden) reload();
 })();
+
+// 離線補送成功後，重新讀一次最新的帳
+window.addEventListener("fivejs:synced", () => { if (L.loaded) reload(); });
