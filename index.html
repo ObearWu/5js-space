@@ -45,6 +45,7 @@ body.locked .tabbar{display:none}
 .notif label input{width:18px;height:18px;accent-color:var(--gold)}
 .notif .acts{display:flex;gap:8px;flex-wrap:wrap}
 .notif p{margin:0;font-size:.85rem}
+.notif .sep{border:0;border-top:1px solid var(--line,rgba(255,255,255,.12));margin:14px 0}
 
 /* 想你 */
 .pingbar{display:flex;align-items:center;gap:12px;padding:12px 16px}
@@ -64,6 +65,13 @@ body.locked .tabbar{display:none}
 .weekcard .g b{display:block;font-family:var(--f-num);font-size:1.15rem}
 .weekcard .g small{color:var(--muted);font-size:.76rem;display:block}
 .weekcard p{margin:10px 0 0;font-size:.85rem}
+.agenda h2{font-size:1rem;margin-bottom:8px}
+.agenda ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.agenda a{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit;background:var(--sunk);border-radius:14px;padding:9px 12px;min-width:0}
+.agenda .orb{--s:22px;flex:none}
+.agenda .t{flex:1;min-width:0;font-size:.92rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.agenda .t small{display:block;color:var(--muted);font-size:.76rem}
+.agenda .n{flex:none;font-family:var(--f-num);font-size:.95rem;text-align:right}
 .yearcard{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;border-color:color-mix(in srgb,var(--gold) 55%,transparent);box-shadow:0 0 30px color-mix(in srgb,var(--gold) 22%,transparent),0 10px 30px var(--shadow)}
 .yearcard .orb{--s:44px}
 .yearcard b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.15rem;color:#FFE59A}
@@ -103,7 +111,7 @@ body.locked .tabbar{display:none}
   <main id="hub" hidden style="display:flex;flex-direction:column;gap:18px">
     <header class="hqhead">
       <div><h1 id="helloTitle"></h1><p id="helloDate"></p></div>
-      <div><span class="small muted" id="accountName"></span> <button class="btn ghost" type="button" id="notifBtn" aria-expanded="false">通知</button> <button class="btn ghost" type="button" id="logoutBtn">登出</button></div>
+      <div><span class="small muted" id="accountName"></span> <button class="btn ghost" type="button" id="notifBtn" aria-expanded="false">設定</button> <button class="btn ghost" type="button" id="logoutBtn">登出</button></div>
     </header>
 
     <a class="panel core" href="together/#days" id="core">
@@ -115,6 +123,7 @@ body.locked .tabbar{display:none}
     <section class="panel pingbar" id="pingbar" hidden aria-label="想你"></section>
     <a class="panel yearcard" id="yearCard" hidden></a>
     <section class="panel weekcard" id="weekCard" hidden aria-labelledby="wkTitle"></section>
+    <section class="panel agenda" id="agendaCard" hidden aria-labelledby="agTitle"></section>
 
     <nav class="panel console" id="console" aria-label="功能"></nav>
 
@@ -261,6 +270,20 @@ function renderWeek(s) {
     </div>
     <p class="muted">${[w.photos ? `放了 ${w.photos} 張照片` : "", w.pings ? `互送 ${w.pings} 顆想你` : ""].filter(Boolean).join("、") || "這週辛苦了"}。今天也別忘了到互動頁寫<a href="together/#checkin">每週小聊天</a>。</p>`;
 }
+// 接下來 30 天：紀念日和旅行放在同一張卡（沒有的時候整張不顯示）
+function renderAgenda(s) {
+  const el = $("agendaCard"), list = s.agenda || [];
+  if (!list.length) { el.hidden = true; return; }
+  const md = iso => `${+iso.slice(5, 7)}/${+iso.slice(8)}`;
+  el.hidden = false;
+  el.innerHTML = `<h2 id="agTitle">接下來 30 天</h2><ul>${list.slice(0, 5).map(x => {
+    const trip = x.kind === "trip";
+    const href = trip ? `split/#trip-${x.id}` : "together/#days";
+    const when = trip ? (x.ongoing ? "旅程進行中" : x.days === 0 ? "今天出發" : `${md(x.date)} 出發`) : md(x.date);
+    const n = trip && x.ongoing ? "進行中" : x.days === 0 ? "今天" : `${x.days} 天後`;
+    return `<li><a href="${href}"><i class="orb" style="--c:${trip ? "var(--envy,#7BD88F)" : "var(--gold)"}"></i><span class="t">${esc(x.title)}<small>${when}${trip && x.end !== x.date ? `～${md(x.end)}` : ""}</small></span><span class="n">${n}</span></a></li>`;
+  }).join("")}</ul>`;
+}
 // 12 月到 1 月第一週：首頁出現「我們的一年」
 function renderYear(s) {
   const el = $("yearCard"), [y, m, d] = s.today.split("-").map(Number);
@@ -296,7 +319,7 @@ async function loadSummary() {
   if (c && !loadSummary.shown) { loadSummary.shown = true; try { renderConsole(c); renderCore(c); renderShelf(c); renderPing(c.together.ping); } catch (e) {} }
   try {
     const s = await FiveJS.api("/api/hq/today");
-    renderConsole(s); renderCore(s); renderShelf(s); renderPing(s.together.ping); renderWeek(s); renderYear(s);
+    renderConsole(s); renderCore(s); renderShelf(s); renderPing(s.together.ping); renderWeek(s); renderAgenda(s); renderYear(s);
   } catch (e) {
     if (e instanceof FiveJS.AuthError) { FiveJS.setToken(null); showGate(e.message, true); return; }
     // 已經畫了上次的摘要就留著，等下次回到這頁再更新
@@ -340,16 +363,47 @@ const isIOS = () => /iPhone|iPad|iPod/.test(navigator.userAgent);
 const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
 const b64ToBytes = s => { const b = atob((s + "=".repeat((4 - s.length % 4) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(b, c => c.charCodeAt(0)); };
 async function currentSub() { if (!pushOk()) return null; const reg = await navigator.serviceWorker.ready; return reg.pushManager.getSubscription(); }
+// ---------- 全站備份 ----------
+const backupHtml = (note) => `<hr class="sep"><h2>備份資料</h2>
+  <p class="muted">把你在這個網站的資料整包存成一個檔案：飲食、運動、經期、記帳、分帳，以及互動裡你寫的答案和上傳的照片。別人的記帳和經期不會在你的檔案裡。</p>
+  <div class="acts" style="margin-top:8px"><button class="btn" type="button" id="bkAll">下載備份（含照片）</button><button class="btn ghost" type="button" id="bkLite">下載備份（不含照片）</button></div>
+  ${note ? `<p style="margin-top:8px" id="bkNote">${esc(note)}</p>` : `<p style="margin-top:8px" id="bkNote" hidden></p>`}
+  <p class="small muted" style="margin-top:8px">建議每個月存一次，檔案放在雲端硬碟或寄給自己。含照片的檔案比較大，要等一下。</p>`;
+async function downloadBackup(withPhotos) {
+  const note = $("bkNote"); note.hidden = false; note.textContent = "整理中，請稍等…";
+  $("bkAll").disabled = $("bkLite").disabled = true;
+  try {
+    const data = await FiveJS.api(`/api/export?photos=${withPhotos ? 1 : 0}`);
+    const day = new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Taipei" });
+    const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `大小豬的小空間備份_${data.user?.name || ""}_${day}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    note.textContent = `已下載（${(blob.size / 1048576).toFixed(1)} MB）。`;
+  } catch (e) { note.textContent = `備份失敗：${e.message || e}`; }
+  finally { $("bkAll").disabled = $("bkLite").disabled = false; }
+}
+const wireBackup = () => { $("bkAll") && ($("bkAll").onclick = () => downloadBackup(true)); $("bkLite") && ($("bkLite").onclick = () => downloadBackup(false)); };
+
+// 排程有沒有在動：保活排程正常是每 10 分鐘一次，所以最近 1 小時約 6 次（這個數字只算後端這次開機之後的）
+function schedHtml(sc) {
+  if (!sc) return "";
+  const young = sc.uptimeMin < 60, ok = sc.pingsLastHour >= 4;
+  const text = young ? `後端剛啟動 ${sc.uptimeMin} 分鐘，還看不出排程有沒有在跑，過一小時再來看。`
+    : ok ? `排程正常：最近 1 小時被呼叫了 ${sc.pingsLastHour} 次。`
+    : `排程可能停了：最近 1 小時只被呼叫 ${sc.pingsLastHour} 次（正常約 6 次）。請到 cron-job.org 確認那個排程還在跑。`;
+  return `<p class="small ${young || ok ? "muted" : ""}" style="margin-top:6px${young || ok ? "" : ";color:var(--disgust,#e36)"}">${esc(text)}</p>`;
+}
 async function renderNotif(msg) {
   const el = $("notif");
   let html = `<h2 id="notifTitle">手機通知</h2>`;
   if (!pushOk()) {
-    html += `<p class="muted">${isIOS() && !standalone() ? "iPhone 要先把這個網站「加入主畫面」（分享 → 加入主畫面），再從主畫面的圖示打開，才能開通知。需要 iOS 16.4 以上。" : "這個瀏覽器不支援網頁通知。"}</p>`;
-    el.innerHTML = html; return;
+    html += `<p class="muted">${isIOS() && !standalone() ? "iPhone 要先把這個網站「加入主畫面」（分享 → 加入主畫面），再從主畫面的圖示打開，才能開通知。需要 iOS 16.4 以上。" : "這個瀏覽器不支援網頁通知。"}</p>` + backupHtml();
+    el.innerHTML = html; wireBackup(); return;
   }
   const sub = await currentSub().catch(() => null);
-  let prefs = null;
-  try { prefs = (await FiveJS.api("/api/push/prefs")).prefs; } catch (e) {}
+  let prefs = null, sched = null;
+  try { const r = await FiveJS.api("/api/push/prefs"); prefs = r.prefs; sched = r.schedule; } catch (e) {}
   const denied = Notification.permission === "denied";
   html += sub
     ? `<p>這台裝置已經開啟通知。</p>`
@@ -358,8 +412,8 @@ async function renderNotif(msg) {
   html += `<div class="acts">${sub ? `<button class="btn" type="button" id="pushTest">傳一則測試通知</button><button class="btn ghost" type="button" id="pushOff">關閉這台的通知</button>`
     : denied ? "" : `<button class="btn primary" type="button" id="pushOn">開啟這台裝置的通知</button>`}</div>
     ${msg ? `<p style="margin-top:8px">${esc(msg)}</p>` : ""}
-    <p class="small muted" style="margin-top:8px">定時提醒（記帳、經期、紀念日）要靠每 10 分鐘的保活呼叫帶動，時間可能晚幾分鐘。</p>`;
-  el.innerHTML = html;
+    <p class="small muted" style="margin-top:8px">定時提醒（記帳、經期、紀念日）要靠每 10 分鐘的保活呼叫帶動，時間可能晚幾分鐘。</p>${schedHtml(sched)}` + backupHtml();
+  el.innerHTML = html; wireBackup();
   $("pushOn") && ($("pushOn").onclick = enablePush);
   $("pushOff") && ($("pushOff").onclick = disablePush);
   $("pushTest") && ($("pushTest").onclick = async () => { try { await FiveJS.api("/api/push/test", { method: "POST" }); renderNotif("送出了，幾秒內應該會收到。"); } catch (e) { renderNotif(e.message); } });

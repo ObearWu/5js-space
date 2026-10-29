@@ -102,7 +102,8 @@ input:focus,textarea:focus{border-color:var(--accent);outline:none}
 .item .main span{font-size:.8rem;color:var(--muted)}
 .item .amt{font-family:var(--f-num);font-weight:700;font-size:1.05rem;white-space:nowrap}
 .empty{text-align:center;color:var(--muted);padding:18px 0}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:10;max-width:calc(100% - 32px)}
+.toastact{border:0;background:none;color:var(--gold);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer;padding:0 0 0 6px}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabbar,64px) + 16px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:50;max-width:calc(100% - 32px)}
 
 /* 記帳／分帳分頁切換 */
 .modetabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(255,255,255,.06);border-radius:999px;padding:4px;margin:14px 0 18px;max-width:420px}
@@ -319,7 +320,12 @@ const nameOf = id => people().find(p => p.id === +id)?.name || "?";
 const other = id => people().find(p => p.id !== +id);
 const island = id => state.islands.find(i => i.id === id) || state.islands[0];
 
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+// act = {label, fn}：訊息旁邊多一顆按鈕（例如刪除後的「復原」），多留幾秒讓人按得到
+function toast(msg, act) {
+  const t = $("toast"); t.textContent = msg;
+  if (act) { const b = document.createElement("button"); b.type = "button"; b.className = "toastact"; b.textContent = act.label; b.onclick = () => { t.hidden = true; act.fn(); }; t.append(" ", b); }
+  t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, act ? 7000 : 3500);
+}
 
 // 島上插的棒棒糖旗子：白色外圈、島的顏色漩渦（照兩人的棒棒糖娃娃）
 function flag(color) {
@@ -592,7 +598,7 @@ $("form").addEventListener("submit", async ev => {
 $("delBtn").addEventListener("click", async () => {
   const b = $("delBtn");
   if (!b.classList.contains("armed")) { b.classList.add("armed"); b.textContent = "再按一次確定刪除"; return; }
-  try { await FiveJS.api(`/api/split/entries/${state.editing}`, { method: "DELETE" }); toast("已刪除"); resetForm(); await reload(); }
+  try { const id = state.editing; await FiveJS.api(`/api/split/entries/${id}`, { method: "DELETE" }); toast("已刪除", { label: "復原", fn: () => FiveJS.api(`/api/split/entries/${id}/restore`, { method: "POST" }).then(() => { toast("已復原"); return reload(); }).catch(e => toast(e.message)) }); resetForm(); await reload(); }
   catch (e) { $("formErr").textContent = e.message; $("formErr").hidden = false; }
   finally { b.classList.remove("armed"); b.textContent = "刪除"; }
 });

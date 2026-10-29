@@ -186,7 +186,10 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
 .figrow .sg b{font-family:var(--f-num)}
 .figrow .hi{color:#FF8A6B} .figrow .ok{color:#6CCB98}
 .figcol{display:flex;flex-direction:column;gap:6px}
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:30;max-width:calc(100% - 32px)}
+.day .cheer{margin-left:10px;border:1px solid var(--line);background:transparent;color:inherit;border-radius:999px;padding:1px 10px;font:inherit;font-size:.78rem;cursor:pointer}
+.day .cheer.on{border-color:var(--gold);color:var(--gold)}
+.day .cheer.got{border:0;color:var(--gold);cursor:default;padding:0}
+.toast{position:fixed;left:50%;bottom:calc(var(--tabbar,64px) + 16px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:50;max-width:calc(100% - 32px)}
 </style>
 </head>
 <body>
@@ -230,7 +233,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
             <div class="rts" id="routines"></div>
             <div class="sethead"><span>動作</span><span>重量 kg</span><span>次數</span><span>組數</span><span class="dn">做完</span><span></span></div>
             <div class="sets" id="sets"></div>
-            <p style="margin:-2px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"><button class="link" type="button" id="addSet">＋ 再加一個動作</button><button class="link" type="button" id="saveRt">存成範本</button>
+            <p style="margin:-2px 0 10px;display:flex;gap:14px;flex-wrap:wrap;align-items:center"><button class="link" type="button" id="addSet">＋ 再加一個動作</button><button class="link" type="button" id="saveRt">存成範本</button><button class="link" type="button" id="plateToggle"></button>
               <span class="small muted">休息</span><span class="seg small" id="restSec"></span></p>
             <div class="rtsave" id="rtSave" hidden><input id="rtName" maxlength="20" placeholder="範本名稱，例如：上半身 A"><button class="btn primary sm" type="button" id="rtOk">存</button><button class="btn ghost sm" type="button" id="rtNo">取消</button></div>
           </div>
@@ -410,7 +413,10 @@ $("fType").onclick = e => {
   if (!$("fName").value || $("fName").value === prev) $("fName").value = S.type === "其他" ? "" : S.type;
   renderType();
 };
+function renderPlateToggle() { $("plateToggle").textContent = `槓片／暖身：${plateOn() ? "開" : "關"}`; }
+$("plateToggle").onclick = () => { LS.set("fit.plates", !plateOn()); renderPlateToggle(); renderSets(); };
 function renderSets() {
+  renderPlateToggle();
   const lifts = [...new Set(mineEx().flatMap(x => (x.sets || []).map(s => s.lift)).filter(Boolean))];
   $("sets").innerHTML = S.sets.map((s, i) => `<div class="set" data-i="${i}">
     <input data-k="lift" list="liftList" maxlength="30" placeholder="例如：深蹲" value="${esc(s.lift)}" aria-label="動作">
@@ -423,7 +429,7 @@ function renderSets() {
 }
 $("sets").oninput = e => { const row = e.target.closest("[data-i]"); if (row) S.sets[+row.dataset.i][e.target.dataset.k] = e.target.value; };
 // 動作名稱打完（離開輸入框）才更新建議，打字途中不重畫
-$("sets").addEventListener("change", e => { if (e.target.dataset.k === "lift" || e.target.dataset.k === "n") renderSets(); });
+$("sets").addEventListener("change", e => { if (["lift", "n", "kg"].includes(e.target.dataset.k)) renderSets(); });
 $("sets").onclick = e => {
   const b = e.target.closest("[data-del]"); if (b) { S.sets.splice(+b.dataset.del, 1); renderSets(); return; }
   const d = e.target.closest("[data-done]");
@@ -450,11 +456,31 @@ function suggest(last) {
   return [{ kg: r1(last.kg + 2.5), reps: last.reps }, { kg: last.kg, reps: last.reps + 1 }];
 }
 const sugText = o => o.kg ? `${o.kg}kg×${o.reps}` : `${o.reps} 下`;
+// 槓鈴片計算與暖身組：照目前填的重量算（槓 20 公斤，每邊用 25/20/15/10/5/2.5/1.25 公斤的片），可以在「槓片／暖身」關掉
+const PLATES = [25, 20, 15, 10, 5, 2.5, 1.25], BAR = 20;
+const plateOn = () => LS.get("fit.plates", true);
+function platesFor(kg) {
+  if (!(kg > BAR)) return null;
+  let side = (kg - BAR) / 2; const out = [];
+  for (const p of PLATES) while (side >= p - 1e-9) { out.push(p); side = Math.round((side - p) * 100) / 100; }
+  return { out, rest: side > 0.01 };
+}
+function warmups(kg) {
+  if (!(kg >= 40)) return [];
+  const rows = [[.4, 8], [.6, 5], [.8, 3]].map(([p, reps]) => ({ kg: Math.max(BAR, Math.round(kg * p / 2.5) * 2.5), reps }));
+  return rows.filter((w, i) => w.kg < kg && rows.findIndex(x => x.kg === w.kg) === i);
+}
+function plateHint(i) {
+  const kg = +S.sets[i]?.kg;
+  if (!plateOn() || !(kg > BAR)) return "";
+  const pl = platesFor(kg), wu = warmups(kg);
+  return `<div class="hint">${kg} 公斤：槓 ${BAR}，每邊 ${pl.out.length ? pl.out.join(" + ") : "不用加片"}${pl.rest ? "（這個重量湊不齊，最接近的是少一點點）" : ""}${wu.length ? `<br>暖身：${wu.map(w => `${w.kg}×${w.reps}`).join(" → ")} → ${kg}` : ""}</div>`;
+}
 function hintHtml(lift, i) {
   const last = lift && lastSession(String(lift).trim());
-  if (!last) return "";
+  if (!last) return plateHint(i);
   return `<div class="hint">上次 ${+last.date.slice(5, 7)}/${+last.date.slice(8)}：${sugText(last)}×${last.n}組。下次試試 ${suggest(last).map(o =>
-    `<button type="button" data-use="${i}" data-v='${esc(JSON.stringify({ kg: o.kg || "", reps: o.reps, n: last.n }))}'>${sugText(o)}</button>`).join(" 或 ")}</div>`;
+    `<button type="button" data-use="${i}" data-v='${esc(JSON.stringify({ kg: o.kg || "", reps: o.reps, n: last.n }))}'>${sugText(o)}</button>`).join(" 或 ")}</div>` + plateHint(i);
 }
 
 // ---------- 休息計時 ----------
@@ -579,12 +605,34 @@ $("form").onsubmit = async e => {
 };
 
 // ---------- 紀錄列表 ----------
+// ---------- 打氣：跟飲食頁共用同一份 cheers/<我的帳號>，鍵是「fit|被打氣的人|日期」，兩邊互不干擾 ----------
+const fitKey = (uid, date) => `fit|${uid}|${date}`;
+const giversOf = key => Object.keys(S.cheers || {}).filter(u => S.cheers[u]?.[key]);
+let cheerQueue = Promise.resolve();
+function toggleCheer(key) {
+  const me = String(S.me.id), mine = { ...(S.cheers?.[me] || {}) };
+  if (mine[key]) delete mine[key]; else mine[key] = Date.now();
+  const cutoff = addDays(today(), -60);
+  Object.keys(mine).forEach(k => { if ((k.split("|")[2] || "") < cutoff) delete mine[k]; });
+  S.cheers = { ...(S.cheers || {}), [me]: mine };
+  renderLogs();
+  cheerQueue = cheerQueue.then(() => S.db.collection("cheers").doc(me).set({ given: mine, updated: Date.now() })).catch(() => toast("打氣沒有送出去"));
+}
+function cheerHtml(date) {
+  if (!S.partner) return "";
+  const me = String(S.me.id), key = fitKey(partnerView() ? S.partner.id : me, date), g = giversOf(key);
+  if (partnerView()) {
+    const on = g.includes(me);
+    return `<button class="cheer${on ? " on" : ""}" type="button" data-cheer="${esc(key)}" aria-pressed="${on}">♥ ${on ? "已打氣" : `替${esc(S.partner.name)}打氣`}</button>`;
+  }
+  return g.length ? `<span class="cheer got">♥ ${esc(S.partner.name)}替這天打氣</span>` : "";
+}
 function renderLogs() {
   const list = mineEx().slice().sort((a, b) => a.date === b.date ? b.ts - a.ts : a.date < b.date ? 1 : -1).slice(0, 40);
   if (!list.length) { $("logs").innerHTML = `<p class="empty">還沒有運動紀錄</p>`; return; }
   let html = "", last = "";
   for (const x of list) {
-    if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}</div><ul class="list">`; last = x.date; }
+    if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}${cheerHtml(x.date)}</div><ul class="list">`; last = x.date; }
     html += `<li><span class="tag">${esc(x.type || "運動")}</span><div class="main"><b>${esc(x.name)}</b>
       <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
       <span class="kc">${r0(x.kcal)} 大卡</span>${partnerView() ? "" : `<button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button>`}</li>`;
@@ -592,6 +640,7 @@ function renderLogs() {
   $("logs").innerHTML = html + "</ul>";
 }
 $("logs").onclick = async e => {
+  const ch = e.target.closest("[data-cheer]"); if (ch) { toggleCheer(ch.dataset.cheer); return; }
   const b = e.target.closest("[data-del]"); if (!b || partnerView()) return;
   const id = b.dataset.del;
   if (S.armed !== id) { S.armed = id; renderLogs(); setTimeout(() => { if (S.armed === id) { S.armed = null; renderLogs(); } }, 4000); return; }
@@ -1066,6 +1115,10 @@ async function boot() {
   col("fitprefs").onSnapshot(snap => { S.prefs = strip(docs(snap).find(d => d.id === "prefs") || { id: "" }); if (prof()) { renderChallenge(); renderMuscles(); } }, () => {});
   S.db.collection(`shared/${S.me.id}/bodycomp`).onSnapshot(snap => { BC.mineShared = docs(snap); BC.sharedLoaded = true; mirrorBC(); }, () => {});
   if (S.partner) {
+    S.db.collection("cheers").onSnapshot(snap => {
+      const m = {}; snap.docs.forEach(d => { const g = d.data()?.given; if (g && typeof g === "object") m[d.id] = g; });
+      S.cheers = m; renderLogs();
+    }, () => {});
     S.db.collection("shared").doc(String(S.partner.id)).onSnapshot(d => { S.pShare = d.exists ? d.data() : null; renderAll(); }, () => {});
     S.db.collection(`shared/${S.partner.id}/exercise`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pExercise = docs(snap); renderAll(); }, () => {});
     S.db.collection(`shared/${S.partner.id}/bodycomp`).onSnapshot(snap => { BC.partner = docs(snap); renderAll(); }, () => {});

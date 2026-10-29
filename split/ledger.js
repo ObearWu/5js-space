@@ -36,7 +36,12 @@ const C = { need: "var(--sad)", future: "var(--envy)", protect: "var(--anx)", go
 
 const L = { data: null, month: taipeiToday().slice(0, 7), form: null, editing: null, sheet: null, busy: false, loaded: false };
 
-function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
+// act = {label, fn}：訊息旁邊多一顆按鈕（例如刪除後的「復原」），多留幾秒讓人按得到
+function toast(msg, act) {
+  const t = $("toast"); t.textContent = msg;
+  if (act) { const b = document.createElement("button"); b.type = "button"; b.className = "toastact"; b.textContent = act.label; b.onclick = () => { t.hidden = true; act.fn(); }; t.append(" ", b); }
+  t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, act ? 7000 : 3500);
+}
 async function call(path, opts) {
   try { return await FiveJS.api(path, opts); }
   catch (e) { if (e instanceof FiveJS.AuthError) location.href = "../?next=split"; throw e; }
@@ -422,9 +427,9 @@ document.addEventListener("click", async ev => {
   else if (a === "save") saveEntry();
   else if (a === "cancel") { L.editing = null; L.form = blankForm(); renderForm(); }
   else if (a === "edit") { const e = d.entries.find(x => String(x.id) === v); if (!e) return;
-    if (e.kind === "cover" || e.kind === "adjust" || e.kind === "nospend") { if (confirm(`刪除這筆「${e.title || "沒花錢"}」？`)) { await call(`/api/ledger/entries/${e.id}`, { method: "DELETE" }).catch(x => toast(x.message)); reload(); } return; }
+    if (e.kind === "cover" || e.kind === "adjust" || e.kind === "nospend") { if (confirm(`刪除這筆「${e.title || "沒花錢"}」？`)) { const ok = await call(`/api/ledger/entries/${e.id}`, { method: "DELETE" }).then(() => true, x => { toast(x.message); return false; }); await reload(); if (ok) toast("已刪除", { label: "復原", fn: () => call(`/api/ledger/entries/${e.id}/restore`, { method: "POST" }).then(() => { toast("已復原"); return load(); }).catch(x => toast(x.message)) }); } return; }
     L.editing = e.id; L.form = entryToForm(e); renderForm(); $("lgForm").scrollIntoView({ behavior: "smooth", block: "start" }); }
-  else if (a === "del") { if (!confirm("刪除這筆？")) return; try { await call(`/api/ledger/entries/${L.editing}`, { method: "DELETE" }); L.editing = null; L.form = blankForm(); toast("已刪除"); await load(); } catch (e) { toast(e.message); } }
+  else if (a === "del") { if (!confirm("刪除這筆？")) return; try { const id = L.editing; await call(`/api/ledger/entries/${id}`, { method: "DELETE" }); L.editing = null; L.form = blankForm(); await load(); toast("已刪除", { label: "復原", fn: () => call(`/api/ledger/entries/${id}/restore`, { method: "POST" }).then(() => { toast("已復原"); return load(); }).catch(x => toast(x.message)) }); } catch (e) { toast(e.message); } }
   else if (a === "nospend") { if (d.entries.some(e => e.date === taipeiToday())) return toast("今天已經有紀錄了"); post({ kind: "nospend", date: taipeiToday() }, "今天沒花錢，點亮一顆記憶球"); }
   else if (a === "fav") { const x = d.settings.favorites[+v]; post({ kind: "expense", bucket: "need", category: x.category, amount: x.amount, title: x.title, date: taipeiToday() }, `記好了：${x.title} ${money(x.amount)}`); }
   else if (a === "cover") { const amt = +v; if (amt > 0 && confirm(`從預備金挪 ${money(amt)} 補這個月的必要支出？`)) post({ kind: "cover", amount: amt, date: L.month === taipeiToday().slice(0, 7) ? taipeiToday() : L.month + "-28" }, "已從預備金挪過來"); }
@@ -467,6 +472,8 @@ async function sheetAction(sh, v) {
     } else if (sh === "delItem") {
       if (!confirm("確定刪除？")) return;
       await call(`/api/ledger/items/${v}`, { method: "DELETE" });
+      closeSheet(); await load();
+      return toast("已刪除", { label: "復原", fn: () => call(`/api/ledger/items/${v}/restore`, { method: "POST" }).then(() => { toast("已復原"); return load(); }).catch(x => toast(x.message)) });
     } else if (sh === "saveAlloc") {
       const date = $("saDate").value;
       const entries = [...document.querySelectorAll("[data-alloc]")].map(i => ({ kind: "save", bucket: i.dataset.alloc, amount: Math.round(+i.value || 0), date, title: "發薪日分配" })).filter(e => e.amount > 0);
