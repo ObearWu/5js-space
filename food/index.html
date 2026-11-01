@@ -1872,9 +1872,11 @@ function renderQuick(){
   const recent = state.meals.filter(m => m.profileId === a.id && m.mealType === type && range.includes(m.date))
     .sort((x, y) => y.date.localeCompare(x.date) || x.ts - y.ts);
   // 常吃的餐：存成範本的，點一下直接記進這一餐（不用等 AI）
-  const tpls = (a.tpls || []).slice().sort((x, y) => (x.mealType === type ? 0 : 1) - (y.mealType === type ? 0 : 1) || (y.used || 0) - (x.used || 0));
-  const tplHTML = tpls.length ? `<div class="quick-head"><span class="eyebrow">常吃的餐・點一下直接記</span><span class="small muted">在下方餐點按「☆ 存成常吃」新增</span></div>
-    <div class="qchips">${tpls.map(t => `<span class="qgroup pinned"><button class="qchip" type="button" data-tpl="${esc(t.id)}">${esc(t.title)}<span class="muted small"> ${r0(t.totals?.kcal ?? totals(t.items).kcal)}</span></button><button class="qpin" type="button" data-tplx="${esc(t.id)}" aria-label="移除常吃的 ${esc(t.title)}">×</button></span>`).join('')}</div>` : '';
+  // 每個常吃只屬於一餐：只列出目前選的餐別（沒有餐別的舊資料每餐都列）
+  const tpls = (a.tpls || []).filter(t => !t.mealType || t.mealType === type).sort((x, y) => (y.used || 0) - (x.used || 0));
+  const tplHTML = tpls.length ? `<div class="quick-head"><span class="eyebrow">常吃的${esc(type)}・點一下直接記</span><span class="small muted">在下方${esc(type)}按「☆ 存成常吃」新增</span></div>
+    <div class="qchips">${tpls.map(t => `<span class="qgroup pinned"><button class="qchip" type="button" data-tpl="${esc(t.id)}">${esc(t.title)}<span class="muted small"> ${r0(t.totals?.kcal ?? totals(t.items).kcal)}</span></button><button class="qpin" type="button" data-tplx="${esc(t.id)}" aria-label="移除常吃的 ${esc(t.title)}">×</button></span>`).join('')}</div>`
+    : `<p class="small muted" style="margin:0">還沒有${esc(type)}的常吃，在下方${esc(type)}紀錄按「☆ 存成常吃」就會出現在這裡。</p>`;
   if (!recent.length) {
     box.innerHTML = tplHTML + `<p class="small muted" style="margin:0">前三天沒有${esc(type)}紀錄，所以這裡沒有可快速加入的${esc(type)}。</p>`; return;
   }
@@ -1949,7 +1951,7 @@ async function logTemplate(a, tpl){
 function saveTemplate(m){
   const a = active(); if (!a || !m) return;
   const tpls = Array.isArray(a.tpls) ? a.tpls.slice() : [];
-  const same = tpls.findIndex(t => t.title === m.title);
+  const same = tpls.findIndex(t => t.title === m.title && t.mealType === m.mealType);
   const tpl = { id: same >= 0 ? tpls[same].id : uid(), title: (m.title || '常吃的餐').slice(0, 40), mealType: m.mealType, used: Date.now(),
                 items: (m.items || []).map(i => { const o = { ...i }; delete o.drink; return o; }), totals: { ...(m.totals || {}) }, ...(m.ca ? { ca: true } : {}) };
   if (same >= 0) tpls[same] = tpl; else tpls.unshift(tpl);
@@ -2075,7 +2077,7 @@ function renderDayInner(){
               <div style="min-width:0"><div class="t">${esc(m.title)}</div>
                 <div class="d">${esc((m.items || []).map(i => i.name).join('、'))}</div>
                 <div class="pfc"><span style="--c:var(--protein)">蛋 ${r0(m.totals?.protein)}g</span><span style="--c:var(--carbs)">碳 ${r0(m.totals?.carbs)}g</span><span style="--c:var(--fat)">脂 ${r0(m.totals?.fat)}g</span></div>
-                ${ro ? '' : (p.tpls || []).some(t => t.title === m.title) ? `<span class="tplb on">★ 常吃的餐</span>` : `<button class="tplb" type="button" data-tplsave="${esc(m.id)}">☆ 存成常吃</button>`}</div>
+                ${ro ? '' : (p.tpls || []).some(t => t.title === m.title && (!t.mealType || t.mealType === m.mealType)) ? `<span class="tplb on">★ 常吃的餐</span>` : `<button class="tplb" type="button" data-tplsave="${esc(m.id)}">☆ 存成常吃</button>`}</div>
               <div class="k"><span class="num">${r0(m.totals?.kcal)}</span><span class="small muted">大卡</span>
                 ${ro ? '' : `<button class="x" type="button" data-delmeal="${esc(m.id)}" aria-label="刪除 ${esc(m.title)}">×</button>`}</div>
             </div>`).join('')}</div></div>`).join('')
