@@ -812,17 +812,30 @@ $("cTarget").onclick = e => { const b = e.target.closest("[data-v]"); if (b) { s
 // 依動作名稱猜部位（猜不到的可以自己指定，存在設定裡）；一組算一組，複合動作只算主要部位
 const MUSCLES = [
   ["胸", ["臥推", "胸", "飛鳥", "伏地挺身", "夾胸", "bench", "push up", "pushup", "fly", "pec", "dip"]],
-  ["背", ["划船", "引體", "下拉", "背", "硬舉", "row", "pull", "deadlift", "lat pull", "chin"]],
+  ["背", ["划船", "引體", "下拉", "背", "硬舉", "row", "pull", "deadlift", "lat pull", "chin up", "chin-up"]],
   ["腿", ["深蹲", "腿", "弓箭步", "蹲", "小腿", "squat", "lunge", "leg", "calf"]],
   ["臀", ["臀", "橋", "髖", "hip", "thrust", "glute", "bridge"]],
   ["肩", ["肩", "推舉", "側平舉", "前平舉", "面拉", "聳肩", "shoulder", "ohp", "press", "raise", "face"]],
   ["手臂", ["二頭", "三頭", "彎舉", "下壓", "手臂", "臂", "curl", "tricep", "bicep", "extension"]],
   ["核心", ["腹", "核心", "棒式", "捲", "plank", "crunch", "core", "abs", "sit"]],
 ];
+// 器材名稱常同時含好幾個字（Leg Press 有 leg 也有 press、Chest Press 有 press…），
+// 所以先比對這份「更具體」的名稱，順序就是優先順序；都沒對到才用上面的通用關鍵字。
+const MUSCLES_SPECIFIC = [
+  ["肩", ["face pull", "rear delt", "reverse fly", "reverse pec", "upright row", "shrug", "反向飛鳥", "後三角", "直立划船", "聳肩"]],
+  ["核心", ["leg raise", "hanging", "russian twist", "wood chop", "ab wheel", "ab roller", "abdominal", "sit-up", "situp", "crunch", "plank", "舉腿", "捲腹", "棒式", "腹"]],
+  ["臀", ["hip thrust", "glute", "kickback", "abduction", "adduction", "臀推", "臀", "髖外展", "髖內收"]],
+  ["腿", ["leg press", "leg extension", "leg curl", "hamstring", "quad", "hack squat", "romanian", "rdl", "stiff leg", "squat", "lunge", "calf", "腿推", "腿伸", "腿彎舉", "腿屈伸", "小腿", "大腿", "羅馬尼亞"]],
+  ["胸", ["chest", "incline", "decline", "incline press", "decline press", "incline bench", "pec deck", "pec fly", "crossover", "cable fly", "butterfly", "上斜", "下斜", "胸", "蝴蝶機", "夾胸"]],
+  ["背", ["pulldown", "pull down", "pull-up", "pullup", "chin-up", "lat ", "seated row", "cable row", "t-bar", "bent over", "back extension", "hyperextension", "背", "高位下拉", "坐姿划船", "引體"]],
+  ["肩", ["shoulder", "overhead press", "military press", "lateral raise", "front raise", "arnold", "delt", "肩推", "側平舉", "前平舉"]],
+  ["手臂", ["bicep", "tricep", "curl", "pushdown", "push down", "skull", "hammer", "preacher", "kickback", "二頭", "三頭", "彎舉", "下壓", "窄握"]],
+];
 const muscleOf = lift => {
   const own = S.prefs.muscles?.[lift]; if (own) return own;
-  const l = lift.toLowerCase();
-  return MUSCLES.find(([, ks]) => ks.some(k => l.includes(k)))?.[0] || null;
+  const l = lift.toLowerCase() + " ";
+  return MUSCLES_SPECIFIC.find(([, ks]) => ks.some(k => l.includes(k)))?.[0]
+    || MUSCLES.find(([, ks]) => ks.some(k => l.includes(k)))?.[0] || null;
 };
 function bodySvg(sets) {
   const c = g => { const n = sets[g] || 0; return n ? `fill="color-mix(in srgb, var(--${n >= 10 ? "gold" : "anger"}) ${Math.min(100, 35 + n * 6.5)}%, transparent)"` : `fill="rgba(255,255,255,.05)" stroke-dasharray="3 3"`; };
