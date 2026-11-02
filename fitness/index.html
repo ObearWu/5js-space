@@ -249,6 +249,7 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
           </div>
           <div class="actions">
             <span class="small muted" id="fMsg">知道消耗多少就直接填；不填的話由 AI 依體重估算。</span>
+            <button class="link" type="button" id="fCancel" hidden>取消編輯</button>
             <button class="btn primary" type="submit" id="fSave">記下來</button>
           </div>
         </form>
@@ -614,15 +615,17 @@ $("form").onsubmit = async e => {
     msg.textContent = `AI 估算約 ${kcal} 大卡，可以修改後再按一次「記下來」。`; msg.className = "small";
     return;
   }
-  const ex = { profileId: p.id, date, name: name.slice(0, 40), minutes: r0($("fMin").value), kcal, ts: Date.now(), type: S.type };
+  const editing = S.editing;
+  const ex = { profileId: editing?.profileId || p.id, date, name: name.slice(0, 40), minutes: r0($("fMin").value), kcal, ts: editing?.ts || Date.now(), type: S.type };
   if (sets.length) ex.sets = sets;
   if (speed) { ex.speed = speed; if (incline) ex.incline = incline; }
-  const id = uid();
+  const id = editing?.id || uid();
   try {
     await col("exercise").doc(id).set(ex);
     if (p.shared) await shareCol("exercise").doc(id).set(ex).catch(() => {});
   } catch (err) { return warn(err?.message || "儲存失敗，請再試一次。"); }
-  toast("記下來了，飲食頁今天可以多吃一點");
+  toast(editing ? "已儲存修改" : "記下來了，飲食頁今天可以多吃一點");
+  if (editing) exitEdit();
   $("fName").value = S.type === "其他" ? "" : S.type; $("fMin").value = ""; $("fKcal").value = ""; $("fSpeed").value = ""; $("fIncline").value = ""; $("fDate").value = today();
   S.sets = []; renderType();
   msg.textContent = "知道消耗多少就直接填；不填的話依體重估算。"; msg.className = "small muted";
@@ -659,12 +662,34 @@ function renderLogs() {
     if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}${cheerHtml(x.date)}</div><ul class="list">`; last = x.date; }
     html += `<li><span class="tag">${esc(x.type || "運動")}</span><div class="main"><b>${esc(x.name)}</b>
       <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.speed ? `${x.minutes ? "・" : ""}${x.speed} km/h${x.incline ? `・坡度 ${x.incline}%` : ""}${x.minutes ? `・約 ${(x.speed * x.minutes / 60).toFixed(1)} 公里` : ""}` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
-      <span class="kc">${r0(x.kcal)} 大卡</span>${partnerView() ? "" : `<button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button>`}</li>`;
+      <span class="kc">${r0(x.kcal)} 大卡</span>${partnerView() ? "" : `<button class="x ed" type="button" data-edit="${esc(x.id)}" aria-label="編輯">✎</button><button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button>`}</li>`;
   }
   $("logs").innerHTML = html + "</ul>";
 }
+// 編輯：把那筆帶回上方表單，改完按「儲存修改」覆蓋原本那筆（記錄時間不變）
+function exitEdit() {
+  S.editing = null; $("fSave").textContent = "記下來"; $("fCancel").hidden = true; $("fTitle").textContent = "記一筆運動";
+}
+function startEdit(id) {
+  const x = mineEx().find(e => e.id === id); if (!x) return;
+  S.editing = { id, ts: x.ts, profileId: x.profileId };
+  S.type = TYPES.includes(x.type) ? x.type : "其他";
+  $("fName").value = x.name || ""; $("fDate").value = x.date || today();
+  $("fMin").value = x.minutes || ""; $("fKcal").value = x.kcal || "";
+  $("fSpeed").value = x.speed || ""; $("fIncline").value = x.incline || "";
+  S.sets = (x.sets || []).map(s => ({ lift: s.lift, kg: s.kg || "", reps: s.reps || "", n: s.n || 1 }));
+  renderType();
+  $("fSave").textContent = "儲存修改"; $("fCancel").hidden = false; $("fTitle").textContent = "修改這筆運動";
+  $("fMsg").textContent = "改好按「儲存修改」；大卡直接用你填的數字。"; $("fMsg").className = "small muted";
+  $("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("fCancel").onclick = () => {
+  exitEdit(); S.sets = []; S.type = "重訓"; $("fName").value = S.type; $("fMin").value = ""; $("fKcal").value = ""; $("fSpeed").value = ""; $("fIncline").value = ""; $("fDate").value = today();
+  $("fMsg").textContent = "知道消耗多少就直接填；不填的話依體重估算。"; renderType();
+};
 $("logs").onclick = async e => {
   const ch = e.target.closest("[data-cheer]"); if (ch) { toggleCheer(ch.dataset.cheer); return; }
+  const ed = e.target.closest("[data-edit]"); if (ed) { if (!partnerView()) startEdit(ed.dataset.edit); return; }
   const b = e.target.closest("[data-del]"); if (!b || partnerView()) return;
   const id = b.dataset.del;
   if (S.armed !== id) { S.armed = id; renderLogs(); setTimeout(() => { if (S.armed === id) { S.armed = null; renderLogs(); } }, 4000); return; }
@@ -1161,7 +1186,7 @@ async function boot() {
     S.db.collection(`shared/${S.partner.id}/bodycomp`).onSnapshot(snap => { BC.partner = docs(snap); renderAll(); }, () => {});
     S.db.collection(`shared/${S.partner.id}/weights`).where("date", ">=", addDays(today(), -366)).onSnapshot(snap => { S.pWeights = docs(snap); renderAll(); }, () => {});
   }
-  $("prof").onchange = () => { S.pid = $("prof").value; LS.set("fit.pid", S.pid); S.sets = []; renderType(); renderAll(); };
+  $("prof").onchange = () => { S.pid = $("prof").value; LS.set("fit.pid", S.pid); S.sets = []; if (S.editing) $("fCancel").click(); renderType(); renderAll(); };
 }
 boot();
 })();
