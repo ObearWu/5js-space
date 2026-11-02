@@ -243,6 +243,10 @@ input:focus,select:focus{border-color:var(--accent);outline:none}
             <div class="field"><span>時間</span><div class="unit"><input id="fMin" type="number" inputmode="numeric" min="0" step="1"><i>分鐘</i></div></div>
             <div class="field"><span>消耗</span><div class="unit"><input id="fKcal" type="number" inputmode="numeric" min="0" step="1" placeholder="AI 估"><i>大卡</i></div></div>
           </div>
+          <div class="row3" id="gaitBox" hidden>
+            <div class="field"><span>平均時速</span><div class="unit"><input id="fSpeed" type="number" inputmode="decimal" min="0" max="25" step="0.1" placeholder="選填"><i>km/h</i></div></div>
+            <div class="field"><span>平均坡度</span><div class="unit"><input id="fIncline" type="number" inputmode="decimal" min="0" max="30" step="0.5" placeholder="選填"><i>%</i></div></div>
+          </div>
           <div class="actions">
             <span class="small muted" id="fMsg">知道消耗多少就直接填；不填的話由 AI 依體重估算。</span>
             <button class="btn primary" type="submit" id="fSave">記下來</button>
@@ -335,6 +339,15 @@ const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == nu
 function toast(msg) { const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 3500); }
 
 // 跟飲食頁同一套集合（舊食記的命名）
+const GAIT = ["快走", "跑步"];  // 這兩類可填平均時速與坡度
+// 有時速時自己算消耗（ACSM 的步行／跑步公式，跑步機常用）：耗氧 ml/kg/分 × 體重 × 分鐘 × 5 大卡/升。
+// 快走用步行公式、跑步用跑步公式；沒填時速就維持原本的 AI 估算。
+function gaitKcal(type, kmh, incline, kg, min) {
+  if (!(kmh > 0 && kg > 0 && min > 0)) return 0;
+  const m = kmh * 1000 / 60, g = (incline || 0) / 100;
+  const vo2 = type === "跑步" ? 0.2 * m + 0.9 * m * g + 3.5 : 0.1 * m + 1.8 * m * g + 3.5;
+  return Math.round(vo2 * kg * min * 5 / 1000);
+}
 const TYPES = ["重訓", "跑步", "快走", "騎車", "游泳", "瑜伽", "球類", "其他"];
 const S = { db: null, sample: null, me: null, partner: null, profiles: [], pid: null,
             exercise: [], weights: [], pShare: null, pExercise: [], pWeights: [], view: "me",
@@ -405,6 +418,7 @@ function renderWeek() {
 function renderType() {
   $("fType").innerHTML = TYPES.map(t => `<button type="button" data-v="${t}" aria-pressed="${t === S.type}">${t}</button>`).join("");
   $("setsBox").hidden = S.type !== "重訓";
+  $("gaitBox").hidden = !GAIT.includes(S.type);
   if (S.type === "重訓" && !S.sets.length) S.sets = [{ lift: "", kg: "", reps: "", n: 3 }];
   renderSets();
 }
@@ -578,6 +592,14 @@ $("form").onsubmit = async e => {
   if (!name) return warn("請寫做了什麼運動。");
   if (!minutes && !sets.length && !kcal) return warn("請填運動時間，AI 才能估算消耗。");
   const btn = $("fSave");
+  const speed = GAIT.includes(S.type) ? Math.max(0, +$("fSpeed").value || 0) : 0;
+  const incline = speed ? Math.max(0, +$("fIncline").value || 0) : 0;
+  if (!kcal && speed && minutes && p.weight > 0) {
+    kcal = gaitKcal(S.type, speed, incline, p.weight, minutes);
+    $("fKcal").value = kcal;
+    msg.textContent = `依時速${incline ? "和坡度" : ""}估算約 ${kcal} 大卡，可以修改後再按一次「記下來」。`; msg.className = "small";
+    return;
+  }
   if (!kcal) {
     btn.disabled = true; btn.textContent = "AI 估算中…";
     try {
@@ -594,15 +616,16 @@ $("form").onsubmit = async e => {
   }
   const ex = { profileId: p.id, date, name: name.slice(0, 40), minutes: r0($("fMin").value), kcal, ts: Date.now(), type: S.type };
   if (sets.length) ex.sets = sets;
+  if (speed) { ex.speed = speed; if (incline) ex.incline = incline; }
   const id = uid();
   try {
     await col("exercise").doc(id).set(ex);
     if (p.shared) await shareCol("exercise").doc(id).set(ex).catch(() => {});
   } catch (err) { return warn(err?.message || "儲存失敗，請再試一次。"); }
   toast("記下來了，飲食頁今天可以多吃一點");
-  $("fName").value = S.type === "其他" ? "" : S.type; $("fMin").value = ""; $("fKcal").value = ""; $("fDate").value = today();
+  $("fName").value = S.type === "其他" ? "" : S.type; $("fMin").value = ""; $("fKcal").value = ""; $("fSpeed").value = ""; $("fIncline").value = ""; $("fDate").value = today();
   S.sets = []; renderType();
-  msg.textContent = "知道消耗多少就直接填；不填的話由 AI 依體重估算。"; msg.className = "small muted";
+  msg.textContent = "知道消耗多少就直接填；不填的話依體重估算。"; msg.className = "small muted";
 };
 
 // ---------- 紀錄列表 ----------
@@ -635,7 +658,7 @@ function renderLogs() {
   for (const x of list) {
     if (x.date !== last) { if (last) html += "</ul>"; html += `<div class="day">${esc(dayText(x.date))}${cheerHtml(x.date)}</div><ul class="list">`; last = x.date; }
     html += `<li><span class="tag">${esc(x.type || "運動")}</span><div class="main"><b>${esc(x.name)}</b>
-      <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
+      <span>${x.minutes ? `${r0(x.minutes)} 分鐘` : ""}${x.speed ? `${x.minutes ? "・" : ""}${x.speed} km/h${x.incline ? `・坡度 ${x.incline}%` : ""}${x.minutes ? `・約 ${(x.speed * x.minutes / 60).toFixed(1)} 公里` : ""}` : ""}${x.sets?.length ? `${x.minutes ? "・" : ""}${esc(setsText(x.sets))}` : ""}</span></div>
       <span class="kc">${r0(x.kcal)} 大卡</span>${partnerView() ? "" : `<button class="x${S.armed === x.id ? " armed" : ""}" type="button" data-del="${esc(x.id)}" aria-label="刪除">${S.armed === x.id ? "刪除？" : "×"}</button>`}</li>`;
   }
   $("logs").innerHTML = html + "</ul>";
