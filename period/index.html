@@ -191,6 +191,31 @@ nav.tabs svg{width:22px;height:22px}
 .care2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:360px){.care2{grid-template-columns:1fr}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+/* ===== 2026-11 實體物件改版：串珠手鍊、手帳貼紙、珠串、照顧小卡 ===== */
+.dial svg{overflow:visible}
+.dial .bead.ovu circle:first-child{filter:drop-shadow(0 0 5px var(--mint))}
+.card.journal{background:#FFF6E4 !important;color:#5A3E2E;border-color:transparent !important;padding-left:30px !important;position:relative;
+  background-image:repeating-linear-gradient(180deg,transparent 0 27px,#EAD9BC 27px 28px) !important}
+.card.journal::before{content:"";position:absolute;left:10px;top:12px;bottom:12px;width:6px;background:radial-gradient(circle,#CDB894 2.5px,transparent 3px) 0 0/6px 16px}
+.journal .jhead{display:flex;justify-content:space-between;align-items:center;gap:8px;font-family:var(--f-round);color:#8A6E5E}
+.journal .jhead .btn{background:#F2E3C6 !important;color:#5A3E2E !important;border-color:#D9C7A8 !important}
+.journal .jlabel{font-size:.75rem;color:#8A6E5E;margin:10px 0 4px;letter-spacing:.1em}
+.journal .stks{display:flex;flex-wrap:wrap;gap:8px}
+.journal .stk{font:inherit;font-size:.85rem;padding:4px 12px 4px 6px;border-radius:999px;cursor:pointer;background:transparent;color:#8A6E5E;border:1.5px dashed #CDB894;display:inline-flex;gap:5px;align-items:center;transition:transform .15s}
+.journal .stk svg{width:20px;height:20px;opacity:.55}
+.journal .stk[aria-pressed="true"]{background:#fff;border:2px solid #fff;color:#5A3E2E;box-shadow:0 2px 4px rgba(90,62,46,.35);transform:rotate(var(--r,-3deg))}
+.journal .stk[aria-pressed="true"] svg{opacity:1}
+.journal .stk:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.journal .jmore{margin:10px 0 0;font-size:.85rem}
+.journal .jmore.muted{color:#8A6E5E}
+.strands{display:flex;flex-direction:column;gap:8px}
+.strand{display:grid;grid-template-columns:44px 1fr 46px;gap:8px;align-items:center;font-size:.8rem}
+.strand .beads{display:flex;gap:1.5px;overflow:hidden}
+.strand .beads i{flex:0 1 7px;min-width:0;aspect-ratio:1;border-radius:50%;background:#4A3F78}
+.strand .beads i.p{background:var(--rose)} .strand .beads i.f{background:var(--mint)}
+.card.note-card{background:#FFF6E4 !important;color:#5A3E2E;border-color:transparent !important;transform:rotate(-1.2deg);font-family:var(--f-round);font-size:1.02rem;line-height:1.7;box-shadow:0 8px 16px -8px rgba(0,0,0,.6)}
+.note-card p{margin:0}
+.note-card .sig{display:block;text-align:right;color:#C24C80;font-size:.82rem;margin-top:6px}
 </style>
 <link rel="stylesheet" href="../common/hq-port.css">
 <script src="../common/lock.js"></script>
@@ -456,22 +481,26 @@ function dial(st, s){
   const R = 92, C = 110, g = total > 40 ? 0.6 : 1.2;
   const ov = D.diff(st.last.start, st.ovu) + 1;
   const pl = st.last.end ? D.diff(st.last.start, st.last.end) + 1 : st.avgPeriod;
-  let segs = '';
+  // 串珠手鍊：一天一顆玻璃珠。經期粉紅、易孕期綠（排卵日那顆大一點會發光）、PMS 淡紫、其他透明；
+  // 還沒到的日子是虛線外框的半透明珠，今天那顆插一支小棒棒糖
+  const cd = Math.min(Math.max(st.cycleDay, 1), total);
+  const br = Math.min(7.6, Math.PI * R / total * .82);
+  let beads = '<circle cx="' + C + '" cy="' + C + '" r="' + R + '" fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1.5"/>';
   for (let i = 1; i <= total; i++){
-    let col = 'var(--line)';
+    let col = '#6E6596';
     if (i <= pl) col = 'var(--rose)';
     else if (i > st.avgCycle) col = 'var(--amber)';
     else if (i > st.avgCycle - s.pmsDays) col = 'var(--lav)';
     else if (i >= ov - 5 && i <= ov + 1) col = 'var(--mint)';
-    const a0 = (-90 + (i - 1) * 360 / total + g / 2) * Math.PI / 180, a1 = (-90 + i * 360 / total - g / 2) * Math.PI / 180;
-    const x0 = C + R * Math.cos(a0), y0 = C + R * Math.sin(a0), x1 = C + R * Math.cos(a1), y1 = C + R * Math.sin(a1);
-    segs += '<path d="M' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A' + R + ' ' + R + ' 0 0 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + '" stroke="' + col + '" stroke-width="14" fill="none"/>';
+    const a = (-90 + (i - 0.5) * 360 / total) * Math.PI / 180, x = C + R * Math.cos(a), y = C + R * Math.sin(a);
+    const r = i === ov ? br * 1.3 : br, fut = i > cd;
+    beads += '<g class="bead' + (fut ? ' fut' : '') + (i === ov ? ' ovu' : '') + '"><circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="' + col + '"' + (fut ? ' fill-opacity=".28" stroke="' + col + '" stroke-width="1.4" stroke-dasharray="2 2"' : '') + '/>' +
+      (fut ? '' : '<circle cx="' + (x - r * .35).toFixed(1) + '" cy="' + (y - r * .35).toFixed(1) + '" r="' + (r * .32).toFixed(1) + '" fill="#fff" opacity=".75"/>') + '</g>';
   }
-  const cd = Math.min(Math.max(st.cycleDay, 1), total);
   const am = (-90 + (cd - 0.5) * 360 / total) * Math.PI / 180;
   const mx = C + R * Math.cos(am), my = C + R * Math.sin(am);
-  return '<svg viewBox="0 0 220 220" role="img" aria-label="本週期第 ' + st.cycleDay + ' 天，共約 ' + st.avgCycle + ' 天">' + segs +
-    '<circle cx="' + mx.toFixed(1) + '" cy="' + my.toFixed(1) + '" r="11" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/></svg>';
+  const pop = '<g transform="translate(' + mx.toFixed(1) + ' ' + (my - 4).toFixed(1) + ')"><rect x="-1.6" y="-16" width="3.2" height="16" rx="1.6" fill="#FBF6EE"/><circle cy="-23" r="10" fill="#fff"/><circle cy="-23" r="7.4" fill="#F4A6C4"/><path d="M0 -23a1.5 1.5 0 0 1 3 0a3 3 0 0 1-6 0a4.5 4.5 0 0 1 9 0" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></g>';
+  return '<svg viewBox="0 0 220 220" overflow="visible" role="img" aria-label="本週期第 ' + st.cycleDay + ' 天，共約 ' + st.avgCycle + ' 天">' + beads + pop + '</svg>';
 }
 
 /* ---------- views ---------- */
@@ -547,8 +576,7 @@ function vToday(st){
     '<div class="center"><div class="big num">' + big + '</div><div class="sub">' + sub + '</div></div></div>' +
     '<div class="legend"><span><i style="background:var(--rose)"></i>經期</span><span><i style="background:var(--mint)"></i>易孕期</span><span><i style="background:var(--lav)"></i>PMS 期</span><span class="num">週期約 ' + st.avgCycle + ' 天</span></div></section>' +
     alerts + ph2 +
-    '<section class="card"><div class="row between"><h2>今天的身體狀況</h2><button class="btn sm soft" data-act="day" data-d="' + today + '">' + (l ? '修改' : '記錄今天') + '</button></div>' +
-    (sum ? '<p>' + sum + '</p>' : '<p class="muted">經痛、經血量、症狀或心情，記下來可以找出自己的規律。</p>') + '</section>' +
+    journalCard(today, l, st) +
     guide(st) +
     '<section class="card"><h3>接下來</h3><dl class="kv num">' +
     (pmsLeft ? '<dt>PMS 期</dt><dd>' + pmsLeft + ' 天後（' + D.md(D.add(st.nextStart, -s.pmsDays)) + ' 起）</dd>' : '') +
@@ -556,6 +584,23 @@ function vToday(st){
     '<dt>下次經期</dt><dd>' + rangeText(st.nextStart, st.win) + ' 之間，最可能 ' + D.md(st.nextStart) + (st.late ? '（已晚 ' + st.late + ' 天）' : '') + '</dd>' +
     '<dt>再下一次</dt><dd>' + rangeText(D.add(st.nextStart, st.avgCycle), st.win + 1) + ' 之間</dd></dl>' +
     '<p class="small muted">預測用你最近幾次的平均週期推算，區間依每次週期相差多少決定（目前 ±' + st.win + ' 天）。只供生活規劃參考，不能用來避孕。</p></section>';
+}
+// 今天的身體狀況：一頁手帳紙，症狀和心情是貼紙，點一下就貼上去（直接存）；經血量、經痛、其他症狀和備註在「更多貼紙」
+const QUICK_SYM = ['脹氣', '腰痠', '頭痛', '長痘痘', '疲倦', '嘴饞'];
+const STK = { '脹氣': ['#2BB7B0', 'M7 12a5 5 0 1 0 10 0a5 5 0 1 0-10 0'], '腰痠': ['#F28B2F', 'M8 6v12M16 6v12'], '頭痛': ['#9A6BE0', 'M6 9h12M6 15h12'], '長痘痘': ['#E5483B', 'M12 8a4 4 0 1 0 .1 0'],
+  '疲倦': ['#4B4FA8', 'M7 9h5l-5 6h5M14 6h4l-4 4h4'], '嘴饞': ['#F6C744', 'M7 17 17 7M9 7l8 8'], '開心': ['#F6C744', 'M7 13q5 5 10 0'], '平靜': ['#2BB7B0', 'M7 14h10'],
+  '敏感': ['#EE6FA0', 'M7 15q2.5-3 5 0t5 0'], '低落': ['#4E7FE0', 'M7 16q5-5 10 0'], '焦慮': ['#9A6BE0', 'M7 15l2.5-2 2.5 2 2.5-2 2.5 2'], '煩躁': ['#E5483B', 'M7 16q5-4 10 0M8 8l3 2M16 8l-3 2'] };
+function stickerBtn(act, v, on, label, i){
+  const [c, d] = STK[v] || ['#B98552', 'M8 12h8'];
+  return '<button class="stk" data-act="' + act + '" data-v="' + esc(v) + '" aria-pressed="' + on + '" style="--r:' + [-4, 3, -2, 5, -3, 2, -5, 4][i % 8] + 'deg"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="' + c + '"/><path d="' + d + '" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>' + esc(label) + '</button>';
+}
+function journalCard(today, l, st){
+  const sym = l?.sym || [], extra = sym.filter(x => !QUICK_SYM.includes(x));
+  const more = l ? [l.flow ? '經血量：' + FLOW[l.flow] : '', l.pain ? '經痛：' + PAIN[l.pain] : '', l.note ? '「' + esc(l.note) + '」' : ''].filter(Boolean).join(' · ') : '';
+  return '<section class="card journal"><div class="jhead"><span>' + D.md(today) + '・週期第 ' + st.cycleDay + ' 天</span><button class="btn sm soft" data-act="day" data-d="' + today + '">更多貼紙</button></div>' +
+    '<div class="jlabel">症狀</div><div class="stks">' + QUICK_SYM.concat(extra).map((x, i) => stickerBtn('stkSym', x, sym.includes(x), x, i)).join('') + '</div>' +
+    '<div class="jlabel">心情</div><div class="stks">' + MOOD.map((x, i) => stickerBtn('stkMood', x, l?.mood === x, x, i + 3)).join('') + '</div>' +
+    (more ? '<p class="jmore">' + more + '</p>' : '<p class="jmore muted">點一下就貼上，再點一下撕掉。經血量、經痛和備註在「更多貼紙」。</p>') + '</section>';
 }
 const SRC = {
   hpaSalt: ['國健署〈減鹽秘笈〉', 'https://www.hpa.gov.tw/Pages/Detail.aspx?nodeid=1161&pid=6648'],
@@ -645,8 +690,11 @@ function vStats(st){
   let bars = '';
   const cyc = st.cycles.slice(-8);
   if (cyc.length){
-    const mx = Math.max(40, ...cyc.map(c => c.len));
-    bars = '<div class="bars">' + cyc.map(c => '<div class="bar"><span class="num muted">' + D.md(c.start) + '</span><div class="track"><div class="fill" style="width:' + (c.len / mx * 100).toFixed(1) + '%"></div><div class="avg" style="left:' + (st.avgCycle / mx * 100).toFixed(1) + '%"></div></div><span class="num">' + c.len + ' 天</span></div>').join('') + '</div><p class="small muted">直線是平均週期 ' + st.avgCycle + ' 天。21 到 35 天、每次相差 7 天以內都算常見範圍。</p>';
+    // 每次週期一串珠子，一天一顆：經期粉紅、易孕期綠；串的長短就是週期長短
+    bars = '<div class="strands">' + cyc.map(c => {
+      const p = st.ps.find(x => x.start === c.start), pl = p && p.end ? D.diff(p.start, p.end) + 1 : st.avgPeriod, ov = c.len - 14;
+      return '<div class="strand"><span class="num muted">' + D.md(c.start) + '</span><span class="beads">' + Array.from({ length: c.len }, (_, i) => '<i class="' + (i < pl ? 'p' : i + 1 >= ov - 5 && i + 1 <= ov + 1 ? 'f' : '') + '"></i>').join('') + '</span><span class="num">' + c.len + ' 天</span></div>';
+    }).join('') + '</div><p class="small muted">平均週期 ' + st.avgCycle + ' 天。21 到 35 天、每次相差 7 天以內都算常見範圍。</p>';
   } else bars = '<p class="muted">記錄兩次以上經期，就能看到每次的週期長度。</p>';
   const sug = pmsSuggestion(S.profile);
   const pmsCard = '<section class="card"><h2>PMS 期</h2><p>目前設定為經期前 <b class="num">' + s.pmsDays + '</b> 天。</p>' +
@@ -791,7 +839,22 @@ function vSet(){
 
 function vPartner(){
   if (!S.shared.length) return '<section class="card"><p class="muted">還沒有人分享狀態給你。</p></section>';
-  return S.shared.map(({ id, data }) => partnerCard(id, data) + careCard(id, data)).join('');
+  return S.shared.map(({ id, data }) => careNote(id, data) + partnerCard(id, data) + careCard(id, data)).join('');
+}
+// 大豬看到的最上面：一張手寫風小卡，經期或 PMS 期時寫她希望被怎麼照顧（她在設定裡勾的）
+function partnerPhase(d){
+  if (!d.cycle) return null;
+  const pseudo = { setup: { cycle: d.cycle.avgCycle, period: d.cycle.avgPeriod }, periods: (d.periods && d.periods.length ? d.periods : [{ start: d.cycle.lastStart, end: d.cycle.lastEnd }]).map((p, i) => ({ id: 'p' + i, start: p.start, end: p.end })) };
+  const st = compute(pseudo); st.avgCycle = d.cycle.avgCycle; st.avgPeriod = d.cycle.avgPeriod;
+  st.nextStart = D.add(st.last.start, st.avgCycle); st.untilNext = D.diff(st.today, st.nextStart); st.late = st.untilNext < 0 ? -st.untilNext : 0;
+  return { st, ph: phaseOf(st, { pmsDays: d.cycle.pmsDays || 7 }) };
+}
+function careNote(id, d){
+  const pp = partnerPhase(d); if (!pp || !pp.ph || !['period', 'pms', 'late'].includes(pp.ph.k)) return '';
+  const name = S.names[id] || '她', w = d.careWish || {};
+  const wish = [...(w.picks || []), w.note].filter(Boolean);
+  const when = pp.ph.k === 'period' ? '這幾天在經期（第 ' + pp.st.periodDay + ' 天）' : pp.ph.k === 'pms' ? '這幾天在 PMS 期' : '這次晚了幾天';
+  return '<section class="card note-card"><p>' + esc(name) + when + '，' + (wish.length ? '她希望你：' + esc(wish.join('、')) + '。' : '多一點耐心，少一點說教。') + '</p><span class="sig">♡ 今天的照顧小卡</span></section>';
 }
 function partnerCard(id, d){
   const f = new Set(d.fields || []), name = S.names[id] || '她';
@@ -1177,7 +1240,7 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act, v = b.dataset.v;
   if (a === 'scrim'){ if (e.target === b) closeSheet(); return; }
-  if (S.readOnly && ['wish', 'wishNote', 'setup', 'doStart', 'doEnd', 'dsave', 'dclear', 'savePeriod', 'delPeriod', 'share', 'step', 'saveSetup', 'usePms', 'markStart', 'markEnd'].includes(a)){ toast('你的權限只能看，無法修改。'); return; }
+  if (S.readOnly && ['wish', 'wishNote', 'setup', 'doStart', 'doEnd', 'dsave', 'dclear', 'savePeriod', 'delPeriod', 'share', 'step', 'saveSetup', 'usePms', 'markStart', 'markEnd', 'stkSym', 'stkMood'].includes(a)){ toast('你的權限只能看，無法修改。'); return; }
   switch (a){
     case 'tab': S.view = v; render(); window.scrollTo(0, 0); break;
     case 'setup': {
@@ -1195,6 +1258,14 @@ document.addEventListener('click', e => {
     case 'doEnd': { const d = $('#mk-date').value; closeSheet(); doEnd(d); break; }
     case 'markStart': closeSheet(); doStart(b.dataset.d); break;
     case 'markEnd': closeSheet(); doEnd(b.dataset.d); break;
+    case 'stkSym': case 'stkMood': {
+      const d = D.today(), cur = logOf(d) ? JSON.parse(JSON.stringify(logOf(d))) : { sym: [] };
+      if (b.dataset.act === 'stkSym'){ cur.sym = cur.sym || []; cur.sym = cur.sym.includes(v) ? cur.sym.filter(x => x !== v) : cur.sym.concat(v); }
+      else cur.mood = cur.mood === v ? '' : v;
+      if (!cur.mood) delete cur.mood;
+      const empty = !(cur.sym || []).length && !cur.mood && !cur.flow && !cur.pain && !cur.note;
+      saveLog(d, empty ? null : cur); break;
+    }
     case 'day': { const d = b.dataset.d, l = logOf(d); openSheet({ type: 'day', date: d, draft: l ? JSON.parse(JSON.stringify(l)) : { sym: [] } }); break; }
     case 'dset': S.sheet.draft[b.dataset.k] = +v; S.sheet.draft.note = $('#d-note')?.value || ''; renderSheet(); break;
     case 'dsym': { const dr = S.sheet.draft; dr.sym = dr.sym || []; dr.sym = dr.sym.includes(v) ? dr.sym.filter(x => x !== v) : dr.sym.concat(v); dr.note = $('#d-note')?.value || ''; renderSheet(); break; }

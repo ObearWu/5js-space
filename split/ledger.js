@@ -96,10 +96,13 @@ function renderTop() {
   const d = L.data, n = d.need;
   const left = n.left, budget = n.budget + n.cover - n.sinkingMonthly;
   const ratio = budget > 0 ? Math.max(0, Math.min(1, (budget - left) / budget)) : 0;
-  let html = `<div class="lg-left"><span class="small muted">必要支出還能花${d.baseCarried ? "（這個月還沒記收入，用上個月收入估）" : ""}</span>
-    <b class="num ${left < 0 ? "neg" : ""}">${d.base ? money(left) : "—"}</b>
-    <span class="small muted">${d.base ? `預算 ${money(n.budget)}${n.cover ? `＋挪用 ${money(n.cover)}` : ""}${n.sinkingMonthly ? `−年度預留 ${money(n.sinkingMonthly)}` : ""}，已花 ${money(n.spent)}` : "先記一筆這個月的收入，就能算出三個角的目標。"}</span>
-    <div class="bar"><i style="width:${Math.round(ratio * 100)}%;--c:${n.warn ? "var(--anger)" : C.need}"></i></div></div>`;
+  // 信封：露出來的鈔票越少，代表這個月剩越少；剩不到兩成數字變紅
+  const bills = d.base && budget > 0 ? Math.max(0, Math.min(10, Math.ceil(left / budget * 10))) : 0;
+  const low = d.base && (left < 0 || (budget > 0 && left < budget * .2));
+  let html = `<div class="lg-envrow"><div class="lg-env" aria-hidden="true"><div class="bills">${Array.from({ length: 10 }, (_, i) => `<i${i >= bills ? ' class="gone"' : ""}></i>`).join("")}</div><div class="pocket"><span>${+L.month.slice(5)} 月</span></div></div>
+    <div class="lg-left"><span class="small muted">必要支出還能花${d.baseCarried ? "（這個月還沒記收入，用上個月收入估）" : ""}</span>
+    <b class="num ${left < 0 || low ? "neg" : ""}">${d.base ? money(left) : "—"}</b>
+    <span class="small muted">${d.base ? `預算 ${money(n.budget)}${n.cover ? `＋挪用 ${money(n.cover)}` : ""}${n.sinkingMonthly ? `−年度預留 ${money(n.sinkingMonthly)}` : ""}，已花 ${money(n.spent)}（${Math.round(ratio * 100)}%）` : "先記一筆這個月的收入，就能算出三個角的目標。"}</span></div></div>`;
   if (n.warn) {
     const over = n.spent - n.warnAt;
     html += `<div class="lg-warn"><b>必要支出已經超過收入的 ${d.settings.needWarn}%</b><span>超出 ${money(over)}。可以從預備金（目前 ${money(d.balances.reserve)}）挪一筆補上，這個月的帳會記下挪了多少。</span>
@@ -111,14 +114,30 @@ function renderTop() {
 function renderTriangle() {
   const d = L.data, r = d.settings.ratios;
   const futT = FUTURE.reduce((a, b) => a + r[b], 0);
-  const pill = (x, y, w, fill, ink, text) => `<rect x="${x}" y="${y}" width="${w}" height="22" rx="11" fill="${fill}"/><text x="${x + w / 2}" y="${y + 15}" text-anchor="middle" fill="${ink}" font-size="11">${text}</text>`;
-  const svg = `<svg class="tri" viewBox="0 0 300 220" role="img" aria-label="財務金三角：必要支出 ${pctText(d.need.pct)}、未來規劃 ${pctText(d.future.pct)}、風險保障 ${pctText(d.protect.pct)}">
-    <polygon points="150,30 270,190 30,190" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-    <text x="150" y="128" text-anchor="middle" fill="#B9AEDA" font-size="11">${d.baseCarried ? "上個月收入" : "本月收入"}</text>
-    <text x="150" y="154" text-anchor="middle" fill="#F3EEFF" font-size="26" font-family="Fredoka">${d.base ? d.base.toLocaleString("en-US") : "—"}</text>
-    ${pill(85, 4, 130, "#4E7FE0", "#fff", `必要 ${pctText(d.need.pct)} · 目標 ${r.need}–${d.settings.needWarn}%`)}
-    ${pill(0, 196, 132, "#2BB7B0", "#0B2321", `未來 ${pctText(d.future.pct)} · 目標 ${futT}%`)}
-    ${pill(168, 196, 132, "#F28B2F", "#2A1503", `保障 ${pctText(d.protect.pct)} · 目標 ${r.protect}%`)}
+  // 三個角各放一個玻璃存錢罐：硬幣高度是這個月佔收入的比例（罐子滿 = 70%），虛線膠帶是目標比例
+  const FULL = 70, JH = 64, JW = 54;
+  const jar = (key, cx, cy, color, pct, target, label, sub, anchor, lx, ly) => {
+    const top = cy - JH / 2, x = cx - JW / 2, inner = JH - 12;
+    const h = Math.min(1, Math.max(0, (pct || 0) / FULL)) * inner, ty = top + 12 + inner - Math.min(1, target / FULL) * inner;
+    const coins = Array.from({ length: Math.floor(h / 7) }, (_, i) => `<ellipse cx="${x + 10 + (i * 17) % (JW - 20)}" cy="${top + JH - 6 - i * 7}" rx="7" ry="3" fill="#FFE79A" opacity=".8"/>`).join("");
+    return `<g class="jar jar-${key}" data-jar="${key}" style="--c:${color}" role="img" aria-label="${label}">
+      <rect x="${x + 8}" y="${top}" width="${JW - 16}" height="9" rx="3" fill="#D9D9E3"/><rect x="${x + JW / 2 - 7}" y="${top + 3}" width="14" height="2.5" rx="1" fill="#55546A"/>
+      <clipPath id="jc-${key}"><rect x="${x}" y="${top + 8}" width="${JW}" height="${JH - 8}" rx="13"/></clipPath>
+      <rect x="${x}" y="${top + 8}" width="${JW}" height="${JH - 8}" rx="13" fill="rgba(220,235,255,.08)"/>
+      <g clip-path="url(#jc-${key})"><rect class="fill" x="${x}" y="${top + JH - h}" width="${JW}" height="${h}" fill="${color}" opacity=".85"/>${coins}</g>
+      <rect x="${x}" y="${top + 8}" width="${JW}" height="${JH - 8}" rx="13" fill="none" stroke="rgba(200,220,255,.45)" stroke-width="2"/>
+      <rect x="${x + 7}" y="${top + 15}" width="4" height="${JH - 28}" rx="2" fill="rgba(255,255,255,.35)"/>
+      <line x1="${x - 3}" x2="${x + JW + 3}" y1="${ty}" y2="${ty}" stroke="#fff" stroke-width="1.6" stroke-dasharray="4 3" opacity=".85"/>
+      <text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="#F3EEFF" font-size="12">${label}</text>
+      <text x="${lx}" y="${ly + 14}" text-anchor="${anchor}" fill="#B9AEDA" font-size="10">${sub}</text></g>`;
+  };
+  const svg = `<svg class="tri" viewBox="0 0 300 262" role="img" aria-label="財務金三角：必要支出 ${pctText(d.need.pct)}、未來規劃 ${pctText(d.future.pct)}、風險保障 ${pctText(d.protect.pct)}">
+    <polygon points="150,62 256,196 44,196" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+    <text x="150" y="146" text-anchor="middle" fill="#B9AEDA" font-size="11">${d.baseCarried ? "上個月收入" : "本月收入"}</text>
+    <text x="150" y="172" text-anchor="middle" fill="#F3EEFF" font-size="24" font-family="Fredoka">${d.base ? d.base.toLocaleString("en-US") : "—"}</text>
+    ${jar("need", 150, 34, "#4E7FE0", d.need.pct, r.need, `必要 ${pctText(d.need.pct)}`, `目標 ${r.need}–${d.settings.needWarn}%`, "start", 184, 26)}
+    ${jar("future", 44, 196, "#2BB7B0", d.future.pct, futT, `未來 ${pctText(d.future.pct)}`, `目標 ${futT}%・點我看帳戶`, "start", 4, 244)}
+    ${jar("protect", 256, 196, "#F28B2F", d.protect.pct, r.protect, `保障 ${pctText(d.protect.pct)}`, `目標 ${r.protect}%`, "end", 296, 244)}
   </svg>`;
   // 目前三角的狀態：三個角各一句
   const lines = [];
@@ -133,6 +152,18 @@ function renderTriangle() {
   lines.push([`保障：今年已繳 ${money(d.protect.paidYear)} / ${money(d.protect.yearBudget)}`, `保障金累積 ${money(d.balances.protect)}，這個月存了 ${money(d.protect.saved)}。`, "#F2B27A"]);
   $("lgTri").innerHTML = `<div class="head"><h2>財務金三角</h2><button class="link" type="button" data-act="settings">比例與設定</button></div>${svg}
     <div class="lg-status">${lines.map(([t, s, c]) => `<div><b style="color:${c}">${esc(t)}</b><span>${esc(s)}</span></div>`).join("")}</div>`;
+  // 未來罐：點了捲到下面四個小罐子
+  const fj = $("lgTri").querySelector(".jar-future");
+  if (fj) { fj.style.cursor = "pointer"; fj.addEventListener("click", () => document.getElementById("lgFuture")?.scrollIntoView({ behavior: "smooth", block: "start" })); }
+  // 剛存錢：一枚硬幣從罐口掉進去
+  if (L.coin) {
+    const g = $("lgTri").querySelector(`.jar-${L.coin}`); L.coin = null;
+    if (g && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const r = g.querySelector("rect"), cx = +r.getAttribute("x") + +r.getAttribute("width") / 2, cy = +r.getAttribute("y");
+      g.insertAdjacentHTML("beforeend", `<circle class="coin-drop" cx="${cx}" cy="${cy - 26}" r="8" fill="#F2C23A" stroke="#B8860B" stroke-width="1.5"/>`);
+      setTimeout(() => g.querySelector(".coin-drop")?.remove(), 900);
+    }
+  }
 }
 
 function renderPending() {
@@ -185,12 +216,19 @@ function renderForm() {
   $("lgForm").innerHTML = `<div class="head"><h2>${L.editing ? "修改這筆" : "記一筆"}</h2>${L.editing ? "" : `<label class="btn sm ghost lg-snap">拍收據<input type="file" accept="image/*" id="lgSnap" hidden></label>`}</div>
     ${!L.editing && favs.length ? `<div class="lg-favs"><span class="small muted">常用</span>${favs.map((x, i) => `<button type="button" data-act="fav" data-v="${i}">${esc(x.title)} ${money(x.amount)}</button>`).join("")}</div>` : ""}
     <div class="seg kinds">${seg(KIND_TABS, f.kind, "fKind")}</div>
-    <div class="field money"><input data-f="amount" type="number" inputmode="numeric" min="1" step="1" placeholder="0" aria-label="金額（元）" value="${esc(f.amount)}"></div>
-    ${fields}
+    <div class="till">
+      <div class="screen"><span>$</span><input data-f="amount" id="lgAmt" type="text" inputmode="none" autocomplete="off" placeholder="0" aria-label="金額（元）" value="${esc(f.amount)}"></div>
+      ${f.kind === "need" ? `<div class="tcats">${NEED_CATS.map(c => `<button type="button" data-act="fCat" data-v="${c}" aria-pressed="${c === f.category}">${c}</button>`).join("")}</div>` : ""}
+      <div class="keys">${["7", "8", "9", "4", "5", "6", "1", "2", "3", "00", "0", "⌫"].map(k => `<button type="button" data-act="key" data-v="${k}" aria-label="${k === "⌫" ? "刪掉一位" : k}">${k}</button>`).join("")}</div>
+    </div>
+    ${f.kind === "need" ? "" : fields}
+    <details class="more"${L.editing || L.moreOpen ? " open" : ""}><summary>${f.kind === "need" ? "更多：想要、付款方式、品項、日期、備註" : "品項、日期、備註"}</summary>
+    ${f.kind === "need" ? fields.replace(/<div class="field"><span>分類<\/span>.*?<\/div><\/div>/s, "") : ""}
     <div class="row2"><div class="field"><span>${f.kind === "income" || f.kind === "cardpay" ? "說明（選填）" : "品項"}</span><input data-f="title" maxlength="60" value="${esc(f.title)}" placeholder="${f.kind === "need" ? "例如：午餐便當" : f.kind === "protect" ? "例如：醫療險" : f.kind === "reserve" ? "例如：喜宴紅包" : f.kind === "cardpay" ? "例如：國泰卡 10 月帳單" : ""}"></div>
       <div class="field"><span>日期</span><input data-f="date" type="date" value="${esc(f.date)}"></div></div>
     <div class="field"><span>備註（選填）</span><input data-f="note" maxlength="300" value="${esc(f.note)}"></div>
     ${f.kind === "need" && !L.editing ? `<label class="chk"><input type="checkbox" data-f="fav"${f.fav ? " checked" : ""}> 存成常用項目（下次一鍵記）</label>` : ""}
+    </details>
     <div class="actions"><div>${L.editing ? `<button class="btn danger" type="button" data-act="del">刪除</button>` : `<button class="btn ghost sm" type="button" data-act="nospend">今天沒花錢</button>`}</div>
       <div>${L.editing ? `<button class="btn ghost" type="button" data-act="cancel">取消</button> ` : ""}<button class="btn primary" type="button" data-act="save"${L.busy ? " disabled" : ""}>${L.editing ? "儲存" : "記下來"}</button></div></div>`;
 }
@@ -214,7 +252,10 @@ function renderCorners() {
       <span class="num">${money(g.saved)} / ${money(g.target)}</span><span class="bar"><i style="width:${Math.min(100, Math.round(g.saved * 100 / g.target))}%;background:${C.gold}"></i></span></button>`).join("")
       : `<p class="small muted">例如中國旅費、結婚基金、房子頭期款。每個目標選它屬於哪個帳戶，存錢時指定存給它。</p>`}
     ${done.length ? `<div class="done"><span class="small muted">已達成</span>${done.map(g => `<button type="button" class="dg" data-act="goal" data-v="${g.id}" title="${esc(g.name)}"><i class="orb gold"></i>${esc(g.name)}</button>`).join("")}</div>` : ""}</div>`;
-  const future = `<div class="lg-corner" style="--c:${C.future}"><div class="ch"><h3><i class="orb"></i>未來規劃</h3><span class="num">${money(d.future.total)} · ${pctText(d.future.pct)}</span></div>${FUTURE.map(acct).join("")}${goalHtml}</div>`;
+  const mini = b => { const saved = d.future.saved[b], target = d.future.target[b], f = target ? Math.min(100, Math.round(saved * 100 / target)) : 0;
+    return `<div class="mj" title="${NAMES[b]} ${money(saved)} / ${money(target)}"><div class="mjar" style="--f:${f}"><i></i></div><b>${NAMES[b].replace(" 10 年以上", "").replace(" 2 年", "").replace(" 6 年", "")}</b><small class="num">${f}%</small></div>`; };
+  const future = `<div class="lg-corner" id="lgFuture" style="--c:${C.future}"><div class="ch"><h3><i class="orb"></i>未來規劃</h3><span class="num">${money(d.future.total)} · ${pctText(d.future.pct)}</span></div>
+    <div class="mjars">${FUTURE.map(mini).join("")}</div>${FUTURE.map(acct).join("")}${goalHtml}</div>`;
   const p = d.protect;
   const protect = `<div class="lg-corner" style="--c:${C.protect}"><div class="ch"><h3><i class="orb"></i>風險保障</h3><span class="num">${money(p.saved)} · ${pctText(p.pct)}</span></div>
     <div class="acct"><div class="ah"><b>保障金</b><span class="num">${money(p.saved)} / ${money(p.target)}</span></div><div class="bar"><i style="width:${p.target ? Math.min(100, Math.round(p.saved * 100 / p.target)) : 0}%;background:${C.protect}"></i></div>
@@ -241,25 +282,41 @@ function entryLine(e) {
     <span class="tag" style="--t:${tag[1]}">${esc(tag[0])}</span><span class="main"><b>${esc(e.kind === "nospend" ? "今天沒花錢" : e.title)}</b>${sub ? `<span>${esc(sub)}</span>` : ""}</span>
     <span class="amt">${e.kind === "nospend" ? "" : sign + money(e.amount).replace("-", "")}</span></button>`;
 }
+// 本月明細：一天一張收據，最下面是本日支出合計
+function receiptLine(e) {
+  const tag = e.kind === "income" ? "收" : e.kind === "save" ? "存" : e.kind === "cover" ? "挪" : e.kind === "adjust" ? "校" : e.kind === "nospend" ? "☺" : e.kind === "cardpay" ? "卡"
+    : e.bucket === "need" ? e.category : e.bucket === "protect" ? "保" : "備";
+  const sign = e.kind === "income" ? "+" : "";
+  const sub = [e.split ? `<span class="rs">分帳</span>` : "", e.want === true ? `<span class="rw">想要</span>` : "", e.sinking ? "年度平攤" : "",
+    e.kind === "save" ? esc(NAMES[e.bucket]) : "", esc(PAY_NAME[e.pay] || "")].filter(Boolean).join("・");
+  return `<button class="rl${e.split ? " split" : ""}" type="button" data-act="${e.split ? "openSplit" : "edit"}" data-v="${e.id}">
+    <span class="rt"><i>${esc(tag)}</i>${esc(e.kind === "nospend" ? "今天沒花錢" : e.title)}${sub ? ` <small>${sub}</small>` : ""}</span>
+    <span class="ra">${e.kind === "nospend" ? "" : sign + Math.abs(Math.round(e.amount)).toLocaleString("en-US")}</span></button>`;
+}
 function renderList() {
   const es = L.data.entries;
   if (!es.length) { $("lgList").innerHTML = `<p class="empty">這個月還沒有紀錄。</p>`; return; }
-  let html = "", day = "";
-  for (const e of es) {
-    if (e.date !== day) { day = e.date; html += `<p class="day">${dayText(day)}</p>`; }
-    html += entryLine(e);
-  }
-  $("lgList").innerHTML = html + `<p class="small muted" style="margin-top:10px">標「分帳」的是你在分帳裡負擔的那份，自動帶進來；要改請到分帳分頁。</p>`;
+  const days = [];
+  for (const e of es) { if (!days.length || days[days.length - 1].date !== e.date) days.push({ date: e.date, list: [] }); days[days.length - 1].list.push(e); }
+  const html = days.map(({ date, list }) => {
+    const spent = list.filter(e => e.kind === "expense").reduce((a, e) => a + e.amount, 0);
+    const hrs = spent ? hoursText(spent) : "";
+    return `<div class="receipt"><div class="rh">${dayText(date)}</div>${list.map(receiptLine).join("")}
+      <div class="rtot"><span>本日支出 ${list.filter(e => e.kind === "expense").length} 筆</span><span>${money(spent)}</span></div>${hrs ? `<div class="rh small">${esc(hrs.replace("約 ", "約 "))}</div>` : ""}</div>`;
+  }).join("");
+  $("lgList").innerHTML = `<div class="receipts">${html}</div><p class="small muted" style="margin-top:10px">標「分帳」的是你在分帳裡負擔的那份，自動帶進來；要改請到分帳分頁。</p>`;
 }
 
 function renderHabit() {
   const d = L.data, [y, m] = L.month.split("-").map(Number);
   const days = new Date(y, m, 0).getDate(), today = taipeiToday(), set = new Set(d.days);
+  const nospend = new Set(d.entries.filter(e => e.kind === "nospend").map(e => e.date));
   let orbs = "";
   for (let i = 1; i <= days; i++) {
     const ds = `${L.month}-${String(i).padStart(2, "0")}`;
     const cls = set.has(ds) ? "" : ds > today ? " future" : " empty";
-    orbs += `<span class="dorb${ds === today ? " today" : ""}"><i class="orb${cls}" style="--c:var(--disgust)"></i><small>${i}</small></span>`;
+    const face = nospend.has(ds) && FiveJS.moodFace ? FiveJS.moodFace("開心") : "";
+    orbs += `<span class="dorb${ds === today ? " today" : ""}"><i class="orb${cls}" style="--c:${face ? "var(--gold)" : "var(--disgust)"}"${face ? ' title="今天沒花錢"' : ""}>${face}</i><small>${i}</small></span>`;
   }
   const streak = (() => { let n = 0, t = new Date(today + "T00:00:00"); const all = new Set(d.days); if (!all.has(today)) t.setDate(t.getDate() - 1);
     for (;;) { const s = new Intl.DateTimeFormat("sv-SE").format(t); if (!all.has(s)) break; n++; t.setDate(t.getDate() - 1); } return n; })();
@@ -385,7 +442,9 @@ async function saveEntry() {
   const f = L.form;
   const amount = Math.round(+f.amount);
   if (!(amount > 0)) return toast("請填金額");
-  if (["need", "reserve"].includes(f.kind) && !f.title.trim()) return toast("請填品項");
+  // 收銀機鍵盤：品項可以不填，用分類（或帳戶名稱）當品項
+  if (f.kind === "need" && !f.title.trim()) f.title = f.category;
+  if (f.kind === "reserve" && !f.title.trim()) f.title = NAMES[f.spendBucket || "reserve"];
   L.busy = true; renderForm();
   try {
     const body = formToBody(f);
@@ -402,6 +461,7 @@ async function saveEntry() {
       const favs = [...(L.data.settings.favorites || []).filter(x => x.title !== body.title), { title: body.title, amount, category: f.category }].slice(-12);
       await call("/api/ledger/settings", { method: "PUT", body: { favorites: favs } });
     }
+    if (!L.editing && (f.kind === "save" || f.kind === "protect")) L.coin = f.kind === "save" && f.bucket !== "protect" ? "future" : "protect";
     toast(L.editing ? "已儲存" : "記好了");
     L.editing = null; L.form = blankForm(f.kind === "income" ? "need" : f.kind);
     await load();
@@ -426,6 +486,8 @@ document.addEventListener("click", async ev => {
   const a = b.dataset.act, sh = b.dataset.sh, v = b.dataset.v, f = L.form, d = L.data;
   if (a === "fKind") { L.form = { ...blankForm(v), amount: f.amount, date: f.date, title: f.title, note: f.note }; renderForm(); }
   else if (a === "fCat") { f.category = v; renderForm(); }
+  else if (a === "key") { const cur = String(f.amount || ""); f.amount = v === "⌫" ? cur.slice(0, -1) : (cur === "0" ? "" : cur) + v; f.amount = f.amount.replace(/^0+/, "").slice(0, 9);
+    const inp = $("lgAmt"); if (inp) inp.value = f.amount; if (f.want === true) renderForm(); }
   else if (a === "fWant") { f.want = v === "want" ? true : v === "need" ? false : null; renderForm(); }
   else if (a === "fBucket") { f.bucket = v; f.goal = ""; renderForm(); }
   else if (a === "fSpend") { f.spendBucket = v; f.goal = ""; renderForm(); }
@@ -486,6 +548,7 @@ async function sheetAction(sh, v) {
       const entries = [...document.querySelectorAll("[data-alloc]")].map(i => ({ kind: "save", bucket: i.dataset.alloc, amount: Math.round(+i.value || 0), date, title: "發薪日分配" })).filter(e => e.amount > 0);
       if (!entries.length) return closeSheet();
       await call("/api/ledger/entries", { method: "POST", body: { entries } });
+      L.coin = "future";
       toast("先存好了，剩下的才是這個月能花的");
     } else if (sh === "saveAdjust") {
       const delta = num("sjValue") - L.data.balances[v];
@@ -513,6 +576,7 @@ document.addEventListener("input", ev => {
   const k = ev.target.dataset?.f; if (!k || !$("lgForm").contains(ev.target)) return;
   L.form[k] = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value;
 });
+document.addEventListener("toggle", ev => { if (ev.target.matches?.("#lgForm details.more")) L.moreOpen = ev.target.open; }, true);
 document.addEventListener("change", ev => {
   const k = ev.target.dataset?.f; if (k && $("lgForm").contains(ev.target)) { L.form[k] = ev.target.type === "checkbox" ? ev.target.checked : ev.target.value; if (k === "amount" && L.form.want === true) renderForm(); }
   if (ev.target.id === "lgSnap") { const file = ev.target.files[0]; ev.target.value = ""; if (file) snap(file); }

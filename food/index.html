@@ -523,6 +523,63 @@ body{font-size:calc(15px * var(--fs, 1))}
 .install-tip{display:flex;align-items:center;justify-content:space-between;gap:12px;border:2px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 14px;font-size:.88rem;box-shadow:0 4px 0 var(--shadow)}
 .hub-link{display:inline-flex;align-items:center;gap:4px;font-size:.82rem;color:var(--muted);text-decoration:none;margin-bottom:2px}
 .hub-link:hover{color:var(--accent)}
+
+/* ===== 2026-11 實體物件改版：便當盒、水瓶、集點卡、記錄抽屜 ===== */
+.bento-wrap{display:flex;flex-direction:column;gap:6px}
+.bento{display:grid;grid-template-columns:1.25fr 1fr;grid-template-rows:auto auto auto;gap:6px;padding:10px;border-radius:20px;background:linear-gradient(160deg,#A24B3A,#7E3428);box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 10px 22px -10px rgba(0,0,0,.7)}
+.bento .slot{border:0;font:inherit;color:#5A3E2E;border-radius:12px;background:#F2E6CF;min-height:84px;padding:8px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;position:relative;overflow:hidden;box-shadow:inset 0 3px 6px rgba(0,0,0,.25)}
+.bento .slot.big{grid-row:span 2}
+.bento .slot.wide{grid-column:span 2;min-height:60px}
+.bento .slot .food{position:absolute;inset:0;background-size:cover;background-position:center}
+.bento .slot .food + .food{inset:auto 6px 6px auto;width:38%;aspect-ratio:1;height:auto;border-radius:8px;border:2px solid #F2E6CF;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.bento .slot .lab{position:relative;background:rgba(255,246,228,.92);border-radius:8px;padding:2px 8px;font-size:.78rem;align-self:flex-start;line-height:1.5;max-width:100%}
+.bento .slot .lab b{font-family:var(--f-num);font-weight:600}
+.bento .slot .cnt{position:absolute;right:8px;top:6px;background:#5A3E2E;color:#FFF6E4;border-radius:999px;padding:0 7px;font-size:.72rem;font-family:var(--f-num)}
+.bento .slot.empty{background:repeating-linear-gradient(45deg,#EADCC1 0 6px,#F2E6CF 6px 12px);justify-content:center;align-items:center;text-align:center;color:#9B7E66;font-size:.82rem}
+.bento .slot:disabled{cursor:default}
+.bento .slot:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.meal-group.flash .meal{animation:mealflash 1.2s ease}
+@keyframes mealflash{30%{box-shadow:0 0 0 3px var(--accent)}}
+.bottle-row{display:flex;gap:18px;align-items:center}
+.bottle{width:84px;height:156px;position:relative;cursor:pointer;border:0;padding:0;background:none;flex:none}
+.bottle:disabled{cursor:default}
+.bottle .bcap{position:absolute;left:28px;top:0;width:28px;height:14px;border-radius:5px;background:linear-gradient(90deg,#4E7FE0,#8FB4F2,#4E7FE0)}
+.bottle .neck{position:absolute;left:24px;top:12px;width:36px;height:18px;border-radius:6px 6px 0 0;background:rgba(220,235,255,.10);border:2px solid rgba(200,220,255,.35);border-bottom:0}
+.bottle .bbody{position:absolute;left:0;right:0;top:28px;bottom:0;border-radius:24px 24px 20px 20px;border:2px solid rgba(200,220,255,.35);background:rgba(220,235,255,.10);overflow:hidden}
+.bottle .water{position:absolute;left:-20%;right:-20%;bottom:0;height:calc(var(--w) * 1%);background:linear-gradient(180deg,#7CC4F5,#3C7FD8);transition:height .7s cubic-bezier(.3,1.3,.5,1)}
+.bottle .water::before{content:"";position:absolute;left:0;right:0;top:-6px;height:12px;border-radius:45%;background:#9AD4F8;animation:bwave 2.6s linear infinite}
+@keyframes bwave{0%,100%{transform:translateX(-12%)}50%{transform:translateX(12%) rotate(2deg)}}
+.bottle .ticks{position:absolute;right:6px;top:10px;bottom:10px;display:flex;flex-direction:column;justify-content:space-between;font-size:.58rem;color:rgba(255,255,255,.6);text-align:right;font-family:var(--f-num)}
+.bottle .shine{position:absolute;left:10px;top:12px;width:7px;bottom:18px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,.45),transparent)}
+.bottle .star{position:absolute;left:30px;top:-22px;width:24px;height:24px;animation:starpop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes starpop{from{transform:scale(0) rotate(-40deg)}}
+.bottle-side{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
+.bottle-side .amt b{font-family:var(--f-num);font-size:1.6rem;font-weight:600}
+.bottle-side .chips{display:flex;flex-wrap:wrap;gap:6px}
+.stampcard{background:#FFF6E4;color:#5A3E2E;border-radius:14px;padding:12px 14px;font-family:var(--f-round,inherit)}
+.stampcard .hd{display:flex;justify-content:space-between;gap:8px;font-size:.85rem;margin-bottom:8px;flex-wrap:wrap}
+.stampcard .slots{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+.stampcard .sl{aspect-ratio:1;border-radius:50%;border:2px dashed #D9C7A8;display:grid;place-items:center;position:relative;font-size:.62rem;color:#B9A285;font-family:var(--f-num)}
+.stampcard .sl.on{border:0}
+.stampcard .sl.on svg.pop{width:100%;height:100%;transform:rotate(var(--r,0deg))}
+.stampcard .sl .stk{position:absolute;right:-6px;top:-6px;width:18px;height:18px;transform:rotate(14deg);filter:drop-shadow(0 1px 1px rgba(0,0,0,.3))}
+.stampcard .dl{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;text-align:center;font-size:.66rem;color:#8A6E5E;margin-top:3px}
+.stampcard .ft{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:.78rem;color:#8A6E5E;margin-top:10px}
+.stampcard .cheer{color:#5A3E2E}
+.cap-close{display:none}
+.cap-backdrop{display:none}
+@media (max-width:860px){
+  #capPanel{position:fixed !important;left:0;right:0;bottom:0;z-index:60;margin:0 !important;max-height:88vh;overflow:auto;overscroll-behavior:contain;
+    border-radius:24px 24px 0 0 !important;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px)) !important;transform:translateY(105%);visibility:hidden;
+    transition:transform .32s cubic-bezier(.3,1.1,.5,1),visibility 0s .32s;box-shadow:0 -10px 30px rgba(0,0,0,.5) !important}
+  #capPanel > *{flex-shrink:0}
+  body.cap-open #capPanel{transform:none;visibility:visible;transition:transform .32s cubic-bezier(.3,1.1,.5,1)}
+  body.cap-open{overflow:hidden}
+  .cap-close{display:inline-flex}
+  body.cap-open .cap-backdrop{display:block;position:fixed;inset:0;z-index:59;background:rgba(8,6,18,.55)}
+  #capPanel::before{content:"";display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:-4px auto 10px}
+}
+@media (prefers-reduced-motion: reduce){.bottle .water::before{animation:none}}
 </style>
 <link rel="stylesheet" href="../common/hq-port.css">
 <script src="../common/lock.js"></script>
@@ -613,6 +670,7 @@ body{font-size:calc(15px * var(--fs, 1))}
       <div class="panel-head">
         <h2 id="capTitle">記錄一餐</h2>
         <span class="small muted" id="capFor"></span>
+        <button class="btn ghost small cap-close" type="button" id="capClose">收起</button>
       </div>
       <div class="meal-types" role="radiogroup" aria-label="餐別" id="mealTypes">
         <label><input type="radio" name="mealType" value="早餐" id="mtB">早餐</label>
@@ -678,6 +736,7 @@ body{font-size:calc(15px * var(--fs, 1))}
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="cap-backdrop" id="capBackdrop"></div>
   <button class="fab" type="button" id="fab" hidden>＋ 記錄一餐</button>
   <div class="tools-bottom" id="toolsBottom"></div>
   <footer>
@@ -1753,7 +1812,7 @@ $('#result').addEventListener('click', async e => {
       const moved = orig && meal.date !== orig.date;
       resetCapture();
       showStatus(`${orig ? '已更新' : '已加入'} ${esc(a.name)} 的${esc(meal.mealType)}：${esc(meal.title)}，${r0(t.kcal)} 大卡。${moved ? `已移到 ${esc(prettyDay(meal.date).split(' · ')[0])}。` : ''}${corr.length ? ' AI 會記住這次的修正。' : ''}`);
-      renderAll();
+      renderAll(); closeCap();
       if (!orig && meal.date === dayStr()) celebrateSave(a, meal, hadToday);
     } catch (err) {
       btn.disabled = false; btn.textContent = '再試一次';
@@ -1943,7 +2002,7 @@ async function logTemplate(a, tpl){
     await Store.saveMeal(meal);
     a.tpls = (a.tpls || []).map(x => x.id === tpl.id ? { ...x, used: Date.now() } : x);
     Store.saveProfile({ ...a }).catch(() => {});
-    renderAll();
+    renderAll(); closeCap();
     toast(`已記下${meal.mealType}：${tpl.title}，${r0(t.kcal)} 大卡`, { label: '復原', fn: () => Store.deleteMeal(meal.id).then(() => toast('已復原。')).catch(() => {}) });
     if (date === dayStr()) celebrateSave(a, meal, hadToday);
   } catch (err) { toast(`儲存失敗：${err?.message || '請稍後再試'}`); }
@@ -1969,7 +2028,7 @@ function startEdit(id){
   if (m.thumb) { $('#preview').src = m.thumb; $('#preview').hidden = false; $('#dropHint').hidden = true; }
   renderDraft(); updateCaptureButtons(); renderDay(); renderQuick();
   showStatus(`正在修改「${esc(m.title)}」。改好後按「${esc(saveLabel())}」；上傳新照片會改成新增一筆。`);
-  $('#capPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  openCap();
 }
 
 /* ---------- day view ---------- */
@@ -2055,7 +2114,8 @@ function renderDayInner(){
   }
   const tab = state.tab === 'trend' ? 'trend' : 'today';
   const todayHTML = `
-      ${streakBar(p, ctx.meals, ro)}
+      ${bentoBlock(meals, ro)}
+      ${stampCard(p, ctx.meals, ro)}
       ${goalProgress(p, ctx.weights)}
       ${gapsBlock(p, c, t, meals, exKcal, ctx.water)}
       <div class="summary">
@@ -2070,7 +2130,7 @@ function renderDayInner(){
       </div>
       <div class="meals">
         <span class="eyebrow">餐點紀錄</span>
-        ${groups.length ? groups.map(g => `<div class="meal-group"><h4><span>${g.type}</span><span class="num">${r0(g.list.reduce((s, m) => s + (+m.totals?.kcal || 0), 0))} 大卡</span></h4>
+        ${groups.length ? groups.map(g => `<div class="meal-group" data-type="${g.type}"><h4><span>${g.type}</span><span class="num">${r0(g.list.reduce((s, m) => s + (+m.totals?.kcal || 0), 0))} 大卡</span></h4>
           <div style="display:flex;flex-direction:column;gap:8px">${g.list.map(m => `
             <div class="meal${ro ? '' : ' editable'}${state.editingMealId === m.id ? ' editing' : ''}" ${ro ? '' : `data-mid="${esc(m.id)}" role="button" tabindex="0" aria-label="修改 ${esc(m.title)}"`}>
               ${m.thumb ? `<img src="${esc(m.thumb)}" alt="${esc(m.title)}">` : `<span class="noimg" aria-hidden="true"></span>`}
@@ -2551,6 +2611,53 @@ function streakBar(p, meals, ro){
     ${showCheers ? `<span class="cheer-info">${ro ? cheerButton(key, `替${esc(p.name)}打氣`) : ''}${givers.length ? `<span class="small muted">${namesHTML(givers)} 替這天的紀錄打氣</span>` : (ro ? '' : '<span class="small muted">這天還沒有人打氣</span>')}</span>` : ''}
   </div>`;
 }
+/* 便當盒：今天四格（早餐、午餐、晚餐、點心）。吃過的放照片（沒拍照用分類色），空格點了打開記錄抽屜 */
+const BENTO_COLOR = { '早餐': 'linear-gradient(135deg,#F7D58B,#D99A4E)', '午餐': 'linear-gradient(135deg,#E8A361,#9C5A2E 60%,#6E9B4C)', '晚餐': 'linear-gradient(135deg,#C9743E,#7A3A1E 60%,#E9D29A)', '點心': 'linear-gradient(135deg,#F2C6D6,#B9739A)' };
+function bentoBlock(meals, ro){
+  const slot = (type, cls) => {
+    const list = meals.filter(m => m.mealType === type);
+    if (!list.length) return `<button type="button" class="slot empty ${cls}" data-bento="${type}" ${ro ? 'disabled' : ''} aria-label="${type}還沒吃${ro ? '' : '，點這裡記錄'}">${type}<br>${ro ? '沒有紀錄' : '還沒吃，點這裡記'}</button>`;
+    const kcal = list.reduce((s, m) => s + (+m.totals?.kcal || 0), 0);
+    const pics = list.slice(0, 2).map(m => `<span class="food" style="background-image:${m.thumb ? `url('${esc(m.thumb)}')` : BENTO_COLOR[type]}"></span>`).join('');
+    return `<button type="button" class="slot ${cls}" data-bento="${type}" data-has="1" aria-label="${type} ${list.map(m => esc(m.title)).join('、')}，${r0(kcal)} 大卡">${pics}${list.length > 1 ? `<span class="cnt">×${list.length}</span>` : ''}<span class="lab">${type}・<b>${r0(kcal)}</b> 大卡</span></button>`;
+  };
+  return `<div class="bento-wrap"><span class="eyebrow">今天的便當盒</span><div class="bento">${slot('早餐', 'big')}${slot('午餐', '')}${slot('晚餐', '')}${slot('點心', 'wide')}</div></div>`;
+}
+$('#dayBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-bento]'); if (!b || b.disabled) return;
+  if (b.dataset.has) {
+    const g = document.querySelector(`.meal-group[data-type="${b.dataset.bento}"]`);
+    if (g) { g.scrollIntoView({ behavior: 'smooth', block: 'center' }); g.classList.remove('flash'); void g.offsetWidth; g.classList.add('flash'); }
+    return;
+  }
+  if (active() && !friendProfile()) openCap(b.dataset.bento);
+});
+/* 集點卡：最近七天，有記錄的那天蓋一個棒棒糖章，另一半打過氣的那天多貼一張愛心貼紙 */
+function stampCard(p, meals, ro){
+  const st = streakInfo(meals);
+  const ownerUid = ro ? state.friendSel.uid : Store.uid;
+  const showCheers = ro || (p.shared && state.mode === 'cloud');
+  const days = Array.from({ length: 7 }, (_, i) => shiftDay(state.date, i - 6));
+  const has = new Set(meals.map(m => m.date));
+  const col = p.sex === 'M' ? '#6FB3E0' : '#EE8DB5';
+  const pop = i => `<svg class="pop" style="--r:${[-8, 6, -4, 10, -6, 4, -10][i]}deg" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#fff" stroke="${col}" stroke-width="2"/><circle cx="20" cy="20" r="13" fill="${col}"/><path d="M20 20a2 2 0 0 1 4 0a4 4 0 0 1-8 0a6 6 0 0 1 12 0a8 8 0 0 1-16 0" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+  const sticker = '<svg class="stk" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.5A5 5 0 0 1 12 5.5a5 5 0 0 1 8.5 7z" fill="#F4A6C4" stroke="#fff" stroke-width="2"/></svg>';
+  let cheered = 0;
+  const cells = days.map((d, i) => {
+    const g = ownerUid ? giversOf(cheerKey(ownerUid, p.id, d)).filter(u => ro || u !== Store.uid) : [];
+    if (g.length) cheered++;
+    return has.has(d) ? `<div class="sl on" title="${d.slice(5)} 有記錄${g.length ? '・有人打氣' : ''}">${pop(i)}${g.length ? sticker : ''}</div>` : `<div class="sl" title="${d.slice(5)} 沒有記錄">${+d.slice(8)}</div>`;
+  }).join('');
+  const key = ownerUid ? cheerKey(ownerUid, p.id, state.date) : '';
+  const givers = key ? giversOf(key) : [];
+  return `<div class="stampcard">
+    <div class="hd"><span>${esc(p.name)}的飲食集點卡</span><span>${days[0].slice(5).replace('-', '/')} – ${days[6].slice(5).replace('-', '/')}</span></div>
+    <div class="slots">${cells}</div>
+    <div class="dl">${days.map(d => `<span>${'日一二三四五六'[new Date(d + 'T00:00:00').getDay()]}</span>`).join('')}</div>
+    <div class="ft"><span>${FLAME} 連續記錄 <b class="num">${st.current}</b> 天${st.best > st.current ? `・最長 ${st.best} 天` : ''}${showCheers && cheered ? `・這週被打氣 ${cheered} 次` : ''}</span>
+      ${showCheers ? (ro ? cheerButton(key, `替${esc(p.name)}打氣`) : givers.length ? `<span>${namesHTML(givers)} 替這天打氣</span>` : '') : ''}</div>
+  </div>`;
+}
 function renderPartners(){
   const box = $('#partners');
   if (!state.friends.length || friendProfile() || !active()) { box.hidden = true; return; }
@@ -2586,13 +2693,12 @@ function waterBlock(p, dayMeals, waterList, ro, c, t){
   const rec = waterList.find(w => w.date === state.date);
   const ml = rec ? +rec.ml || 0 : 0;
   const target = waterTarget(p);
-  const filled = Math.floor(ml / 250);
-  const n = Math.min(16, Math.max(Math.ceil(target / 250), filled + (ro ? 0 : 1)));
-  const cups = Array.from({ length: n }, (_, i) => {
-    const full = i < filled;
-    return `<button class="cup${full ? ' full' : ''}" type="button" data-cup="${i}" ${ro ? 'disabled' : ''} aria-label="${full ? `第 ${i + 1} 杯，已喝` : `喝了第 ${i + 1} 杯`}">
-      <svg viewBox="0 0 24 30" aria-hidden="true"><path d="M3 3h18l-2.2 23.2a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8z" fill="none" stroke="currentColor" stroke-width="1.6"/>${full ? '<path d="M5.1 11h13.8l-1.5 15a1.4 1.4 0 0 1-1.4 1.3H8a1.4 1.4 0 0 1-1.4-1.3z" fill="currentColor"/>' : ''}</svg></button>`;
-  }).join('');
+  // 水瓶：瓶子高度就是每日目標，點瓶子喝一杯 250 ml
+  const pctW = Math.min(100, ml / target * 100);
+  const bottle = `<button class="bottle" type="button" data-wadd="250" ${ro ? 'disabled' : ''} aria-label="${ro ? `喝了 ${ml} ml` : '喝一杯 250 ml'}">
+      ${ml >= target ? '<svg class="star" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1l3 7.5 8 .7-6 5.3 1.9 7.9L12 18.2 5.1 22.4 7 14.5 1 9.2l8-.7z" fill="#FFD45E"/></svg>' : ''}
+      <span class="bcap"></span><span class="neck"></span><span class="bbody"><span class="water" style="--w:${pctW}"></span><span class="shine"></span>
+      <span class="ticks"><span>${target}</span><span>${Math.round(target * 2 / 3 / 50) * 50}</span><span>${Math.round(target / 3 / 50) * 50}</span></span></span></button>`;
   const drinks = dayMeals.flatMap(m => (m.items || []).filter(isDrinkItem));
   const sweet = drinks.filter(i => (+i.sugar || 0) >= 0.5);
   const dSugar = sweet.reduce((s, i) => s + (+i.sugar || 0), 0);
@@ -2600,8 +2706,11 @@ function waterBlock(p, dayMeals, waterList, ro, c, t){
   const over = t.sugar > c.sugar;
   return `<div class="hydro">
     <div class="panel-head"><span class="eyebrow">飲水</span><span class="small muted"><b class="num">${ml}</b> / ${target} ml${ml >= target ? ' · 今天達標' : ''}</span></div>
-    <div class="cups">${cups}${ro ? '' : `<button class="btn small" type="button" id="waterPlus">＋250 ml</button>`}</div>
-    ${ro ? '' : '<p class="small muted" style="margin:0">一杯 250 ml，點杯子記錄，再點最後一杯可以取消。</p>'}
+    <div class="bottle-row">${bottle}
+      <div class="bottle-side"><span class="amt"><b>${ml}</b> / ${target} ml</span>
+        ${ro ? '' : `<div class="chips"><button class="btn small" type="button" data-wadd="150">＋150</button><button class="btn small" type="button" data-wadd="350">＋350</button><button class="btn small" type="button" data-wadd="500">＋500</button></div>
+        <div class="chips"><button class="btn ghost small" type="button" data-wadd="-250" ${ml ? '' : 'disabled'}>倒掉一杯</button></div>
+        <p class="small muted" style="margin:0">點瓶子喝一杯 250 ml。</p>`}</div></div>
     <div class="sugar">
       <div class="top-line"><span><b>含糖飲料</b> ${sweet.length ? `<span class="num">${r1(dSugar)}</span> 克糖（約 ${Math.max(1, Math.round(dSugar / 5))} 顆方糖）` : '<span class="muted">這天沒有含糖飲料</span>'}</span>
         <span class="small muted">全天糖 <span class="num">${r1(t.sugar)}</span> / 建議上限 ${r0(c.sugar)} 克</span></div>
@@ -2636,12 +2745,8 @@ $('#dayBody').addEventListener('click', e => {
   if (e.target.closest('#gutToggle')) { const cur = !!state.water.find(w => w.profileId === a.id && w.date === state.date)?.bm; Store.setGut(a.id, state.date, !cur); return; }
   const rec = state.water.find(w => w.profileId === a.id && w.date === state.date);
   const ml = rec ? +rec.ml || 0 : 0;
-  const cup = e.target.closest('[data-cup]');
-  if (cup) {
-    const i = +cup.dataset.cup; const filled = Math.floor(ml / 250);
-    Store.setWater(a.id, state.date, i + 1 === filled ? i * 250 : (i + 1) * 250); return;
-  }
-  if (e.target.closest('#waterPlus')) Store.setWater(a.id, state.date, ml + 250);
+  const wa = e.target.closest('[data-wadd]');
+  if (wa && !wa.disabled) Store.setWater(a.id, state.date, Math.max(0, ml + +wa.dataset.wadd));
 });
 
 /* ---------- 月曆 ---------- */
@@ -2997,7 +3102,18 @@ function updateFab(){
   $('#fab').hidden = !narrow || capVisible.v || !active() || !!friendProfile() || !$('#editor').hidden;
 }
 window.addEventListener('resize', updateFab);
-$('#fab').addEventListener('click', () => { $('#capPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+$('#fab').addEventListener('click', () => openCap());
+/* 手機上「記錄一餐」是從下面滑上來的抽屜（每日總覽先出現）；電腦上照舊在左欄 */
+const capNarrow = () => window.matchMedia('(max-width: 860px)').matches;
+function openCap(type){
+  if (type) { setMealType(type); renderQuick(); const b = $('#saveMeal'); if (b && !b.disabled) b.textContent = saveLabel(); }
+  if (capNarrow()) { document.body.classList.add('cap-open'); $('#capPanel').scrollTop = 0; }
+  else $('#capPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function closeCap(){ document.body.classList.remove('cap-open'); }
+$('#capClose').addEventListener('click', closeCap);
+$('#capBackdrop').addEventListener('click', closeCap);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('cap-open')) closeCap(); });
 
 /* 外觀：深色模式與字體大小（記在這支手機） */
 (function viewTools(){
