@@ -59,6 +59,41 @@
 .balance .amt{font-family:var(--f-num);font-size:2.1rem;font-weight:700;line-height:1.1;color:var(--isle,var(--accent-deep))}
 .balance .even{font-family:var(--f-round);font-size:1.25rem}
 .balance .act{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+/* 天秤（S1） */
+.balance{flex-direction:column;align-items:stretch;gap:6px}
+.balance .bal-txt{text-align:center}
+.balance .act{justify-content:center}
+.scale{position:relative;width:300px;max-width:100%;height:178px;margin:0 auto}
+.scale .post{position:absolute;left:146px;top:34px;width:8px;height:128px;background:linear-gradient(90deg,#B88A2B,#E9C15E,#B88A2B);border-radius:3px}
+.scale .base{position:absolute;left:110px;top:160px;width:80px;height:9px;border-radius:5px;background:#B88A2B}
+.scale .beam{position:absolute;left:150px;top:34px;width:216px;height:7px;border-radius:4px;background:linear-gradient(180deg,#FFE08A,#C9A04A);transition:transform .9s cubic-bezier(.3,1.4,.5,1)}
+.scale .pivot{position:absolute;left:143px;top:27px;width:14px;height:14px;border-radius:50%;background:#FFD45E;box-shadow:0 0 10px #FFD45E}
+.scale .pan{position:absolute;width:80px;margin-left:-40px;height:110px;transition:left .9s cubic-bezier(.3,1.4,.5,1),top .9s cubic-bezier(.3,1.4,.5,1);text-align:center}
+.scale .cords{position:absolute;left:0;top:0;width:80px;height:54px}
+.scale .lp{position:absolute;left:18px;top:14px}
+.scale .lp .lollipop{width:44px;height:44px}
+.scale .dish{position:absolute;left:-4px;top:52px;width:88px;height:14px;border-radius:0 0 44px 44px;background:linear-gradient(180deg,#F0CB6A,#B88A2B)}
+.scale .nm{position:absolute;left:0;right:0;top:70px;font-size:.78rem;color:var(--muted)}
+.scale .heart{position:absolute;left:138px;top:-2px;width:24px;height:24px;animation:hpop .7s cubic-bezier(.3,1.6,.5,1)}
+@keyframes hpop{from{transform:scale(0)}}
+/* 撕半的票（S2） */
+.tk{display:flex;flex-direction:column;width:100%;border:0;padding:0;margin:0 0 10px;background:#FFF6E4;color:#5A3E2E;border-radius:10px;font:inherit;text-align:left;cursor:pointer;overflow:hidden;box-shadow:0 6px 12px -8px rgba(0,0,0,.6)}
+.tk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tk .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 14px 7px;border-bottom:1.5px dashed #D3BF9F}
+.tk .tt{display:flex;flex-direction:column;min-width:0}
+.tk .tt b{font-family:var(--f-round);font-weight:400;font-size:.95rem}
+.tk .tt small{font-size:.74rem;color:#8A6E5E}
+.tk .top > .num{font-family:var(--f-num);font-weight:700;font-size:1.05rem;white-space:nowrap}
+.tk .halves{display:grid;grid-template-columns:1fr 2px 1fr}
+.tk .halves.one{display:block;padding:6px 14px 8px;font-size:.78rem;color:#8A6E5E}
+.tk .perf{background:repeating-linear-gradient(180deg,#D3BF9F 0 4px,transparent 4px 8px)}
+.tk .half{position:relative;display:flex;justify-content:space-between;align-items:center;padding:6px 14px 8px;font-size:.78rem}
+.tk .half b{font-family:var(--f-num);font-size:1rem}
+.tk .th-b b{color:#3B78B5} .tk .th-p b{color:#C24C80}
+.tk .paid{position:absolute;left:44%;top:5px;font-style:normal;font-size:.62rem;border:2px solid #3D8C4E;color:#3D8C4E;border-radius:4px;padding:0 4px;transform:rotate(-10deg);opacity:.8}
+.tk.whole.th-b{background:#DCEBFA} .tk.whole.th-p{background:#FBE0EC}
+.tk.settle{background:#E7F6E9}
+.tk.settle .top{border-bottom:0}
 
 .field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
 .field > span{font-size:.85rem;font-weight:700;color:var(--muted)}
@@ -191,6 +226,59 @@ svg.trend{display:block;width:100%}
 .yr{display:flex;align-items:center;gap:12px}
 .yl{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.92rem}
 @media (min-width:761px){.lg-sheet{align-items:center}.lg-sheet .sheet{border-radius:22px}}
+/* ===== 2026-11 實體物件改版 ===== */
+/* L1 信封 */
+.lg-envrow{display:flex;gap:16px;align-items:center}
+.lg-envrow .lg-left{flex:1;min-width:0}
+.lg-env{width:112px;height:92px;position:relative;flex:none}
+.lg-env .bills{position:absolute;left:12px;right:12px;bottom:30px;display:flex;flex-direction:column-reverse}
+.lg-env .bills i{display:block;height:7px;margin-top:-1px;border-radius:2px;background:linear-gradient(90deg,#7DC98A,#A9DDB0 50%,#7DC98A);border:1px solid #4E9A5C;transition:opacity .3s,transform .3s}
+.lg-env .bills i.gone{opacity:0;transform:translateY(-14px)}
+.lg-env .pocket{position:absolute;left:0;right:0;bottom:0;height:58px;border-radius:5px 5px 9px 9px;background:linear-gradient(180deg,#EADBBE,#DCC7A0);box-shadow:0 8px 14px -6px rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;color:#5A3E2E;font-family:var(--f-round);font-size:.8rem}
+.lg-env .pocket::before{content:"";position:absolute;left:0;right:0;top:0;height:26px;background:linear-gradient(160deg,transparent 49%,#D5BE93 50%) left/50% 100% no-repeat,linear-gradient(200deg,transparent 49%,#D5BE93 50%) right/50% 100% no-repeat;opacity:.55}
+/* L2 存錢罐 */
+svg.tri .coin-drop{animation:coindrop .8s cubic-bezier(.5,0,.8,.6) forwards}
+@keyframes coindrop{to{transform:translateY(46px);opacity:0}}
+svg.tri .jar .fill{transition:all .8s cubic-bezier(.3,1.3,.5,1)}
+.mjars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center;margin:4px 0 8px}
+.mj b{display:block;font-weight:400;font-size:.8rem;margin-top:4px}
+.mj small{color:var(--muted);font-size:.72rem}
+.mjar{width:40px;height:52px;margin:0 auto;position:relative;border:2px solid rgba(200,220,255,.4);border-radius:10px 10px 12px 12px;background:rgba(220,235,255,.07);overflow:hidden}
+.mjar::before{content:"";position:absolute;left:6px;right:6px;top:-2px;height:6px;border-radius:2px;background:#D9D9E3;z-index:1}
+.mjar i{position:absolute;left:0;right:0;bottom:0;height:calc(var(--f) * 1%);background:repeating-linear-gradient(180deg,#F5C84C 0 3px,color-mix(in srgb,var(--envy) 70%,#E9B949) 3px 7px);transition:height .8s}
+.acct .bar{display:none}
+/* L3 收據 */
+.receipts{display:flex;flex-direction:column;gap:16px}
+.receipt{background:#FFF6E4;color:#5A3E2E;padding:12px 14px 22px;font-family:ui-monospace,"SFMono-Regular",Menlo,"Noto Sans TC",monospace;font-size:.84rem;line-height:1.5;
+  -webkit-mask:linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 9px repeat-x;
+  mask:linear-gradient(#000 0 0) top/100% calc(100% - 9px) no-repeat,conic-gradient(from -45deg at bottom,#0000,#000 1deg 89deg,#0000 90deg) bottom/14px 9px repeat-x}
+.receipt .rh{text-align:center;border-bottom:1px dashed #BCA88C;padding-bottom:6px;margin-bottom:4px}
+.receipt .rh.small{border:0;margin:4px 0 0;padding:0;font-size:.72rem;color:#8A6E5E}
+.receipt .rl{display:flex;justify-content:space-between;gap:8px;width:100%;border:0;background:none;padding:4px 0;font:inherit;color:inherit;text-align:left;cursor:pointer;border-radius:4px}
+.receipt .rl:hover,.receipt .rl:focus-visible{background:rgba(90,62,46,.08)}
+.receipt .rt{min-width:0}
+.receipt .rt i{font-style:normal;font-size:.7rem;padding:0 4px;border:1px solid currentColor;border-radius:3px;margin-right:6px}
+.receipt .rt small{color:#8A6E5E;font-size:.72rem}
+.receipt .rs{color:#3D8C4E}
+.receipt .rw{color:#C26A1F}
+.receipt .ra{white-space:nowrap;font-variant-numeric:tabular-nums}
+.receipt .rtot{display:flex;justify-content:space-between;border-top:1px dashed #BCA88C;margin-top:4px;padding-top:6px;font-weight:700}
+/* L4 收銀機鍵盤 */
+.till{background:linear-gradient(180deg,#3A3060,#2A2148);border-radius:20px;padding:10px;box-shadow:inset 0 2px 0 rgba(255,255,255,.12);margin-bottom:12px}
+.till .screen{display:flex;align-items:center;gap:4px;background:#0F1A12;border-radius:10px;box-shadow:inset 0 0 12px rgba(0,0,0,.8);padding:4px 14px}
+.till .screen span{color:#7CF29A;font-family:var(--f-num);font-size:1.6rem}
+.till .screen input{flex:1;min-width:0;background:none;border:0;outline:0;color:#7CF29A;font-family:var(--f-num);font-size:2rem;text-align:right;text-shadow:0 0 8px rgba(124,242,154,.6);padding:2px 0;width:100%}
+.till .screen input::placeholder{color:rgba(124,242,154,.35)}
+.till .tcats{display:flex;gap:6px;margin:10px 0 0}
+.till .tcats button{flex:1;border:0;border-radius:10px;padding:7px 0;font:inherit;font-size:.9rem;background:#4A3F78;color:var(--ink);cursor:pointer}
+.till .tcats button[aria-pressed=true]{background:var(--disgust);color:#0E2A12;font-weight:700}
+.till .keys{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.till .keys button{border:0;border-radius:12px;padding:9px 0;font-family:var(--f-num);font-size:1.25rem;background:linear-gradient(180deg,#F4EEFF,#D6CCEB);color:#2A2148;cursor:pointer;box-shadow:0 3px 0 #8F82B3}
+.till .keys button:active{transform:translateY(2px);box-shadow:0 1px 0 #8F82B3}
+details.more{margin-bottom:12px;border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+details.more summary{cursor:pointer;font-size:.88rem;color:var(--muted)}
+details.more[open] summary{margin-bottom:10px}
+
 </style>
 <script src="../common/lock.js"></script>
 </head>
@@ -461,15 +549,29 @@ function renderBalance() {
   if (!pa) { box.innerHTML = `${art(me, "happy")}<div class="even">還沒有另一半的帳號</div>`; return; }
   if (mine === 0) {
     const msg = isl.settled ? "這趟的帳結清了，收進核心記憶 ✨" : isl.count ? "這座島目前兩清" : "這座島還沒有紀錄";
-    box.innerHTML = `${art(me, "sparkle", pa, "sparkle")}<div><div class="even">${msg}</div><div class="small muted">新增花費後這裡會算出誰該給誰多少</div></div>`;
+    box.innerHTML = `${scaleArt(me, pa, 0, isl.count > 0)}<div class="bal-txt"><div class="even">${msg}</div><div class="small muted">新增花費後這裡會算出誰該給誰多少</div></div>`;
     return;
   }
   const debtor = mine > 0 ? pa : me, creditor = mine > 0 ? me : pa, amt = Math.abs(mine);
-  box.innerHTML = `${art(debtor, "over", creditor, "happy")}<div>
+  box.innerHTML = `${scaleArt(me, pa, mine)}<div class="bal-txt">
     <div class="who"><b>${esc(debtor.name)}</b> 要給 <b>${esc(creditor.name)}</b></div>
     <div class="amt num">${money(amt)}</div>
     <div class="act"><button class="btn" type="button" id="settleBtn">記一筆還錢</button></div></div>`;
   $("settleBtn").onclick = () => startSettle(debtor, creditor, amt);
+}
+// 誰欠誰的天秤：左邊是自己、右邊是另一半，付比較多（被欠錢）的那邊比較重、往下沉；兩清時擺平，中間冒一顆心
+function scaleArt(me, pa, mine, heart) {
+  const deg = mine === 0 ? 0 : Math.sign(mine) * Math.min(14, 4 + Math.log10(Math.abs(mine) + 1) * 2.4);
+  const rad = deg * Math.PI / 180, L = 104, cx = 150, cy = 34;
+  const end = s => [cx + s * L * Math.cos(rad) * -1, cy + s * L * Math.sin(rad)];
+  const [lx, ly] = end(1), [rx, ry] = end(-1);
+  const pan = (x, y, p, mood) => `<div class="pan" style="left:${x}px;top:${y}px"><svg class="cords" viewBox="0 0 80 54" aria-hidden="true"><path d="M40 0 L6 52 M40 0 L74 52" stroke="#C8B48E" stroke-width="1.5" fill="none"/></svg>
+    <span class="lp">${FiveJS.lollipop(p.theme, mood, 44)}</span><span class="dish"></span><span class="nm">${esc(p.name)}</span></div>`;
+  return `<div class="scale" role="img" aria-label="${mine === 0 ? "天秤平衡，兩清" : mine > 0 ? `${pa.name}要給${me.name}` : `${me.name}要給${pa.name}`}">
+    <span class="post"></span><span class="base"></span>
+    <span class="beam" style="transform:translate(-50%,-50%) rotate(${-deg}deg)"></span><span class="pivot"></span>
+    ${pan(lx, ly, me, mine > 0 ? "happy" : mine < 0 ? "over" : "sparkle")}${pan(rx, ry, pa, mine < 0 ? "happy" : mine > 0 ? "over" : "sparkle")}
+    ${mine === 0 && heart ? '<svg class="heart" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21 3.5 12.5A5 5 0 0 1 12 5.5a5 5 0 0 1 8.5 7z" fill="#EE6FA0"/></svg>' : ""}</div>`;
 }
 function renderBand() {
   const net = +(state.data?.balance?.[state.me.id] || 0), pa = state.partner;
@@ -710,10 +812,14 @@ function renderList() {
     const sub = e.kind === "settle"
       ? `${esc(nameOf(e.paid_by))} 還給 ${esc(nameOf(Object.keys(e.shares)[0]))}`
       : `${esc(nameOf(e.paid_by))}付 · ` + people().map(p => `${esc(p.name)} ${money(e.shares[p.id] || 0)}`).join(" / ");
-    return `${head}<button class="item${e.kind === "settle" ? " settle" : ""}" type="button" data-id="${e.id}">
-      <span class="tag">${e.kind === "settle" ? "還錢" : esc(e.category || "其他")}</span>
-      <span class="main"><b>${esc(e.title)}${e.receipt ? " 🧾" : ""}</b><span>${sub}${e.currency && e.currency !== "TWD" ? ` · ${(+e.orig_amount).toLocaleString()} ${esc(e.currency)}` : ""}${e.note ? " · " + esc(e.note) : ""}</span></span>
-      <span class="amt">${money(e.amount)}</span></button>`;
+    // 一張票：上半是品項和總額，下面用齒孔撕成兩半，各寫負擔多少；誰付的就在那半蓋章。全算一個人的票不撕開。
+    const ps = people(), extra = `${e.currency && e.currency !== "TWD" ? ` · ${(+e.orig_amount).toLocaleString()} ${esc(e.currency)}` : ""}${e.note ? " · " + esc(e.note) : ""}`;
+    const halves = e.kind === "settle" || ps.length < 2 ? null : ps.map(p => ({ p, v: +(e.shares[p.id] || 0) }));
+    const whole = halves && halves.filter(h => h.v > 0).length === 1 ? halves.find(h => h.v > 0) : null;
+    const half = h => `<span class="half th-${h.p.theme === "blue" ? "b" : "p"}"><span>${esc(h.p.name)}</span><b class="num">${money(h.v)}</b>${+e.paid_by === h.p.id ? '<i class="paid">付款</i>' : ""}</span>`;
+    return `${head}<button class="tk${e.kind === "settle" ? " settle" : ""}${whole ? ` whole th-${whole.p.theme === "blue" ? "b" : "p"}` : ""}" type="button" data-id="${e.id}">
+      <span class="top"><span class="tt"><b>${esc(e.title)}${e.receipt ? " 🧾" : ""}</b><small>${e.kind === "settle" ? sub : esc(e.category || "其他")}${extra}</small></span><b class="num">${money(e.amount)}</b></span>
+      ${halves && !whole ? `<span class="halves">${half(halves[0])}<span class="perf"></span>${half(halves[1])}</span>` : whole ? `<span class="halves one"><span>全算${esc(whole.p.name)}・${esc(nameOf(e.paid_by))}付</span></span>` : ""}</button>`;
   }).join("");
   $("monthBody").innerHTML = html;
 }
