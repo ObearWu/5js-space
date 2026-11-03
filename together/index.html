@@ -100,11 +100,70 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 .mdetail b{display:block;font-size:.9rem}
 .mdetail p{margin:2px 0 0;white-space:pre-wrap;word-break:break-word}
 .mdetail .x{margin-left:auto;border:0;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
-.strip{display:grid;grid-template-columns:auto repeat(14,1fr);gap:2px;margin-top:12px;font-size:.7rem;align-items:center;text-align:center}
-.strip .nm{text-align:left;padding-right:4px;color:var(--muted);white-space:nowrap}
-.strip .c{display:flex;justify-content:center;align-items:center;aspect-ratio:1;border-radius:50%}
-.strip .c .orb{--s:100%;max-width:18px;max-height:18px;box-shadow:none}
-.strip .c.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+/* 心情罐：一週一罐（週一到週日），兩個人的心情打卡都放進同一罐。以前的週封起來
+   （軟木塞＋麻繩、玻璃起霧、日期貼紙）放在架上，點開回顧時才變回平常的罐子。 */
+.jarbox{margin-top:16px;padding-top:14px;border-top:2px dashed var(--line);display:flex;flex-direction:column;gap:12px}
+.jhead{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:34px}
+.jhead b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.02rem}
+.jhead small{display:block;color:var(--muted);font-size:.78rem}
+.jar{position:relative;width:var(--jw,260px);max-width:100%;margin:0 auto;aspect-ratio:.82}
+.jar .cork{position:absolute;left:17%;right:17%;top:0;height:17%;border-radius:10px 10px 6px 6px;z-index:2;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .35  0 0 0 0 .18  0 0 0 0 .05  0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='120' height='60' filter='url(%23n)'/%3E%3C/svg%3E"),linear-gradient(90deg,#B8692F,#DE9550 35%,#E9A660 55%,#B8692F);
+  box-shadow:inset 0 -6px 8px rgba(80,30,0,.35),inset 0 4px 4px rgba(255,220,170,.35);transition:transform .5s cubic-bezier(.3,1.3,.5,1)}
+.jar .neck{position:absolute;left:13%;right:13%;top:13%;height:9%;border-radius:12px;z-index:1;
+  background:linear-gradient(90deg,rgba(255,255,255,.4),rgba(255,255,255,.08) 20%,rgba(255,255,255,.03) 70%,rgba(255,255,255,.32));border:2px solid rgba(220,210,255,.6)}
+.jar .glass,.jar .fog{position:absolute;left:3%;right:3%;top:20%;bottom:0;border-radius:18% 18% 20% 20% / 14% 14% 16% 16%}
+.jar .glass{background:linear-gradient(90deg,rgba(255,255,255,.32) 0 3%,rgba(255,255,255,.08) 9%,transparent 22%,transparent 78%,rgba(255,255,255,.1) 90%,rgba(255,255,255,.3) 97%),linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.04) 60%,rgba(255,255,255,.16));
+  border:2.5px solid rgba(220,210,255,.6);box-shadow:inset 0 -14px 22px rgba(180,160,255,.16),0 0 40px rgba(140,120,255,.14)}
+.jar .glass::after{content:"";position:absolute;left:9%;top:6%;width:7%;height:62%;border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,0))}
+.jar .balls{position:absolute;left:3%;right:3%;top:20%;bottom:0}
+.jar .fog{pointer-events:none;background:linear-gradient(180deg,rgba(210,200,255,.28),rgba(210,200,255,.16));-webkit-backdrop-filter:blur(3px) saturate(.7);backdrop-filter:blur(3px) saturate(.7);opacity:0;transition:opacity .5s}
+.jar .twine{position:absolute;left:12%;right:12%;top:15.5%;height:4%;z-index:3;border-radius:4px;opacity:0;transition:opacity .3s;background:repeating-linear-gradient(120deg,#D9C2A0 0 3px,#B89C76 3px 6px);box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.jar .sticker{position:absolute;left:50%;top:50%;z-index:4;min-width:58%;padding:6% 8%;text-align:center;font-family:var(--f-round);color:#5A3E2E;line-height:1.25;font-size:calc(var(--jw,260px) * .085);
+  background:#FFF6E4;border-radius:6px;transform:translate(-50%,-50%) rotate(var(--rot,-4deg));box-shadow:0 2px 4px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:transform .55s cubic-bezier(.5,-.3,.6,1),opacity .45s}
+.jar .sticker::before{content:"";position:absolute;left:50%;top:-9%;width:36%;height:22%;transform:translateX(-50%) rotate(3deg);background:rgba(244,166,196,.7)}
+.jar .sticker small{display:block;font-size:.62em;opacity:.75;margin-top:2px}
+.jar.sealed .fog,.jar.sealed .twine,.jar.sealed .sticker{opacity:1}
+.jar.sealed .balls{pointer-events:none}
+.jar:not(.sealed) .sticker{transform:translate(40%,-160%) rotate(28deg) scale(.6)}
+.jar.opening .cork{transform:translateY(-14%) rotate(-6deg)}
+.jar .ball{position:absolute;--s:var(--d);border:0;padding:0;cursor:pointer;transition:transform .18s;box-shadow:0 0 calc(var(--d) * .28) color-mix(in srgb,var(--c) 45%,transparent),inset -4px -6px 10px rgba(0,0,0,.18),0 0 0 2px var(--who,transparent)}
+.jar .ball:hover{transform:scale(1.06)}
+.jar .ball[aria-expanded="true"]{transform:scale(1.08);box-shadow:0 0 0 3px #fff,0 0 22px var(--c)}
+.jar .ball:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.jar .ball.drop{animation:jdrop .7s cubic-bezier(.3,1.4,.5,1) both;animation-delay:var(--dl,0s)}
+@keyframes jdrop{from{transform:translateY(-300%)}to{transform:none}}
+.jar .empty-note{position:absolute;left:10%;right:10%;bottom:24%;margin:0;text-align:center;color:var(--muted);font-size:.82rem}
+.jar.tiny .ball{cursor:default;box-shadow:inset -2px -3px 4px rgba(0,0,0,.2);background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.9) 0 9%,transparent 30%),radial-gradient(circle,var(--c) 0 55%,color-mix(in srgb,var(--c) 62%,#000) 100%)}
+.shhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.shhead h3{margin:0;font-size:.92rem;font-weight:400;font-family:var(--f-round);color:var(--muted)}
+.jshelf{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 8px;align-items:end;padding:8px 4px 0}
+.jshelf::after{content:"";grid-column:1/-1;height:11px;margin:0 -4px;border-radius:3px;background:linear-gradient(180deg,#8A6347,#6B4A35);box-shadow:0 6px 10px rgba(0,0,0,.45)}
+.jshelf .sj{border:0;background:none;padding:0;cursor:pointer;min-width:0;transition:transform .2s,opacity .2s}
+.jshelf .sj:hover{transform:translateY(-3px)}
+.jshelf .sj:focus-visible,.jcal .wk.has:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.jshelf .sj[aria-current="true"]{opacity:.35}
+.jshelf .sj .jar{--jw:100%;width:100%}
+.jshelf .none{grid-column:1/-1;margin:0;font-size:.82rem;color:var(--muted);text-align:center;padding:6px 0}
+.jcal{background:var(--sunk);border:1px solid var(--line);border-radius:18px;padding:12px}
+.jcal .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.jcal .ch b{font-family:var(--f-round);font-weight:400}
+.jcal .nav{border:0;background:var(--surface);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer}
+.jcal .nav:disabled{opacity:.3;cursor:default}
+.jcal .dow,.jcal .wk{display:grid;grid-template-columns:2.2em repeat(7,minmax(0,1fr));gap:2px;align-items:center;text-align:center}
+.jcal .dow{font-size:.72rem;color:var(--muted);padding:0 4px}
+.jcal .wk{width:100%;border:0;background:none;color:var(--muted);font:inherit;font-size:.8rem;padding:5px 4px;border-radius:12px;margin-top:2px}
+.jcal .wk.has{cursor:pointer;color:var(--ink);background:var(--surface)}
+.jcal .wk[aria-current="true"]{background:color-mix(in srgb,var(--gold) 25%,var(--surface))}
+.jcal .wk .out{opacity:.35}
+.jcal .d{display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+.jcal .dots{display:flex;gap:2px;height:7px}
+.jcal .dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.jcal .ji{width:16px;height:18px;margin:0 auto;border-radius:4px 4px 6px 6px;border:1.5px solid rgba(220,210,255,.55);position:relative;background:linear-gradient(180deg,transparent 40%,rgba(255,212,94,.35))}
+.jcal .ji::before{content:"";position:absolute;left:3px;right:3px;top:-5px;height:5px;border-radius:2px;background:#C98445}
+.jcal .wk:not(.has) .ji{opacity:.2}
+.jcal .legend{font-size:.74rem;color:var(--muted);margin-top:8px}
+.jcal .loading{font-size:.8rem;padding:8px 0}
 
 /* 照片牆 */
 /* 記憶架：每張照片裝在一顆記憶球裡，紀念日拍的是金色核心記憶 */
@@ -210,7 +269,21 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
         <div class="mdetail" id="mDetail" hidden role="status"></div>
         <div class="moods" id="mPick"></div>
         <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
-        <div class="strip" id="mStrip" aria-label="最近兩週的心情"></div>
+        <div class="jarbox">
+          <div class="jhead"><div><b id="jTitle">這週的心情罐</b><small id="jSub"></small></div><button class="btn sm" type="button" id="jBack" hidden>放回架上</button></div>
+          <div class="jar" id="jMain" style="--jw:min(260px,70vw)">
+            <div class="glass"></div><div class="balls" id="jBalls"></div><div class="fog"></div><div class="neck"></div><div class="twine"></div><div class="cork"></div>
+            <div class="sticker"><span class="st"></span><small class="sc"></small></div>
+          </div>
+          <div class="shhead"><h3>以前的罐子・最近 4 罐</h3><button class="btn sm" type="button" id="jCalBtn" aria-expanded="false" aria-controls="jCal">日曆找罐子</button></div>
+          <div class="jcal" id="jCal" hidden>
+            <div class="ch"><button class="nav" type="button" id="jCalPrev" aria-label="上個月">‹</button><b id="jCalTitle"></b><button class="nav" type="button" id="jCalNext" aria-label="下個月">›</button></div>
+            <div class="dow"><span></span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+            <div id="jCalBody"></div>
+            <div class="legend">有罐子的週可以點；小圓點是那天的心情。</div>
+          </div>
+          <div class="jshelf" id="jShelf"></div>
+        </div>
       </section>
 
       <section class="panel lm" id="lovemap" aria-labelledby="lmTitle">
@@ -285,6 +358,7 @@ const addDays = (s, n) => { const d = parse(s); d.setUTCDate(d.getUTCDate() + n)
 const dayText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}月${d.getUTCDate()}日（${WEEK[d.getUTCDay()]}）`; };
 const photoUrl = id => `${window.FIVEJS_CONFIG.API_BASE}/api/photos/${id}`;
 const moodOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MOOD_COLOR[mood] || "var(--muted)"}"></i>`;
+const faceOrb = (mood, cls = "") => `<i class="orb${cls}" style="--c:${FiveJS.MOOD_COLOR[mood] || "var(--muted)"}">${FiveJS.moodFace(mood)}</i>`;
 
 const state = { me: null, partner: null, q: null, moods: null, pickMood: null, moodOpen: null, dates: [], editDate: null,
                 photos: [], photosDone: false, upload: null, histBefore: null,
@@ -391,22 +465,15 @@ function renderMoods() {
   $("mToday").innerHTML = people().map(p => {
     const t = todayOf(p.id);
     const open = state.moodOpen && state.moodOpen.u === p.id && state.moodOpen.d === today;
-    return `<button type="button" class="who" data-u="${p.id}" data-d="${today}" aria-expanded="${!!open}">${t ? moodOrb(t.mood) : moodOrb("", " empty")}<div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></button>`;
+    return `<button type="button" class="who" data-u="${p.id}" data-d="${today}" aria-expanded="${!!open}">${t ? faceOrb(t.mood) : moodOrb("", " empty")}<div><b>${esc(p.name)}${p.id === state.me.id ? "（我）" : ""}</b><span>${t ? esc(t.mood + (t.note ? "・" + t.note : "")) : "今天還沒打卡"}</span></div></button>`;
   }).join("");
   const mine = todayOf(state.me.id);
   if (state.pickMood == null) { state.pickMood = mine?.mood || null; $("mNote").value = mine?.note || ""; }
-  $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}" style="--c:${FiveJS.MOOD_COLOR[o] || "var(--muted)"}">${moodOrb(o)}${esc(o)}</button>`).join("");
+  $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}" style="--c:${FiveJS.MOOD_COLOR[o] || "var(--muted)"}">${faceOrb(o)}${esc(o)}</button>`).join("");
   $("mSave").textContent = mine ? "更新" : "打卡";
-  const days = Array.from({ length: 14 }, (_, i) => addDays(today, i - 13));
-  $("mStrip").innerHTML = `<span></span>` + days.map(d => `<span class="muted">${+d.slice(8)}</span>`).join("") +
-    people().map(p => `<span class="nm">${esc(p.name)}</span>` + days.map(d => {
-      const x = m.items.find(i => i.date === d && i.user_id === p.id);
-      return x ? `<button type="button" class="c${d === today ? " today" : ""}" data-u="${p.id}" data-d="${d}" aria-label="${esc(`${p.name} ${dayText(d)} ${x.mood}`)}">${moodOrb(x.mood)}</button>`
-        : `<span class="c${d === today ? " today" : ""}"></span>`;
-    }).join("")).join("");
   renderMoodDetail();
 }
-// 點一顆心情珠子（今天的卡片或兩週的小珠子），在下面展開那天的心情和小語。只能看，
+// 點今天的心情卡片，在下面展開那天的心情和小語。只能看，
 // 要改只能改自己今天的（用下面的選項重新打卡）。
 function renderMoodDetail() {
   const box = $("mDetail"), o = state.moodOpen, m = state.moods;
@@ -424,7 +491,6 @@ function toggleMood(u, d) {
   renderMoods();
 }
 $("mToday").onclick = e => { const b = e.target.closest("[data-u]"); if (b) toggleMood(+b.dataset.u, b.dataset.d); };
-$("mStrip").onclick = e => { const b = e.target.closest("[data-u]"); if (b) toggleMood(+b.dataset.u, b.dataset.d); };
 $("mDetail").onclick = e => { if (e.target.closest("[data-close]")) { state.moodOpen = null; renderMoods(); } };
 $("mPick").onclick = e => {
   const b = e.target.closest("[data-v]"); if (!b) return;
@@ -433,10 +499,196 @@ $("mPick").onclick = e => {
 $("mSave").onclick = async () => {
   if (!state.pickMood) { toast("先選一個心情"); return; }
   $("mSave").disabled = true;
-  try { state.moods = await call("/api/together/moods", { method: "PUT", body: { mood: state.pickMood, note: $("mNote").value } }); renderMoods(); toast("打卡完成"); }
+  try { state.moods = await call("/api/together/moods", { method: "PUT", body: { mood: state.pickMood, note: $("mNote").value } }); renderMoods(); toast("打卡完成"); loadJar().catch(() => {}); }
   catch (e) { toast(e.message); }
   $("mSave").disabled = false;
 };
+
+// ---------- 心情罐 ----------
+// 這週的罐子開著，可以點球看那天的小語，自己的球可以刪；以前的罐子在架上封起來，
+// 點開回顧時只能看。架上固定只放最近 4 罐，更早的用日曆找。
+const J = { jar: null, view: null, seen: null, cal: null, calCache: {}, popDel: null };
+const mdText = s => { const d = parse(s); return `${d.getUTCMonth() + 1}/${String(d.getUTCDate()).padStart(2, "0")}`; };
+const jarLabel = j => `${mdText(j.week)}–${mdText(j.end)}`;
+const jarRot = j => ((Math.round(parse(j.week) / 604800000) * 7) % 13 + 13) % 13 - 6;
+const whoColor = id => person(id)?.theme === "blue" ? "var(--pig-blue)" : "var(--pig-pink)";
+
+function setJar(jar) { if (!jar) return; J.jar = jar; if (!J.view) showCurrentJar(); }
+async function loadJar() { setJar(await call("/api/together/jar")); }
+async function loadJars() { state.jars = await call("/api/together/jars"); renderShelf(); }
+
+// 把球從罐底往上排：一排排錯開半顆（像堆起來的彈珠），加一點固定的小偏移才不會太整齊
+function fillJar(el, jar, { tiny = false, drop = null } = {}) {
+  const balls = el.querySelector(".balls");
+  balls.innerHTML = "";
+  el.querySelector(".st").textContent = jarLabel(jar);
+  el.querySelector(".sc").textContent = `${jar.count} 顆`;
+  el.style.setProperty("--rot", jarRot(jar) + "deg");
+  const W = balls.clientWidth, H = balls.clientHeight;
+  if (!W) return;
+  const d = Math.round(W * .205), gap = Math.max(1, W * .008), pad = W * .07;
+  const per = Math.max(1, Math.floor((W - 2 * pad) / (d + gap))), rowH = d * .88;
+  if (!jar.items.length && !tiny) balls.innerHTML = `<p class="empty-note">這週還沒有心情，打個卡放第一顆進來</p>`;
+  jar.items.forEach((s, i) => {
+    const row = Math.floor(i / per), col = i % per, j = ((i * 37) % 7 - 3) * W / 300;
+    const x = pad + col * (d + gap) + (row % 2 ? d * .25 : 0) + j;
+    const y = H - pad * .7 - d - row * rowH + ((i * 53) % 5 - 2) * W / 300;
+    const b = document.createElement(tiny ? "i" : "button");
+    const key = `${s.user_id}|${s.date}`;
+    b.className = "orb ball" + (drop && drop.has(key) ? " drop" : "");
+    b.style.cssText = `--c:${FiveJS.MOOD_COLOR[s.mood] || "var(--muted)"};--d:${d}px;left:${x}px;top:${y}px;--dl:${Math.min(i, 14) * .05}s;--who:${tiny ? "transparent" : whoColor(s.user_id)}`;
+    if (!tiny) {
+      b.type = "button"; b.dataset.k = key; b.innerHTML = FiveJS.moodFace(s.mood);
+      b.setAttribute("aria-label", `${person(s.user_id)?.name || ""} ${dayText(s.date)} ${s.mood}`);
+      b.setAttribute("aria-expanded", "false");
+      b.onclick = () => ballPop(b, s, jar);
+    }
+    balls.appendChild(b);
+  });
+}
+
+function ballPop(b, s, jar) {
+  const p = person(s.user_id), mine = s.user_id === state.me.id;
+  const canDel = mine && jar.current && !J.view;
+  const hasQ = state.hist.some(h => h.date === s.date);
+  const pop = FiveJS.glassPop(b, `<b>${s.note ? esc(s.note) : "沒有寫小語"}</b><small>${esc(dayText(s.date))}・${esc(p?.name || "")}・${esc(s.mood)}</small>
+    ${hasQ || canDel ? `<div class="acts">${hasQ ? '<button type="button" class="more">看那天的問答</button>' : ""}${canDel ? '<button type="button" class="del">刪除</button>' : ""}</div>` : ""}`,
+    FiveJS.MOOD_COLOR[s.mood]);
+  if (!pop) return;
+  pop.querySelector(".more")?.addEventListener("click", () => {
+    FiveJS.closeGlassPop(); state.histOpen = s.date; state.histNew = []; renderHistory();
+    $("hist").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  // 刪除要按兩下（頁面裡不能跳確認視窗）
+  pop.querySelector(".del")?.addEventListener("click", async e => {
+    const btn = e.currentTarget;
+    if (!btn.classList.contains("sure")) { btn.classList.add("sure"); btn.textContent = "確定刪除"; return; }
+    btn.disabled = true;
+    try {
+      await call(`/api/together/moods/${s.date}`, { method: "DELETE" });
+      FiveJS.closeGlassPop();
+      if (s.date === state.moods?.today) { state.pickMood = null; $("mNote").value = ""; }
+      state.moods = await call("/api/together/moods"); renderMoods();
+      await loadJar(); toast("已經從罐子拿掉了");
+    } catch (err) { toast(err.message); btn.disabled = false; }
+  });
+}
+
+function showCurrentJar() {
+  const jar = J.jar; if (!jar) return;
+  J.view = null; FiveJS.closeGlassPop();
+  const el = $("jMain"); el.classList.remove("sealed", "opening");
+  $("jTitle").textContent = "這週的心情罐";
+  $("jSub").textContent = `${jarLabel(jar)}・${jar.count} 顆`;
+  $("jBack").hidden = true;
+  // 第一次畫的時候全部掉進去，之後只有新打卡的那顆會掉
+  if (!$("jBalls").clientWidth) return; // 頁面還沒顯示，等 relayoutJars 再畫
+  const keys = new Set(jar.items.map(s => `${s.user_id}|${s.date}`));
+  const drop = J.seen ? new Set([...keys].filter(k => !J.seen.has(k))) : keys;
+  J.seen = keys;
+  fillJar(el, jar, { drop });
+  markShelf();
+}
+
+function openPastJar(jar) {
+  FiveJS.closeGlassPop();
+  J.view = jar;
+  const el = $("jMain");
+  $("jTitle").textContent = `回顧 ${jarLabel(jar)}`;
+  $("jSub").textContent = `${jar.count} 顆・只能看，不能刪`;
+  $("jBack").hidden = false;
+  el.classList.remove("opening"); el.classList.add("sealed");
+  fillJar(el, jar);
+  markShelf();
+  // 先以封起來的樣子出現，再撕貼紙、拔軟木塞、霧氣散掉
+  setTimeout(() => {
+    if (J.view !== jar) return;
+    el.classList.add("opening"); el.classList.remove("sealed");
+    setTimeout(() => el.classList.remove("opening"), 700);
+  }, 350);
+  $("jMain").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+$("jBack").onclick = () => { FiveJS.closeGlassPop(); $("jMain").classList.add("sealed"); setTimeout(showCurrentJar, 600); };
+
+const jarHTML = `<div class="glass"></div><div class="balls"></div><div class="fog"></div><div class="neck"></div><div class="twine"></div><div class="cork"></div><div class="sticker"><span class="st"></span><small class="sc"></small></div>`;
+function renderShelf() {
+  const el = $("jShelf"), list = state.jars?.jars || [];
+  if (!list.length) { el.innerHTML = `<p class="none">一週過完，這週的罐子就會封起來放到這裡。</p>`; return; }
+  el.innerHTML = list.map((j, i) => `<button type="button" class="sj" data-i="${i}" aria-label="打開 ${jarLabel(j)} 的罐子，${j.count} 顆"><div class="jar sealed tiny">${jarHTML}</div></button>`).join("");
+  el.querySelectorAll(".sj").forEach(b => {
+    const j = list[+b.dataset.i], jarEl = b.firstChild;
+    jarEl.style.setProperty("--jw", jarEl.clientWidth + "px");
+    fillJar(jarEl, j, { tiny: true });
+    b.onclick = () => { if (J.view?.week !== j.week) openPastJar(j); };
+  });
+  markShelf();
+}
+function markShelf() {
+  $("jShelf").querySelectorAll(".sj").forEach(b => b.setAttribute("aria-current", String(state.jars.jars[+b.dataset.i]?.week === J.view?.week)));
+}
+
+// 日曆：一列是一週（週一開頭），有罐子的週可以點，小圓點是那天兩個人的心情顏色
+async function drawCal() {
+  const today = J.jar?.today || state.moods?.today; if (!today) return;
+  if (!J.cal) J.cal = today.slice(0, 7);
+  const [y, mo] = J.cal.split("-").map(Number);
+  const earliest = (state.jars?.earliest || today).slice(0, 7);
+  $("jCalTitle").textContent = `${y} 年 ${mo} 月`;
+  $("jCalPrev").disabled = J.cal <= earliest;
+  $("jCalNext").disabled = J.cal >= today.slice(0, 7);
+  const body = $("jCalBody");
+  let data = J.calCache[J.cal];
+  if (!data) {
+    body.innerHTML = `<div class="loading"><span class="spinner"></span>載入中…</div>`;
+    const want = J.cal;
+    try { data = J.calCache[want] = await call(`/api/together/jars?month=${want}`); } catch (e) { body.innerHTML = `<p class="small muted">${esc(e.message)}</p>`; return; }
+    if (J.cal !== want) return;
+  }
+  const byWeek = {}; data.jars.forEach(j => { byWeek[j.week] = j; });
+  if (J.jar) byWeek[J.jar.week] = J.jar;
+  const first = `${J.cal}-01`, firstD = parse(first);
+  let w = addDays(first, -((firstD.getUTCDay() + 6) % 7));
+  let html = "";
+  while (w.slice(0, 7) <= J.cal) {
+    const j = byWeek[w], has = j && j.count > 0;
+    let cells = "";
+    for (let i = 0; i < 7; i++) {
+      const d = addDays(w, i);
+      const dots = j ? j.items.filter(x => x.date === d).map(x => `<i style="--c:${FiveJS.MOOD_COLOR[x.mood] || "var(--muted)"}"></i>`).join("") : "";
+      cells += `<span class="d${d.slice(0, 7) !== J.cal ? " out" : ""}">${+d.slice(8)}<span class="dots">${dots}</span></span>`;
+    }
+    const isCur = J.jar && w === J.jar.week;
+    const cur = isCur ? !J.view : J.view?.week === w;
+    html += `<button type="button" class="wk${has ? " has" : ""}" ${has ? "" : "disabled"} data-w="${w}" aria-current="${!!(has && cur)}" aria-label="${has ? `${isCur ? "這週" : "打開"} ${jarLabel(j)} 的罐子，${j.count} 顆` : `${mdText(w)} 那週沒有打卡`}"><span class="ji"></span>${cells}</button>`;
+    w = addDays(w, 7);
+  }
+  body.innerHTML = html;
+  body.querySelectorAll(".wk.has").forEach(b => b.onclick = () => {
+    const wk = b.dataset.w; toggleCal(false);
+    if (J.jar && wk === J.jar.week) { if (J.view) $("jBack").click(); }
+    else openPastJar(byWeek[wk]);
+  });
+}
+function toggleCal(on) {
+  $("jCal").hidden = !on; $("jCalBtn").setAttribute("aria-expanded", String(on));
+  $("jCalBtn").textContent = on ? "收起日曆" : "日曆找罐子";
+  if (on) drawCal();
+}
+$("jCalBtn").onclick = () => toggleCal($("jCal").hidden);
+const shiftMonth = n => { const [y, m] = J.cal.split("-").map(Number); const d = new Date(Date.UTC(y, m - 1 + n, 1)); J.cal = d.toISOString().slice(0, 7); drawCal(); };
+$("jCalPrev").onclick = () => shiftMonth(-1);
+$("jCalNext").onclick = () => shiftMonth(1);
+let jarResize = null;
+addEventListener("resize", () => { clearTimeout(jarResize); jarResize = setTimeout(() => {
+  FiveJS.closeGlassPop();
+  if (J.view) fillJar($("jMain"), J.view); else if (J.jar) fillJar($("jMain"), J.jar);
+  if (state.jars) renderShelf();
+}, 200); });
+// #app 一開始是隱藏的，量不到罐子的大小；顯示之後再排一次
+function relayoutJars() {
+  if (J.view) fillJar($("jMain"), J.view); else if (J.jar) showCurrentJar();
+  if (state.jars) renderShelf();
+}
 
 // ---------- 紀念日 ----------
 // 下一次的日子：每年重複的找今年或明年；不重複的就是那一天本身
@@ -825,12 +1077,14 @@ async function loadBucket() { state.bucket = (await call("/api/together/bucket")
 
 // ---------- 啟動 ----------
 async function refresh() {
-  const [q, m] = await Promise.all([call("/api/together/question"), call("/api/together/moods")]);
+  const [q, m, jar] = await Promise.all([call("/api/together/question"), call("/api/together/moods"), call("/api/together/jar").catch(() => null)]);
   const dayChanged = state.q && state.q.date !== q.date;
   // 正在寫答案時不要把輸入框洗掉
   const typing = document.activeElement?.id === "qInput";
   const bornNow = state.q && !dayChanged && state.q.partner == null && q.partner != null;
   state.q = q; state.moods = m;
+  setJar(jar);
+  if (dayChanged || !state.jars) loadJars().catch(() => {});
   if (bornNow) loadHistory().catch(() => {});
   if (!typing || dayChanged) renderQuestion();
   if (dayChanged) { state.pickMood = null; loadHistory().catch(() => {}); loadDates().catch(() => {}); loadOtd().catch(() => {}); loadCheckin().catch(() => {}); }
@@ -855,6 +1109,8 @@ async function boot() {
   if (q && m) {
     try {
       state.q = q; state.moods = m; renderQuestion(); renderMoods();
+      const jr = pk("/api/together/jar"); if (jr) setJar(jr);
+      const js = pk("/api/together/jars"); if (js) { state.jars = js; renderShelf(); }
       const d = pk("/api/together/dates"); if (d) { state.dates = d.items; state.datesToday = d.today; renderDates(); }
       const ph = pk("/api/together/photos"); if (ph) { state.photos = ph.items; state.photosDone = ph.items.length < 60; renderWall(); }
       const h = pk("/api/together/history"); if (h) { state.hist = h.items; state.histBefore = h.next_before; state.histMore = h.items.length > 0; renderHistory(); }
@@ -862,14 +1118,14 @@ async function boot() {
       const ck = pk("/api/together/checkin"); if (ck) { state.ck = ck; renderCheckin(); }
       const bk = pk("/api/together/bucket"); if (bk) { state.bucket = bk.items; renderBucket(); }
       const pi = pk("/api/together/pings"); if (pi) { state.ping = pi; renderPing(); }
-      $("booting").hidden = true; $("app").hidden = false;
+      $("booting").hidden = true; $("app").hidden = false; relayoutJars();
     } catch (e) {}
   }
   try {
     await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory(), loadLovemap(), loadCheckin(), loadBucket()]);
     loadOtd().catch(() => {}); loadPing().catch(() => {});
   } catch (e) { toast(e.message); }
-  $("booting").hidden = true; $("app").hidden = false;
+  $("booting").hidden = true; $("app").hidden = false; relayoutJars();
   // 對方回答或打卡後：每分鐘、或回到這個分頁時更新
   setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh().catch(() => {}); });

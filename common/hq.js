@@ -3,6 +3,8 @@
  * - MODS：各功能的名稱、路徑與情緒色（新增功能時加在這裡，首頁和導覽列都會跟著出現）。
  * - 手機底部導覽列：依 <html data-mod> 標出目前在哪一頁，載入時自動加到頁面最下面。
  * - MOOD_COLOR：互動頁心情打卡的八種心情對應的情緒色（首頁記憶架也用）。
+ * - moodFace(mood)：心情球上的表情臉（SVG），放進 <i class="orb"> 裡面。
+ * - glassPop(anchor, html, color)：在記憶球上方跳出毛玻璃泡泡，點別的地方或按 Esc 收起。
  * - 註冊 sw.js（手機推播）。
  */
 (() => {
@@ -62,5 +64,57 @@
   const ROOT = (document.documentElement.dataset.mod || "hq") === "hq" ? "" : "../";
   if ("serviceWorker" in navigator) navigator.serviceWorker.register(ROOT + "sw.js").catch(() => {});
 
-  window.FiveJS = Object.assign(window.FiveJS || {}, { MODS, MOOD_COLOR });
+  // 八種心情的臉：眼睛＋嘴巴，線條畫在 -10..10 的座標裡
+  const EYES = {
+    dot: '<circle cx="-5" cy="-3" r="1.8"/><circle cx="5" cy="-3" r="1.8"/>',
+    happy: '<path d="M-8 -2 Q-5 -6 -2 -2 M2 -2 Q5 -6 8 -2" fill="none"/>',
+    closed: '<path d="M-8 -3 Q-5 -1 -2 -3 M2 -3 Q5 -1 8 -3" fill="none"/>',
+    tired: '<path d="M-8 -2 L-2 -2 M2 -2 L8 -2" fill="none"/>',
+    sad: '<circle cx="-5" cy="-2" r="1.8"/><circle cx="5" cy="-2" r="1.8"/><path d="M-9 -7 L-3 -5 M9 -7 L3 -5" fill="none"/>',
+    angry: '<path d="M-9 -7 L-2 -4 M9 -7 L2 -4" fill="none"/><circle cx="-5" cy="-1" r="1.8"/><circle cx="5" cy="-1" r="1.8"/>',
+    heart: '<path d="M-5 -1 l-3 -3 a1.8 1.8 0 0 1 3 -2 a1.8 1.8 0 0 1 3 2 z M5 -1 l-3 -3 a1.8 1.8 0 0 1 3 -2 a1.8 1.8 0 0 1 3 2 z"/>',
+  };
+  const FACES = {
+    "超開心": ["happy", "M-6 4 Q0 11 6 4 Z"], "開心": ["dot", "M-6 4 Q0 9 6 4"], "平靜": ["closed", "M-5 5 L5 5"],
+    "累": ["tired", "M-4 6 Q0 4 4 6"], "有點煩": ["dot", "M-5 6 L-2 4 L1 6 L4 4"], "難過": ["sad", "M-6 7 Q0 1 6 7"],
+    "生氣": ["angry", "M-5 7 Q0 3 5 7"], "想你": ["heart", "M-4 5 Q0 8 4 5"],
+  };
+  function moodFace(mood) {
+    const f = FACES[mood]; if (!f) return "";
+    const filled = f[1].endsWith("Z");
+    return `<svg class="face" viewBox="-10 -10 20 20" aria-hidden="true" fill="#2A1A14" stroke="#2A1A14" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${EYES[f[0]]}<path d="${f[1]}" fill="${filled ? "#2A1A14" : "none"}"/></svg>`;
+  }
+
+  // 毛玻璃泡泡：放在 anchor 最近的定位祖先（position 不是 static）裡，預設在球的上方，
+  // 上面放不下就改到下方。同時只會有一個。
+  let pop = null, popAnchor = null;
+  function closeGlassPop() {
+    if (pop) { pop.remove(); pop = null; }
+    if (popAnchor) { popAnchor.setAttribute("aria-expanded", "false"); popAnchor = null; }
+  }
+  function glassPop(anchor, html, color) {
+    if (popAnchor === anchor) { closeGlassPop(); return null; }
+    closeGlassPop();
+    const host = anchor.offsetParent || document.body;
+    pop = document.createElement("div");
+    pop.className = "glass-pop"; pop.setAttribute("role", "dialog");
+    if (color) pop.style.setProperty("--c", color);
+    pop.innerHTML = html;
+    host.appendChild(pop);
+    popAnchor = anchor; anchor.setAttribute("aria-expanded", "true");
+    const h = host.getBoundingClientRect(), a = anchor.getBoundingClientRect();
+    const ax = a.left - h.left + a.width / 2, pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const left = Math.max(-6, Math.min(h.width - pw + 6, ax - pw / 2));
+    let top = a.top - h.top - ph - 11;
+    if (a.top - ph - 11 < 8) { top = a.bottom - h.top + 11; pop.classList.add("below"); }
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+    pop.style.setProperty("--tail", Math.max(16, Math.min(pw - 16, ax - left)) + "px");
+    return pop;
+  }
+  document.addEventListener("click", e => {
+    if (pop && !pop.contains(e.target) && !(popAnchor && popAnchor.contains(e.target))) closeGlassPop();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && pop) { const a = popAnchor; closeGlassPop(); a?.focus(); } });
+
+  window.FiveJS = Object.assign(window.FiveJS || {}, { MODS, MOOD_COLOR, moodFace, glassPop, closeGlassPop });
 })();

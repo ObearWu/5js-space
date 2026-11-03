@@ -25,7 +25,7 @@ common/config.js      後端網址與 Google OAuth Client ID（全站只寫在�
 common/auth.js        登入、session、API 呼叫、依登入者切換配色
 common/mascot.js      吉祥物：藍色／粉紅色棒棒糖（沿用舊的大小豬健康食記）
 common/style.css      「記憶球總部」共用樣式：夜色背景、各功能情緒色（<html data-mod>）、光帶標題、記憶球
-common/hq.js          功能清單與情緒色、手機底部導覽列、心情對應的顏色（新增功能時加在這裡）
+common/hq.js          功能清單與情緒色、手機底部導覽列、心情對應的顏色與表情臉、毛玻璃泡泡（新增功能時加在這裡）
 common/hq-port.css    把舊 Artifact 搬來的飲食、經期兩頁換成總部外觀
 manifest.webmanifest  加到手機主畫面當 App 用
 icons/                主畫面圖示
@@ -34,7 +34,7 @@ food/index.html       飲食（舊「大小豬健康食記」整個搬進來，�
 split/index.html      記帳：「記帳」分頁是自己的財務金三角帳本（只有本人看得到）；「分帳」分頁記兩人的花費與還錢
 split/ledger.js       記帳分頁的程式（資料在後端 /api/ledger）
 period/index.html     經期（舊「小豬經期日記」整個搬進來）
-together/index.html   互動：每日一問（兩人答完才揭曉）、心情打卡、照片牆、紀念日倒數
+together/index.html   互動：每日一問（兩人答完才揭曉）、心情打卡與心情罐（一週一罐、舊罐子架、日曆）、照片牆、紀念日倒數
 fitness/index.html    運動：運動紀錄、重訓組數、體重曲線（跟飲食頁共用同一份紀錄）
 ```
 

@@ -92,6 +92,11 @@ body.locked .tabbar{display:none}
 .shelf .row + .row{margin-top:4px}
 .shelf .nm{font-size:.8rem;color:var(--muted)}
 .shelf .orb{--s:100%;aspect-ratio:1;height:auto;max-width:22px;justify-self:center}
+#shelf{position:relative}
+.shelf button.orb{border:0;padding:0;cursor:pointer;transition:transform .15s}
+.shelf button.orb:hover{transform:scale(1.15)}
+.shelf button.orb[aria-expanded="true"]{box-shadow:0 0 0 2px #fff,0 0 12px var(--c)}
+.shelf button.orb:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .shelf .days{display:grid;grid-template-columns:3.2em repeat(14,minmax(0,1fr));gap:4px;font-size:.62rem;color:var(--muted);text-align:center;margin-top:4px}
 .shelf .legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:.75rem;color:var(--muted)}
 .shelf .legend span{display:inline-flex;align-items:center;gap:4px}
@@ -247,11 +252,17 @@ function renderShelf(s) {
   if (!s.moods.length) { $("shelf").innerHTML = `<p class="small muted">還沒有心情紀錄。到<a href="together/">互動</a>打個卡，記憶球就會收進這裡。</p>`; return; }
   const rows = people.map(p => `<div class="row"><span class="nm">${esc(p.name)}</span>${days.map(d => {
     const m = by[`${p.id}|${d}`];
-    return m ? `<i class="orb" style="--c:${FiveJS.MOOD_COLOR[m] || "var(--muted)"}" title="${d.slice(5)} ${esc(m)}"></i>` : `<i class="orb empty" title="${d.slice(5)}"></i>`;
+    return m ? `<button type="button" class="orb" style="--c:${FiveJS.MOOD_COLOR[m] || "var(--muted)"}" data-u="${p.id}" data-d="${d}" data-m="${esc(m)}" aria-expanded="false" aria-label="${esc(p.name)} ${+d.slice(5, 7)}/${+d.slice(8)} ${esc(m)}"></button>` : `<i class="orb empty" title="${d.slice(5)}"></i>`;
   }).join("")}</div>`).join("");
   const labels = `<div class="days"><span></span>${days.map((d, i) => `<span>${i % 2 === 1 ? +d.slice(8) : ""}</span>`).join("")}</div>`;
   const legend = `<div class="legend">${Object.entries(FiveJS.MOOD_COLOR).map(([k, c]) => `<span><i class="orb" style="--c:${c}"></i>${k}</span>`).join("")}</div>`;
   $("shelf").innerHTML = rows + labels + legend;
+  // 點一顆心情球：毛玻璃泡泡寫出是誰、哪天、什麼心情
+  $("shelf").querySelectorAll("button.orb").forEach(b => b.onclick = () => {
+    const p = people.find(x => x.id === +b.dataset.u), d = b.dataset.d, m = b.dataset.m;
+    const wk = "日一二三四五六"[new Date(d + "T00:00:00").getDay()];
+    FiveJS.glassPop(b, `<b>${esc(p?.name || "")}${p?.id === ME.user.id ? "（我）" : ""}：${esc(m)}</b><small>${+d.slice(5, 7)}月${+d.slice(8)}日（${wk}）</small><div class="acts"><a class="more" href="together/">去心情罐看</a></div>`, FiveJS.MOOD_COLOR[m]);
+  });
 }
 
 // 週日的「我們這週」：兩人這週吃了幾餐、運動幾天、一起答了幾題；錢只顯示自己存的
