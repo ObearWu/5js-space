@@ -112,6 +112,10 @@ body.locked .tabbar{display:none}
 .shelf .legend{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:10px;font-size:.75rem;color:var(--muted)}
 .shelf .legend span{display:inline-flex;align-items:center;gap:4px}
 .shelf .legend .orb{--s:10px;box-shadow:none}
+/* 沒打卡的日子：灰色虛線空心圈（要寫在 .shelf .row .orb 的彈珠樣式後面，才蓋得過去） */
+.shelf .row .orb.empty{background:transparent;border:1.5px dashed rgba(185,174,218,.55);box-shadow:none;box-sizing:border-box}
+.shelf .row .orb.empty.today{border-color:rgba(255,255,255,.85)}
+.shelf .hint{margin-top:8px}
 </style>
 <script src="common/lock.js"></script>
 </head>
@@ -286,14 +290,15 @@ function renderShelf(s) {
     days.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
   }
   const by = {}; s.moods.forEach(m => { by[`${m.user_id}|${m.date}`] = m.mood; });
-  if (!s.moods.length) { $("shelf").innerHTML = `<p class="small muted">還沒有心情紀錄。到<a href="together/">互動</a>打個卡，記憶球就會收進這裡。</p>`; return; }
   const rows = people.map(p => `<div class="row"><span class="nm">${esc(p.name)}</span>${days.map(d => {
     const m = by[`${p.id}|${d}`];
-    return m ? `<button type="button" class="orb" style="--c:${FiveJS.MOOD_COLOR[m] || "var(--muted)"}" data-u="${p.id}" data-d="${d}" data-m="${esc(m)}" aria-expanded="false" aria-label="${esc(p.name)} ${+d.slice(5, 7)}/${+d.slice(8)} ${esc(m)}"></button>` : `<i class="orb empty" title="${d.slice(5)}"></i>`;
+    return m ? `<button type="button" class="orb" style="--c:${FiveJS.MOOD_COLOR[m] || "var(--muted)"}" data-u="${p.id}" data-d="${d}" data-m="${esc(m)}" aria-expanded="false" aria-label="${esc(p.name)} ${+d.slice(5, 7)}/${+d.slice(8)} ${esc(m)}"></button>` : `<i class="orb empty${d === s.today ? " today" : ""}" title="${+d.slice(5, 7)}/${+d.slice(8)} 沒有紀錄"></i>`;
   }).join("")}</div>`).join("");
   const labels = `<div class="days"><span></span>${days.map((d, i) => `<span>${i % 2 === 1 ? +d.slice(8) : ""}</span>`).join("")}</div>`;
   const legend = `<div class="legend">${Object.entries(FiveJS.MOOD_COLOR).map(([k, c]) => `<span><i class="orb" style="--c:${c}"></i>${k}</span>`).join("")}</div>`;
-  $("shelf").innerHTML = rows + labels + legend;
+  // 兩週都沒人打卡也照樣畫出 14 格虛線圈，下面加一句提示
+  const hint = s.moods.length ? "" : `<p class="small muted hint">這兩週還沒有心情紀錄。到<a href="together/">互動</a>打個卡，記憶球就會收進這裡。</p>`;
+  $("shelf").innerHTML = rows + labels + hint + legend;
   // 點一顆心情球：毛玻璃泡泡寫出是誰、哪天、什麼心情
   $("shelf").querySelectorAll("button.orb").forEach(b => b.onclick = () => {
     const p = people.find(x => x.id === +b.dataset.u), d = b.dataset.d, m = b.dataset.m;
