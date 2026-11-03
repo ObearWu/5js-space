@@ -16,6 +16,18 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="../common/style.css">
 <style>
+:root{--paper:#FFF6E4;--paper-ink:#5A3E2E}
+/* 分區：今天／這週／我們的，黏在上面，點了捲到那一區；有等我做的事會有小紅點 */
+.seg{position:sticky;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:15;display:flex;gap:4px;padding:4px;border-radius:999px;margin-bottom:-4px;
+  background:color-mix(in srgb,var(--bg,#15102A) 80%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);box-shadow:0 8px 20px -10px rgba(0,0,0,.6)}
+.seg button{flex:1;position:relative;border:0;background:none;color:var(--muted);font:inherit;font-family:var(--f-round);font-size:.95rem;padding:7px 0;border-radius:999px;cursor:pointer}
+.seg button[aria-current="true"]{background:var(--sad);color:#fff;box-shadow:0 0 14px color-mix(in srgb,var(--sad) 60%,transparent)}
+.seg .dot{position:absolute;top:6px;margin-left:3px;width:7px;height:7px;border-radius:50%;background:var(--emb);box-shadow:0 0 6px var(--emb)}
+.zones{display:flex;flex-direction:column;gap:20px}
+.zone{scroll-margin-top:72px;display:flex;flex-direction:column;gap:20px}
+.zone + .zone{margin-top:14px}
+.zt{margin:0;font-family:var(--f-round);font-weight:400;font-size:.9rem;letter-spacing:.14em;color:var(--muted);display:flex;align-items:center;gap:10px}
+.zt::after{content:"";flex:1;height:1px;background:var(--line)}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 @media (max-width:760px){.grid{grid-template-columns:minmax(0,1fr)}}
 .col{display:flex;flex-direction:column;gap:20px;min-width:0}
@@ -33,19 +45,35 @@ textarea{resize:vertical;min-height:84px}
 .small{font-size:.85rem}
 .empty{text-align:center;color:var(--muted);padding:14px 0}
 
-/* 在一起第幾天 */
-.days{display:flex;align-items:center;gap:14px}
-.days .n{font-family:var(--f-num);font-size:2.4rem;font-weight:700;line-height:1;color:#FFE59A;text-shadow:0 0 18px color-mix(in srgb,var(--gold) 60%,transparent)}
-.days .t{font-family:var(--f-round)}
-.dlist{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-.dlist li{display:flex;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
-.dlist .main{flex:1;min-width:0}
-.dlist .main b{display:block}
-.dlist .main span{font-size:.8rem;color:var(--muted)}
-.dlist .cd{font-family:var(--f-num);font-weight:700;white-space:nowrap;text-align:right}
-.dlist .cd small{display:block;font-family:var(--f-body,inherit);font-weight:400;font-size:.72rem;color:var(--muted)}
-.dlist li.soon{border-color:var(--accent);background:var(--accent-soft)}
-.dlist li.today{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 18%,var(--surface));box-shadow:0 0 18px color-mix(in srgb,var(--gold) 30%,transparent)}
+/* 我們的日子：翻頁數字、在一起的路線圖、撕頁日曆 */
+.dhead{display:flex;align-items:center;gap:14px}
+.dhead .t{font-family:var(--f-round)}
+.flipnum{display:flex;gap:4px;align-items:flex-end;margin:4px 0 2px}
+.flipnum span{font-family:var(--f-num);font-size:2.2rem;font-weight:600;color:var(--gold);background:linear-gradient(180deg,#2F2560 50%,#281F55 50%);border-radius:8px;width:1.2em;text-align:center;line-height:1.45;position:relative;box-shadow:0 3px 0 #120C26}
+.flipnum span::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#120C26}
+.flipnum span.tick{animation:flipin .6s cubic-bezier(.3,1.3,.5,1) both;animation-delay:var(--dl,0s)}
+@keyframes flipin{from{transform:rotateX(90deg)}}
+.flipnum em{font-style:normal;font-family:var(--f-round);margin-left:4px}
+.trail{margin-top:12px}
+.trail svg{display:block;width:100%;height:auto;overflow:visible}
+.trail .lbl{font-size:13px;fill:var(--muted);font-family:var(--f-body)}
+.trail .lbl.on{fill:var(--gold)}
+.dnext{text-align:center;margin:2px 0 0}
+.dnext b{color:#FFE59A;font-weight:500}
+.tears{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px;margin-top:14px}
+.tear{border:0;font:inherit;cursor:pointer;background:var(--paper);color:var(--paper-ink);border-radius:6px 6px 4px 4px;text-align:center;padding:16px 4px 8px;position:relative;font-family:var(--f-round);min-width:0;
+  box-shadow:0 6px 12px -6px rgba(0,0,0,.6);transition:transform .15s}
+.tear:hover{transform:translateY(-2px) rotate(-1deg)}
+.tear::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;border-radius:6px 6px 0 0;background:var(--c,var(--sad))}
+.tear::after{content:"";position:absolute;left:14%;right:14%;top:4px;height:3px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.9) 0 3px,transparent 3px 9px)}
+.tear b{display:block;font-family:var(--f-num);font-size:1.75rem;line-height:1.1;font-weight:600}
+.tear b.word{font-family:var(--f-round);font-size:1.3rem;font-weight:400;line-height:1.45}
+.tear small{display:block;font-size:.7rem;color:#8A6E5E;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.tear small.nm{font-size:.76rem;color:var(--paper-ink)}
+.tear.today{box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold)}
+.tear.soon{box-shadow:0 0 0 2px var(--c),0 6px 12px -6px rgba(0,0,0,.6)}
+.tear.past{opacity:.6}
+.tears .empty{grid-column:1/-1}
 .dform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;padding-top:12px;border-top:2px dashed var(--line)}
 .dform .full{grid-column:1/-1}
 .dform label{font-size:.82rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
@@ -53,31 +81,59 @@ textarea{resize:vertical;min-height:84px}
 .dform .chk input{width:auto}
 .dform .acts{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px}
 
-/* 每日一問 */
+/* 每日一問：寫在信紙上、裝進信封、蓋上棒棒糖封蠟。兩封都寄出才一起拆開；以前的題目收進郵票冊 */
 .q{font-family:var(--f-round);font-size:1.2rem;line-height:1.5;margin-bottom:12px}
 .ans{display:flex;gap:10px;align-items:flex-start;margin-top:10px}
 .ans .pig{flex:none}
 .ans .bubble{flex:1;min-width:0;background:var(--sunk);border-radius:4px 16px 16px 16px;padding:8px 12px;white-space:pre-wrap;word-break:break-word}
 .ans .bubble.locked{color:var(--muted);font-style:italic}
-.qacts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
-.born{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.88rem;color:#FFE59A}
-.born .orb{--s:22px;animation:born .9s ease-out}
-@keyframes born{from{transform:scale(.2);opacity:0}70%{transform:scale(1.25)}to{transform:scale(1);opacity:1}}
-/* 問答記憶架：每天的題目是一顆記憶球，兩人都答了是金色，點開看題目和答案 */
+.qacts{display:flex;justify-content:flex-end;gap:8px;margin-top:8px;flex-wrap:wrap}
+.paper{background:var(--paper) repeating-linear-gradient(180deg,transparent 0 27px,#EBDDC4 27px 28px);background-position:0 9px;color:var(--paper-ink);border-radius:6px;padding:8px 14px;box-shadow:0 8px 18px -8px rgba(0,0,0,.6)}
+.paper textarea{background:transparent;border:0;border-radius:0;color:var(--paper-ink);padding:0;line-height:28px;min-height:112px;font-family:var(--f-round);font-size:1rem}
+.paper textarea::placeholder{color:#B39C86}
+.paper textarea:focus{border:0}
+.envs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px auto 34px;max-width:420px;transition:margin .5s}
+.envs.opened{margin-top:min(21%,90px)}
+.env{position:relative;aspect-ratio:1.45;border-radius:8px;background:#F4E7D1;box-shadow:0 8px 18px -8px rgba(0,0,0,.6);perspective:600px}
+.env .letter{position:absolute;left:7%;right:7%;top:10%;bottom:8%;background:var(--paper);border-radius:4px;padding:7% 9%;font-family:var(--f-round);font-size:.76rem;color:var(--paper-ink);line-height:18px;transition:transform .7s cubic-bezier(.3,1.2,.5,1) .35s;z-index:1;overflow:hidden;white-space:pre-wrap;word-break:break-word}
+.env .front{position:absolute;inset:0;border-radius:8px;z-index:2;background:linear-gradient(150deg,transparent 49.5%,#E9D7B9 50%) left/50% 100% no-repeat,linear-gradient(210deg,transparent 49.5%,#E9D7B9 50%) right/50% 100% no-repeat,linear-gradient(0deg,#EFDFC4 0 40%,transparent 40%)}
+.env .flap{position:absolute;left:0;right:0;top:0;height:58%;z-index:3;transform-origin:top;transition:transform .5s ease,z-index 0s .25s;background:linear-gradient(180deg,#E2CDA9,#EAD8B8);clip-path:polygon(0 0,100% 0,50% 100%)}
+.env .wax{position:absolute;left:50%;top:54%;width:32%;transform:translate(-50%,-50%);z-index:4;transition:opacity .3s,transform .3s;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.env .wax svg{display:block;width:100%;height:auto;overflow:visible}
+.env .who{position:absolute;left:0;right:0;bottom:-24px;text-align:center;font-size:.78rem;color:var(--muted)}
+.env.waiting{background:transparent;border:2px dashed var(--line);box-shadow:none}
+.env.waiting::after{content:"還沒寄出";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:.85rem}
+.env:not(.open) .letter{color:transparent}
+.env.open .flap{transform:rotateX(180deg);z-index:0}
+.env.open .wax{opacity:0;transform:translate(-50%,-50%) scale(.4)}
+.env.open .letter{transform:translateY(-52%);z-index:5}
+.qhint{text-align:center;margin:-8px 0 0}
+.letters{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.letters.late{animation:fadeup .5s ease-out 1.1s both}
+@keyframes fadeup{from{opacity:0;transform:translateY(8px)}}
+.lt{background:var(--paper);border-left:4px solid var(--c,#E9D7B9);color:var(--paper-ink);border-radius:6px;padding:10px 14px 12px;box-shadow:0 6px 14px -8px rgba(0,0,0,.6)}
+.lt .lh{display:flex;align-items:center;gap:6px;font-family:var(--f-round);font-size:.85rem}
+.lt .lh b{font-weight:400}
+.lt p{margin:4px 0 0;white-space:pre-wrap;word-break:break-word;font-family:var(--f-round);line-height:1.7}
+/* 郵票冊：兩個人都寄出是彩色郵票，只有一個人寄出是還沒印好的半張 */
 .hist{margin-top:14px;border-top:2px dashed var(--line);padding-top:12px}
 .hist h3{margin:0 0 10px;font-size:.95rem;font-weight:400;font-family:var(--f-round,inherit)}
-.qshelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:10px 6px}
-.qshelf button{border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem;min-width:0}
-.qshelf .orb{--s:32px;transition:transform .15s}
-.qshelf button:hover .orb{transform:scale(1.08)}
-.qshelf button[aria-pressed="true"]{color:var(--ink,#fff)}
-.qshelf button[aria-pressed="true"] .orb{box-shadow:0 0 0 3px #fff,0 0 18px var(--c)}
-.qshelf .new .orb{animation:born .9s ease-out}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:10px 8px}
+.stamp{aspect-ratio:.82;border:0;padding:0;cursor:pointer;font:inherit;font-size:.66rem;color:var(--paper-ink);position:relative;--c:var(--gold);transition:transform .15s;
+  background:radial-gradient(circle at 4px 4px,transparent 2.4px,var(--paper) 2.9px) 0 0/8px 8px}
+.stamp::after{content:"";position:absolute;inset:4px;background:var(--paper)}
+.stamp::before{content:"";position:absolute;inset:14% 16% 30%;border-radius:3px;z-index:1;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.8) 0 8%,transparent 30%),radial-gradient(circle,var(--c) 0 50%,color-mix(in srgb,var(--c) 60%,#000) 100%)}
+.stamp span{position:absolute;left:0;right:0;bottom:7%;text-align:center;z-index:1}
+.stamp.half::before{background:repeating-linear-gradient(45deg,#E6D8C4 0 4px,#F3E9DA 4px 8px)}
+.stamp.half{opacity:.7}
+.stamp:hover{transform:rotate(-3deg) scale(1.05)}
+.stamp[aria-pressed="true"]{transform:rotate(-4deg) scale(1.08);filter:drop-shadow(0 0 8px var(--c))}
+.stamp.new{animation:born .9s ease-out}
+@keyframes born{from{transform:scale(.2);opacity:0}70%{transform:scale(1.25)}to{transform:scale(1);opacity:1}}
 .qopen{margin-top:12px;background:var(--sunk);border-radius:14px;padding:12px}
 .qopen .q{margin-top:0}
 .qopen .small{display:block;margin-bottom:4px}
 .qopen .bubble{background:rgba(255,255,255,.08)}
-
 /* 心情 */
 .moods{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px}
 .moods button{border:0;background:none;border-radius:14px;padding:4px 2px;cursor:pointer;font-family:var(--f-round);font-size:.85rem;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted)}
@@ -165,18 +221,23 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 .jcal .legend{font-size:.74rem;color:var(--muted);margin-top:8px}
 .jcal .loading{font-size:.8rem;padding:8px 0}
 
-/* 照片牆 */
-/* 記憶架：每張照片裝在一顆記憶球裡，紀念日拍的是金色核心記憶 */
-.wall{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}
-.wall button{border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--muted);font-size:.72rem;min-width:0}
-.wall .ball{position:relative;display:block;width:100%;aspect-ratio:1;border-radius:50%;overflow:hidden;background:var(--sunk);
-  box-shadow:0 0 0 2px color-mix(in srgb,var(--envy) 55%,transparent),0 0 18px color-mix(in srgb,var(--envy) 35%,transparent);transition:transform .15s}
-.wall .ball::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.55) 0 7%,transparent 26%),radial-gradient(circle at 50% 50%,transparent 58%,rgba(0,0,0,.28) 100%)}
-.wall button:hover .ball{transform:scale(1.04)}
-.wall button.gold .ball{box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold)}
-.wall button.gold{color:var(--gold)}
-.wall img{width:100%;height:100%;object-fit:cover;display:block}
-.wall button > span:last-child{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 照片：拍立得用木夾子夾在曬衣繩上，一個月一條繩；紀念日拍的是金框 */
+.wall{display:flex;flex-direction:column;gap:18px}
+.line{position:relative;padding-top:8px}
+.line::before{content:"";position:absolute;left:-10px;right:-10px;top:42px;height:2px;background:#C8B48E;box-shadow:0 1px 1px rgba(0,0,0,.4);border-radius:2px;transform:rotate(-.6deg)}
+.month{font-size:.78rem;color:var(--muted);margin:0 0 14px}
+.month small{margin-left:6px;opacity:.75}
+.pols{display:flex;gap:14px;overflow-x:auto;padding:12px 6px 14px;margin:-12px -6px 0;scroll-snap-type:x proximity;scrollbar-width:thin}
+.pols .pol{flex:none;width:118px;scroll-snap-align:start}
+.pol{display:block;background:#FBF8F1;padding:8px 8px 28px;border-radius:2px;box-shadow:0 8px 14px -6px rgba(0,0,0,.6);transform:rotate(var(--r,0deg));position:relative;transition:transform .2s;cursor:pointer;border:0;font:inherit;min-width:0;width:100%}
+.pol:hover{transform:rotate(0) translateY(-3px) scale(1.03)}
+.pol::before{content:"";position:absolute;left:50%;top:-10px;width:10px;height:22px;margin-left:-5px;border-radius:3px;background:linear-gradient(90deg,#C98A54,#E3A770,#C98A54);z-index:2}
+.pol .img{display:block;aspect-ratio:1;background:#2C2452;border-radius:1px;overflow:hidden;transition:filter 1.8s ease-out}
+.pol .img img{width:100%;height:100%;object-fit:cover;display:block}
+.pol.dev .img{filter:brightness(.15) sepia(1) saturate(.3)}
+.pol .cap{position:absolute;left:4px;right:4px;bottom:7px;text-align:center;font-family:var(--f-round);font-size:.7rem;color:#5A4A40;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pol.gold{background:linear-gradient(135deg,#FFE9A8,#E9C15E 50%,#FFF0C2);box-shadow:0 0 18px color-mix(in srgb,var(--gold) 45%,transparent),0 8px 14px -6px rgba(0,0,0,.6)}
+.wall .empty{margin:0}
 .upl{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
 .upl .prev{display:flex;gap:8px;align-items:center}
 .upl .prev img{width:64px;height:64px;object-fit:cover;border-radius:10px}
@@ -186,60 +247,103 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 .lb .box{background:var(--surface);border-radius:16px;padding:10px 12px;width:min(520px,100%);display:flex;flex-direction:column;gap:8px}
 .lb .row{display:grid;grid-template-columns:1fr auto;gap:8px}
 .lb .acts{display:flex;justify-content:space-between;gap:8px}
-/* 往年今天 */
-.otd{display:flex;gap:12px;align-items:center;overflow-x:auto}
+/* 往年今天：拍立得 */
+.otd{display:flex;gap:16px;align-items:center;overflow-x:auto;padding-top:20px}
 .otd .lead{flex:none;max-width:9em}
 .otd .lead b{display:block;font-family:var(--f-round);font-size:1.05rem;color:#FFE59A}
-.otd button{flex:none;border:0;padding:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.72rem;width:76px}
-.otd .ball{display:block;width:76px;height:76px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 3px var(--gold),0 0 22px var(--gold);animation:born .9s ease-out}
-.otd img{width:100%;height:100%;object-fit:cover;display:block}
-/* 想你 */
-.ping{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.ping .txt{flex:1;min-width:10em}
-.ping .txt b{display:block;font-family:var(--f-round)}
-.heart{border:0;cursor:pointer;width:56px;height:56px;border-radius:50%;font-size:1.6rem;line-height:1;color:#fff;flex:none;
-  background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 8%,transparent 30%),var(--emb);box-shadow:0 0 18px color-mix(in srgb,var(--emb) 60%,transparent);transition:transform .15s}
-.heart:active{transform:scale(.9)}
-.heart.pop{animation:pop .5s ease-out}
-@keyframes pop{40%{transform:scale(1.3)}}
+.otd .pol{flex:none;width:96px}
+/* 想你：玻璃愛心，按住集氣，放開愛心飛出去；越久越大（1～5） */
+.ping{display:flex;align-items:center;gap:18px}
+.ping .txt{flex:1;min-width:0}
+.ping .txt b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.05rem}
+.gheart{width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;flex:none;position:relative;color:#fff;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;
+  background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.9) 0 8%,transparent 26%),radial-gradient(circle,#F7A0C4 0 40%,var(--emb) 62%,#9C3364 100%);
+  box-shadow:0 0 calc(22px + var(--k,0) * 34px) color-mix(in srgb,var(--emb) 60%,transparent),inset -5px -7px 12px rgba(0,0,0,.2);transform:scale(calc(1 + var(--k,0) * .3));transition:transform .1s}
+.gheart svg{width:46%;height:46%;display:block;margin:auto}
+.gheart:focus-visible{outline:2px solid #fff;outline-offset:4px}
+.ping.got .gheart{animation:hb 1.6s ease-in-out infinite}
+@keyframes hb{0%,100%{transform:scale(1)}15%{transform:scale(1.12)}30%{transform:scale(1)}45%{transform:scale(1.08)}}
 .ping.got{border-color:var(--emb);box-shadow:0 0 24px color-mix(in srgb,var(--emb) 35%,transparent)}
+.flyer{position:fixed;pointer-events:none;width:var(--fs,22px);height:var(--fs,22px);z-index:60;color:var(--emb);animation:fly 1.1s ease-in forwards;filter:drop-shadow(0 0 6px var(--emb))}
+.flyer svg{width:100%;height:100%;display:block}
+@keyframes fly{to{transform:translate(var(--tx),-170px) scale(.4) rotate(var(--rr));opacity:0}}
+.sent{display:flex;gap:2px;flex-wrap:wrap;align-items:flex-end;margin-top:6px;color:var(--emb)}
+.sent i{display:block;width:var(--s);height:var(--s)}
+.sent i svg{width:100%;height:100%;display:block}
+.sent i.p{color:var(--pig-blue)}
 /* 猜猜對方、小聊天、一起想做的事 */
 .lm label,.ck label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
-.lm .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-@media (max-width:420px){.lm .pair{grid-template-columns:1fr}}
-.lm .card{background:var(--sunk);border-radius:14px;padding:10px 12px;min-width:0}
-.lm .card b{display:block;font-size:.85rem;margin-bottom:4px}
-.lm .card p{margin:0 0 6px;white-space:pre-wrap;word-break:break-word}
-.lm .card .g{font-size:.85rem;color:var(--muted)}
-.lm .verdict{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
-.lm .verdict .ok{color:#FFE59A}
-.lm .shelf2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;align-items:center}
-.lm .shelf2 .orb{--s:24px}
-.ck .qa{margin-top:10px}
-.ck .qa b{display:block;font-size:.9rem;margin-bottom:4px}
-.ck textarea{min-height:52px}
-.ck .both{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media (max-width:420px){.ck .both{grid-template-columns:1fr}}
-.ck .both div{background:var(--sunk);border-radius:12px;padding:8px 10px;white-space:pre-wrap;word-break:break-word;font-size:.92rem;min-width:0}
-.ck .both small{display:block;color:var(--muted);font-size:.75rem}
-.bk{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.bk li{display:flex;align-items:center;gap:10px;padding:8px 12px;border:2px solid var(--line);border-radius:16px;background:var(--surface)}
-.bk li .main{flex:1;min-width:0}
-.bk li .main b{display:block;word-break:break-word}
-.bk li .main span{font-size:.8rem;color:var(--muted)}
-.bk li .orb{--s:22px}
-.bk .chk{border:0;background:none;padding:0;cursor:pointer}
-.bk .done .main b{color:#FFE59A}
-.bkform{display:grid;grid-template-columns:1fr 7em;gap:8px;margin-bottom:10px}
-.bkform .full{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}
-.bkshelf{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;border-top:2px dashed var(--line);padding-top:10px}
-.bkshelf button{border:0;background:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:.7rem;color:#FFE59A;max-width:64px}
-.bkshelf button span{max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bkshelf .orb{--s:30px}
+/* 猜猜對方：翻牌 */
+.lmrow{margin-top:12px}
+.lmcap{font-size:.82rem;color:var(--muted);margin:0 0 6px}
+.lmcards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;perspective:900px}
+.fcard{height:150px;position:relative;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,1.2,.5,1);cursor:pointer;border:0;background:none;padding:0;font:inherit;color:inherit;min-width:0}
+.fcard.flip{transform:rotateY(180deg)}
+.fcard > span{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:12px 10px;gap:6px}
+.fcard .back{background:repeating-linear-gradient(45deg,#3A2E6A 0 8px,#33285E 8px 16px);border:2px solid #5B4C99}
+.fcard .back b{font-family:var(--f-round);font-weight:400;font-size:1.8rem;color:var(--gold)}
+.fcard .back small{font-size:.78rem;color:var(--muted)}
+.fcard .face{transform:rotateY(180deg);background:var(--paper);color:var(--paper-ink);font-family:var(--f-round);justify-content:flex-start}
+.fcard .face small{color:#8A6E5E;font-size:.72rem}
+.fcard .face .tx{flex:1;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-size:.92rem;line-height:1.45;width:100%;display:flex;align-items:center;justify-content:center}
+.fcard:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:16px}
+.res{font-size:.76rem;padding:1px 10px;border-radius:999px;font-family:var(--f-body);font-weight:700;flex:none}
+.res.ok{background:#FFE6A0;color:#8A5A00;border:2px solid #E9B83C;transform:rotate(-6deg)}
+.res.no{background:#E9E2F5;color:#5A4A86}
+.res.wait{background:#EFE6D6;color:#8A6E5E;font-weight:400}
+.lm .verdict{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.lmall{text-align:right;margin:6px 0 0}
+.sync{margin-top:16px;border-top:2px dashed var(--line);padding-top:10px}
+.sync .dots2{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center}
+.sync .dots2 button{width:20px;height:20px;border-radius:50%;border:0;padding:0;cursor:pointer;background:#4A3F78}
+.sync .dots2 button.on{background:radial-gradient(circle at 35% 30%,#fff 0 10%,transparent 30%),var(--gold);box-shadow:0 0 8px var(--gold)}
+.sync .dots2 button.half{background:linear-gradient(90deg,var(--gold) 50%,#4A3F78 50%)}
+.sync .dots2 button[aria-pressed="true"]{outline:2px solid #fff;outline-offset:2px}
+/* 每週小聊天：一題一張卡疊起來，揭曉變成對話泡泡 */
+.ck .intro{margin:0 0 10px}
+.stack{position:relative;height:236px;margin-bottom:24px}
+.qcard{position:absolute;inset:0;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:transform .35s,opacity .35s;box-shadow:0 10px 20px -12px rgba(0,0,0,.7)}
+.qcard:nth-child(1){z-index:3}
+.qcard:nth-child(2){z-index:2;transform:translateY(10px) scale(.96);opacity:.6}
+.qcard:nth-child(3){z-index:1;transform:translateY(20px) scale(.92);opacity:.3}
+.qcard.gone{transform:translateX(-110%) rotate(-8deg);opacity:0}
+.qcard b{font-family:var(--f-round);font-weight:400;font-size:1.02rem}
+.qcard textarea{flex:1;min-height:0;resize:none}
+.qcard .fake{flex:1;border-radius:12px;background:var(--sunk);border:1px solid var(--line);padding:8px 10px;color:var(--muted);font-size:.85rem;overflow:hidden}
+.qcard .row{display:flex;justify-content:space-between;align-items:center}
+.dots{display:flex;gap:5px}.dots i{width:7px;height:7px;border-radius:50%;background:#4A3F78}.dots i.on{background:var(--envy)}.dots i.cur{box-shadow:0 0 0 2px #fff}
+.chat{display:flex;flex-direction:column;gap:6px}
+.chat .cq{text-align:center;font-size:.78rem;color:var(--muted);margin:8px 0 2px}
+.bub{max-width:80%;padding:7px 12px;border-radius:16px;font-size:.92rem;white-space:pre-wrap;word-break:break-word}
+.bub small{display:block;font-size:.7rem;color:var(--muted)}
+.bub.b{align-self:flex-start;background:color-mix(in srgb,var(--pig-blue) 22%,var(--sunk));border-bottom-left-radius:4px}
+.bub.p{align-self:flex-end;background:color-mix(in srgb,var(--pig-pink) 25%,var(--sunk));border-bottom-right-radius:4px}
+.ck .shelf2{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;align-items:center}
+/* 一起想做的事：票根，做到了蓋上郵戳，收進我們的護照 */
+.prog{height:8px;border-radius:999px;background:#3A2E6A;overflow:hidden;margin:2px 0 4px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--emb));transition:width .6s}
+.progt{margin:0 0 12px}
+.passport{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:420px){.passport{grid-template-columns:1fr}}
+.ticket{background:var(--paper);color:var(--paper-ink);border-radius:10px;padding:12px 14px 12px 20px;position:relative;font-family:var(--f-round);display:flex;flex-direction:column;gap:2px;min-width:0;
+  -webkit-mask:radial-gradient(circle at 0 50%,transparent 8px,#000 8.5px);mask:radial-gradient(circle at 0 50%,transparent 8px,#000 8.5px)}
+.ticket::before{content:"";position:absolute;left:12px;top:8px;bottom:8px;border-left:2px dashed #E2CFB0}
+.ticket .tk{border:0;background:none;padding:0;font:inherit;color:inherit;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ticket .tt{word-break:break-word;font-size:1rem}
+.ticket small{font-family:var(--f-body);font-size:.72rem;color:#8A6E5E}
+.ticket .go{align-self:flex-end;margin-top:6px;border:0;border-radius:999px;background:#5A3E2E;color:var(--paper);font:inherit;font-size:.78rem;padding:3px 14px;cursor:pointer}
+.ticket .ink{position:absolute;right:10px;top:6px;width:70px;height:70px;border-radius:50%;border:3px double var(--c,#D9558E);color:var(--c,#D9558E);display:grid;place-items:center;text-align:center;font-family:var(--f-num);font-size:.68rem;line-height:1.15;transform:rotate(-14deg) scale(1.7);opacity:0;transition:transform .35s cubic-bezier(.4,1.6,.6,1),opacity .2s;pointer-events:none}
+.ticket.done .ink{opacity:.85;transform:rotate(-14deg) scale(1)}
+.ticket.done .go{display:none}
+.ticket.done .tk{padding-right:64px}
+.pass{margin-top:16px;border-top:2px dashed var(--line);padding-top:10px}
+.pass h3{margin:0 0 10px;font-size:.95rem;font-weight:400;font-family:var(--f-round);color:#FFE59A}
+.pass .ticket{opacity:.92}
 .sheet{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;justify-content:center}
 .sheet .box{background:var(--surface);border-radius:20px 20px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom,0));width:min(520px,100%);display:flex;flex-direction:column;gap:10px}
 .sheet .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .toast{position:fixed;left:50%;bottom:calc(var(--tabbar,64px) + 16px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:.9rem;z-index:50;max-width:calc(100% - 32px)}
+@media (prefers-reduced-motion:reduce){.zones *,.flyer{transition:none!important;animation:none!important}}
 </style>
 <script src="../common/lock.js"></script>
 </head>
@@ -252,84 +356,107 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 
   <p class="loading" id="booting"><span class="spinner"></span><span id="bootMsg">讀取中…</span></p>
 
-  <main class="grid" id="app" hidden>
-    <section class="panel otd" id="otd" hidden style="grid-column:1/-1" aria-label="往年今天"></section>
-    <div class="col">
-      <section class="panel ping" id="ping" aria-label="想你"></section>
+  <main class="zones" id="app" hidden>
+    <nav class="seg" id="seg" aria-label="分區">
+      <button type="button" data-z="zToday" aria-current="true">今天<i class="dot" hidden></i></button>
+      <button type="button" data-z="zWeek" aria-current="false">這週<i class="dot" hidden></i></button>
+      <button type="button" data-z="zOurs" aria-current="false">我們的<i class="dot" hidden></i></button>
+    </nav>
 
-      <section class="panel" aria-labelledby="qTitle">
-        <div class="head"><h2 id="qTitle">每日一問</h2><span class="small muted" id="qDate"></span></div>
-        <div id="qBody"></div>
-        <div class="hist" id="hist"></div>
-      </section>
+    <div class="zone" id="zToday">
+      <h2 class="zt">今天</h2>
+      <section class="panel otd" id="otd" hidden aria-label="往年今天"></section>
+      <div class="grid">
+        <div class="col">
+          <section class="panel ping" id="ping" aria-label="想你"></section>
 
-      <section class="panel" aria-labelledby="mTitle">
-        <h2 id="mTitle">今天的心情</h2>
-        <div class="today2" id="mToday"></div>
-        <div class="mdetail" id="mDetail" hidden role="status"></div>
-        <div class="moods" id="mPick"></div>
-        <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
-        <div class="jarbox">
-          <div class="jhead"><div><b id="jTitle">這週的心情罐</b><small id="jSub"></small></div><button class="btn sm" type="button" id="jBack" hidden>放回架上</button></div>
-          <div class="jar" id="jMain" style="--jw:min(260px,70vw)">
-            <div class="glass"></div><div class="balls" id="jBalls"></div><div class="fog"></div><div class="neck"></div><div class="twine"></div><div class="cork"></div>
-            <div class="sticker"><span class="st"></span><small class="sc"></small></div>
-          </div>
-          <div class="shhead"><h3>以前的罐子・最近 4 罐</h3><button class="btn sm" type="button" id="jCalBtn" aria-expanded="false" aria-controls="jCal">日曆找罐子</button></div>
-          <div class="jcal" id="jCal" hidden>
-            <div class="ch"><button class="nav" type="button" id="jCalPrev" aria-label="上個月">‹</button><b id="jCalTitle"></b><button class="nav" type="button" id="jCalNext" aria-label="下個月">›</button></div>
-            <div class="dow"><span></span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
-            <div id="jCalBody"></div>
-            <div class="legend">有罐子的週可以點；小圓點是那天的心情。</div>
-          </div>
-          <div class="jshelf" id="jShelf"></div>
+          <section class="panel" aria-labelledby="qTitle">
+            <div class="head"><h2 id="qTitle">每日一問</h2><span class="small muted" id="qDate"></span></div>
+            <div id="qBody"></div>
+            <div class="hist" id="hist"></div>
+          </section>
         </div>
-      </section>
-
-      <section class="panel lm" id="lovemap" aria-labelledby="lmTitle">
-        <div class="head"><h2 id="lmTitle">猜猜對方</h2><span class="small muted">每週一題</span></div>
-        <div id="lmBody"></div>
-      </section>
+        <div class="col">
+          <section class="panel" aria-labelledby="mTitle">
+            <h2 id="mTitle">今天的心情</h2>
+            <div class="today2" id="mToday"></div>
+            <div class="mdetail" id="mDetail" hidden role="status"></div>
+            <div class="moods" id="mPick"></div>
+            <div class="mnote"><input id="mNote" maxlength="120" placeholder="想說的一句話（選填）"><button class="btn primary" type="button" id="mSave">打卡</button></div>
+            <div class="jarbox">
+              <div class="jhead"><div><b id="jTitle">這週的心情罐</b><small id="jSub"></small></div><button class="btn sm" type="button" id="jBack" hidden>放回架上</button></div>
+              <div class="jar" id="jMain" style="--jw:min(260px,70vw)">
+                <div class="glass"></div><div class="balls" id="jBalls"></div><div class="fog"></div><div class="neck"></div><div class="twine"></div><div class="cork"></div>
+                <div class="sticker"><span class="st"></span><small class="sc"></small></div>
+              </div>
+              <div class="shhead"><h3>以前的罐子・最近 4 罐</h3><button class="btn sm" type="button" id="jCalBtn" aria-expanded="false" aria-controls="jCal">日曆找罐子</button></div>
+              <div class="jcal" id="jCal" hidden>
+                <div class="ch"><button class="nav" type="button" id="jCalPrev" aria-label="上個月">‹</button><b id="jCalTitle"></b><button class="nav" type="button" id="jCalNext" aria-label="下個月">›</button></div>
+                <div class="dow"><span></span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+                <div id="jCalBody"></div>
+                <div class="legend">有罐子的週可以點；小圓點是那天的心情。</div>
+              </div>
+              <div class="jshelf" id="jShelf"></div>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
 
-    <div class="col">
-      <section class="panel" id="days" aria-labelledby="dTitle">
-        <div class="head"><h2 id="dTitle">我們的日子</h2><button class="btn sm" type="button" id="dAdd">新增紀念日</button></div>
-        <div id="dDays"></div>
-        <ul class="dlist" id="dList"></ul>
-        <form class="dform" id="dForm" hidden autocomplete="off">
-          <label class="full">名稱<input id="dName" maxlength="40" placeholder="例如：第一次約會、小豬生日" required></label>
-          <label>日期<input id="dDate" type="date" required></label>
-          <label>種類<select id="dKind">
-            <option value="start">在一起的日子</option><option value="anniversary">紀念日</option>
-            <option value="birthday">生日</option><option value="other">其他</option></select></label>
-          <label class="chk full"><input type="checkbox" id="dYearly" checked>每年都會重複（例如生日、週年）</label>
-          <div class="acts"><button class="btn danger sm" type="button" id="dDel" hidden>刪除</button><span></span>
-            <span><button class="btn ghost sm" type="button" id="dCancel">取消</button> <button class="btn primary sm" type="submit">儲存</button></span></div>
-        </form>
-      </section>
+    <div class="zone" id="zWeek">
+      <h2 class="zt">這週</h2>
+      <div class="grid">
+        <section class="panel lm" id="lovemap" aria-labelledby="lmTitle">
+          <div class="head"><h2 id="lmTitle">猜猜對方</h2><span class="small muted">每週一題</span></div>
+          <div id="lmBody"></div>
+        </section>
 
-      <section class="panel ck" id="checkin" aria-labelledby="ckTitle">
-        <div class="head"><h2 id="ckTitle">每週小聊天</h2><span class="small muted" id="ckWeek"></span></div>
-        <div id="ckBody"></div>
-      </section>
+        <section class="panel ck" id="checkin" aria-labelledby="ckTitle">
+          <div class="head"><h2 id="ckTitle">每週小聊天</h2><span class="small muted" id="ckWeek"></span></div>
+          <div id="ckBody"></div>
+        </section>
+      </div>
+    </div>
 
-      <section class="panel" id="photos" aria-labelledby="pTitle">
-        <div class="head"><h2 id="pTitle">照片記憶架</h2><label class="btn sm" for="pFile">上傳照片</label></div>
-        <input type="file" id="pFile" accept="image/*" hidden>
-        <div class="upl" id="pUpl" hidden>
-          <div class="prev"><img id="pPrev" alt=""><span class="small muted" id="pInfo"></span></div>
-          <div class="row"><input id="pCap" maxlength="200" placeholder="說明（選填）"><input id="pDate" type="date" style="width:auto"></div>
-          <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost sm" type="button" id="pCancel">取消</button><button class="btn primary sm" type="button" id="pSend">放上照片牆</button></div>
+    <div class="zone" id="zOurs">
+      <h2 class="zt">我們的</h2>
+      <div class="grid">
+        <div class="col">
+          <section class="panel" id="days" aria-labelledby="dTitle">
+            <div class="head"><h2 id="dTitle">我們的日子</h2><button class="btn sm" type="button" id="dAdd">新增紀念日</button></div>
+            <div id="dDays"></div>
+            <div class="tears" id="dList"></div>
+            <form class="dform" id="dForm" hidden autocomplete="off">
+              <label class="full">名稱<input id="dName" maxlength="40" placeholder="例如：第一次約會、小豬生日" required></label>
+              <label>日期<input id="dDate" type="date" required></label>
+              <label>種類<select id="dKind">
+                <option value="start">在一起的日子</option><option value="anniversary">紀念日</option>
+                <option value="birthday">生日</option><option value="other">其他</option></select></label>
+              <label class="chk full"><input type="checkbox" id="dYearly" checked>每年都會重複（例如生日、週年）</label>
+              <div class="acts"><button class="btn danger sm" type="button" id="dDel" hidden>刪除</button><span></span>
+                <span><button class="btn ghost sm" type="button" id="dCancel">取消</button> <button class="btn primary sm" type="submit">儲存</button></span></div>
+            </form>
+          </section>
+
+          <section class="panel" id="bucket" aria-labelledby="bkTitle">
+            <div class="head"><h2 id="bkTitle">一起想做的事</h2><button class="btn sm" type="button" id="bkAdd">新增</button></div>
+            <div id="bkBody"></div>
+          </section>
         </div>
-        <div class="wall" id="wall"></div>
-        <p style="text-align:center;margin-top:10px" id="pMoreBox" hidden><button class="link" type="button" id="pMore">看更早的照片</button></p>
-      </section>
-
-      <section class="panel" id="bucket" aria-labelledby="bkTitle">
-        <div class="head"><h2 id="bkTitle">一起想做的事</h2><button class="btn sm" type="button" id="bkAdd">新增</button></div>
-        <div id="bkBody"></div>
-      </section>
+        <div class="col">
+          <section class="panel" id="photos" aria-labelledby="pTitle">
+            <div class="head"><h2 id="pTitle">我們的照片</h2><label class="btn sm" for="pFile">上傳照片</label></div>
+            <input type="file" id="pFile" accept="image/*" hidden>
+            <div class="upl" id="pUpl" hidden>
+              <div class="prev"><img id="pPrev" alt=""><span class="small muted" id="pInfo"></span></div>
+              <div class="row"><input id="pCap" maxlength="200" placeholder="說明（選填）"><input id="pDate" type="date" style="width:auto"></div>
+              <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn ghost sm" type="button" id="pCancel">取消</button><button class="btn primary sm" type="button" id="pSend">夾上繩子</button></div>
+            </div>
+            <div class="wall" id="wall"></div>
+            <p style="text-align:center;margin-top:10px" id="pMoreBox" hidden><button class="link" type="button" id="pMore">看更早的照片</button></p>
+          </section>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -375,7 +502,43 @@ async function call(path, opts) {
   catch (e) { if (e instanceof FiveJS.AuthError) { location.href = "../?next=together"; } throw e; }
 }
 
+// ---------- 分區 ----------
+const ZONES = ["zToday", "zWeek", "zOurs"];
+const reduced = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const LS = {
+  get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+$("seg").onclick = e => {
+  const b = e.target.closest("[data-z]"); if (!b) return;
+  $(b.dataset.z).scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
+};
+function markZone() {
+  let cur = ZONES[0];
+  for (const z of ZONES) if ($(z).getBoundingClientRect().top <= 110) cur = z;
+  if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = ZONES[ZONES.length - 1];
+  document.querySelectorAll("#seg [data-z]").forEach(b => b.setAttribute("aria-current", String(b.dataset.z === cur)));
+}
+let zoneRaf = 0;
+addEventListener("scroll", () => { cancelAnimationFrame(zoneRaf); zoneRaf = requestAnimationFrame(markZone); }, { passive: true });
+// 小紅點：今天還沒寄出每日一問、沒打卡、或有沒看過的想你；這週的猜猜對方還沒寫或要我判定，
+// 週末還沒寫小聊天
+function updateSeg() {
+  const q = state.q, m = state.moods, lm = state.lm, ck = state.ck, me = state.me;
+  if (!me) return;
+  const pend = {
+    zToday: !!(q && !q.mine) || !!state.pingFresh || !!(m && !m.items.some(x => x.date === m.today && x.user_id === me.id)),
+    zWeek: !!(state.partner && lm && (!lm.current.mine || (lm.current.partner && lm.current.partner.right == null)))
+      || !!(ck && !ck.current.mine && [0, 6].includes(parse(ck.today).getUTCDay())),
+    zOurs: false,
+  };
+  document.querySelectorAll("#seg [data-z]").forEach(b => { b.querySelector(".dot").hidden = !pend[b.dataset.z]; });
+}
+
 // ---------- 每日一問 ----------
+// 寫在信紙上、裝進信封、蓋上自己顏色的棒棒糖封蠟（大豬粉藍、小豬粉紅）。
+// 兩封都寄出後，兩個信封一起拆開（每一天只播一次拆信動畫），信在下面可以讀。
 function answersHtml(item) {
   const me = state.me, pa = state.partner;
   const mine = `<div class="ans"><span class="pig">${pig(me, "happy", 36)}</span><div class="bubble">${esc(item.mine)}</div></div>`;
@@ -386,24 +549,45 @@ function answersHtml(item) {
         item.partner_answered ? (item.mine ? "" : `${esc(pa.name)}已經回答了，你回答後就能看到`) : `${esc(pa.name)}還沒回答`}</div></div>`;
   return (item.mine ? mine : "") + theirs;
 }
+function envHtml(p, text, sent, open) {
+  if (!sent) return `<div class="env waiting"><span class="who">${esc(p.name)}・還沒寄出</span></div>`;
+  return `<div class="env${open ? " open" : ""}" role="img" aria-label="${esc(p.name)}的信${open ? "，拆開了" : "，已寄出"}"><div class="letter">${text != null ? esc(text) : ""}</div><div class="front"></div><div class="flap"></div>
+    <div class="wax">${FiveJS.waxSeal(p.theme, 60)}</div><span class="who">${esc(p.name)}・${open ? "拆開了" : "已寄出"}</span></div>`;
+}
+function lettersHtml(item, late = false) {
+  const one = (p, text, mood) => `<div class="lt" style="--c:${p.theme === "blue" ? "#8CC8EA" : "#F29BBE"}"><div class="lh">${pig(p, mood, 30)}<b>${esc(p.name)}的信</b></div><p>${esc(text)}</p></div>`;
+  return `<div class="letters${late ? " late" : ""}">${one(state.me, item.mine, "happy")}${state.partner && item.partner != null ? one(state.partner, item.partner, "sparkle") : ""}</div>`;
+}
 
 function renderQuestion(editing = false) {
   const q = state.q; if (!q) return;
   $("qDate").textContent = dayText(q.date);
-  const box = $("qBody");
-  if (!q.mine || editing) {
-    box.innerHTML = `<p class="q">${esc(q.question)}</p>
-      <textarea id="qInput" maxlength="500" placeholder="寫下你的答案…">${esc(q.mine || "")}</textarea>
-      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="qCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="qSend">送出</button></div>
-      ${answersHtml({ ...q, mine: null })}`;
+  const box = $("qBody"), me = state.me, pa = state.partner;
+  const writing = !q.mine || editing, both = !writing && q.partner != null;
+  const OPENED = "fivejsQOpened", animate = both && !reduced() && LS.get(OPENED) !== q.date;
+  if (both) LS.set(OPENED, q.date);
+  let html = `<p class="q">${esc(q.question)}</p>`;
+  if (writing) {
+    html += `<div class="paper"><textarea id="qInput" maxlength="500" aria-label="寫下你的答案" placeholder="${pa ? `寫給${esc(pa.name)}…` : "寫下你的答案…"}">${esc(q.mine || "")}</textarea></div>
+      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="qCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="qSend">${editing ? "重新寄出" : "寄出"}</button></div>`;
+  }
+  if (pa) {
+    const partnerSent = q.partner != null || !!q.partner_answered;
+    html += `<div class="envs${both && !animate ? " opened" : ""}">${envHtml(me, q.mine, !writing, both && !animate)}${envHtml(pa, q.partner, partnerSent, both && !animate)}</div>`;
+    if (!both) html += `<p class="small muted qhint">${writing ? (partnerSent ? `${esc(pa.name)}已經寄出了，你寄出就能一起拆信` : "兩封信都寄出才會一起拆開") : `等${esc(pa.name)}寄出，兩封信會一起拆開`}</p>`;
+  }
+  if (both || (!pa && !writing)) html += lettersHtml(q, animate);
+  if (!writing) html += `<div class="qacts"><button class="link" type="button" id="qEdit">修改我的信</button></div>`;
+  box.innerHTML = html;
+  if (writing) {
     $("qSend").onclick = sendAnswer;
     if (editing) $("qCancel").onclick = () => renderQuestion(false);
-    return;
-  }
-  const born = q.partner != null ? `<p class="born"><i class="orb gold"></i>兩個人都答了，新的記憶球收進下面的問答記憶架</p>` : "";
-  box.innerHTML = `<p class="q">${esc(q.question)}</p>${answersHtml(q)}${born}
-    <div class="qacts"><button class="link" type="button" id="qEdit">修改我的答案</button></div>`;
-  $("qEdit").onclick = () => renderQuestion(true);
+  } else $("qEdit").onclick = () => renderQuestion(true);
+  if (animate) setTimeout(() => {
+    box.querySelector(".envs")?.classList.add("opened");
+    box.querySelectorAll(".env:not(.waiting)").forEach(e => { e.classList.add("open"); const w = e.querySelector(".who"); w.textContent = w.textContent.replace("已寄出", "拆開了"); });
+  }, 450);
+  updateSeg();
 }
 
 async function sendAnswer() {
@@ -413,7 +597,7 @@ async function sendAnswer() {
   try {
     state.q = await call("/api/together/question", { method: "PUT", body: { date: state.q.date, answer } });
     renderQuestion();
-    toast(state.q.partner != null ? "揭曉！看看對方怎麼說" : "送出了，等對方回答就能互相看到");
+    toast(state.q.partner != null ? "兩封都寄出了，拆信！" : "寄出了，等對方寄出就一起拆信");
     if (state.q.partner != null) loadHistory().catch(() => {});
   } catch (e) { toast(e.message); $("qSend").disabled = false; }
 }
@@ -432,24 +616,27 @@ async function loadHistory(more = false) {
   renderHistory();
 }
 
+const STAMP_C = ["var(--gold)", "var(--emb)", "var(--envy)", "var(--sad)", "var(--fear)", "var(--anx)", "var(--disgust)"];
+const stampColor = s => STAMP_C[Math.round(parse(s) / 86400000) % STAMP_C.length];
 function renderHistory() {
   const el = $("hist");
   const items = state.hist;
   if (!items.length) {
-    el.innerHTML = `<h3>問答記憶架</h3><p class="small muted">兩個人都回答的題目，會變成一顆金色記憶球收在這裡。</p>`;
+    el.innerHTML = `<h3>問答郵票冊</h3><p class="small muted">兩個人都寄出的那天，會變成一張彩色郵票收在這裡。</p>`;
     return;
   }
   const both = it => it.mine != null && it.partner_answered;
   const open = items.find(it => it.date === state.histOpen);
-  el.innerHTML = `<h3>問答記憶架</h3>
-    <div class="qshelf">${items.map(it => {
+  el.innerHTML = `<h3>問答郵票冊</h3>
+    <div class="stamps">${items.map(it => {
       const d = parse(it.date);
-      return `<button type="button" data-d="${it.date}" aria-pressed="${it.date === state.histOpen}"${state.histNew.includes(it.date) ? ' class="new"' : ""}
-        aria-label="${esc(dayText(it.date))}：${esc(it.question)}"><i class="orb${both(it) ? " gold" : " empty"}"></i>${d.getUTCMonth() + 1}/${d.getUTCDate()}</button>`;
+      return `<button type="button" class="stamp${both(it) ? "" : " half"}${state.histNew.includes(it.date) ? " new" : ""}" style="--c:${stampColor(it.date)}" data-d="${it.date}" aria-pressed="${it.date === state.histOpen}"
+        aria-label="${esc(dayText(it.date))}：${esc(it.question)}${both(it) ? "" : "（只有一個人寄出）"}"><span>${d.getUTCMonth() + 1}/${d.getUTCDate()}</span></button>`;
     }).join("")}</div>
-    ${open ? `<div class="qopen"><span class="small muted">${esc(dayText(open.date))}</span><p class="q">${esc(open.question)}</p>${open.mine != null ? answersHtml(open) : `<p class="small muted">這天你沒有回答${open.partner_answered ? "，所以看不到對方的答案" : ""}。</p>`}</div>` : ""}
-    ${state.histMore ? `<p class="more" style="text-align:center;margin-top:10px"><button class="link" type="button">再往前看</button></p>` : ""}`;
-  el.querySelectorAll(".qshelf button").forEach(b => b.onclick = () => {
+    ${open ? `<div class="qopen"><span class="small muted">${esc(dayText(open.date))}</span><p class="q">${esc(open.question)}</p>${
+      open.mine != null ? (open.partner != null ? lettersHtml(open) : answersHtml(open)) : `<p class="small muted">這天你沒有寄出${open.partner_answered ? "，所以看不到對方的信" : ""}。</p>`}</div>` : ""}
+    ${state.histMore ? `<p class="more" style="text-align:center;margin-top:10px"><button class="link" type="button">再往前翻</button></p>` : ""}`;
+  el.querySelectorAll(".stamps button").forEach(b => b.onclick = () => {
     state.histOpen = state.histOpen === b.dataset.d ? null : b.dataset.d;
     state.histNew = [];
     renderHistory();
@@ -472,6 +659,7 @@ function renderMoods() {
   $("mPick").innerHTML = m.options.map(o => `<button type="button" data-v="${esc(o)}" aria-pressed="${o === state.pickMood}" style="--c:${FiveJS.MOOD_COLOR[o] || "var(--muted)"}">${faceOrb(o)}${esc(o)}</button>`).join("");
   $("mSave").textContent = mine ? "更新" : "打卡";
   renderMoodDetail();
+  updateSeg();
 }
 // 點今天的心情卡片，在下面展開那天的心情和小語。只能看，
 // 要改只能改自己今天的（用下面的選項重新打卡）。
@@ -703,15 +891,56 @@ function nextOf(d, today) {
 }
 
 const KIND_TEXT = { start: "在一起", anniversary: "紀念日", birthday: "生日", other: "" };
+const KIND_COLOR = { birthday: "var(--emb)", start: "var(--gold)", anniversary: "var(--gold)", other: "var(--sad)" };
+const annText = k => k === 1 ? "一週年" : `${k} 週年`;
+const slash = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+// 在一起的里程碑：100／500／1000…天，加上每一年的週年（從「在一起的日子」算）
+function milestones(start) {
+  const list = [100, 500, 1000, 1500, 2000, 2500, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000].map(n => ({ date: addDays(start, n - 1), label: `${n} 天` }));
+  for (let k = 1; k <= 30; k++) {
+    let s = `${+start.slice(0, 4) + k}${start.slice(4)}`;
+    if (iso(parse(s)) !== s) s = `${s.slice(0, 4)}-02-28`;
+    list.push({ date: s, label: annText(k) });
+  }
+  return list.sort((a, b) => a.date.localeCompare(b.date));
+}
+// 路線圖：起點、最近走過的兩個里程碑、今天（棒棒糖）、接下來兩個
+function trailSvg(start, today) {
+  const ms = milestones(start), past = ms.filter(m => m.date < today), fut = ms.filter(m => m.date >= today);
+  const nodes = [{ date: start, label: "開始", on: true }, ...past.slice(-2).map(m => ({ ...m, on: true })), { date: today, label: "今天", now: true }, ...fut.slice(0, 2)];
+  const W = 400, n = nodes.length, xs = nodes.map((_, i) => 22 + i * (W - 44) / (n - 1)), ys = nodes.map((_, i) => i % 2 ? 42 : 84);
+  const seg = (a, b) => { const mx = (xs[a] + xs[b]) / 2; return ` C${mx} ${ys[a]} ${mx} ${ys[b]} ${xs[b]} ${ys[b]}`; };
+  const ti = nodes.findIndex(x => x.now);
+  let all = `M${xs[0]} ${ys[0]}`, done = all;
+  for (let i = 1; i < n; i++) { all += seg(i - 1, i); if (i <= ti) done += seg(i - 1, i); }
+  const me = state.me?.theme === "blue" ? "#8CC8EA" : "#F29BBE";
+  const dots = nodes.map((x, i) => x.now
+    ? `<g transform="translate(${xs[i]} ${ys[i]})"><rect x="-1.6" y="9" width="3.2" height="16" rx="1.6" fill="#FBF6EE"/><circle r="12" fill="${me}" stroke="#fff" stroke-width="2.5"/><circle r="6.5" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="2 2"/></g>`
+    : `<circle cx="${xs[i]}" cy="${ys[i]}" r="6.5" ${x.on ? 'fill="#FFD45E"' : 'fill="#2C2452" stroke="#B9AEDA" stroke-width="2"'}/>`).join("");
+  const labels = nodes.map((x, i) => {
+    const top = ys[i] < 60, anchor = i === 0 ? "start" : i === n - 1 ? "end" : "middle", ax = i === 0 ? xs[i] - 10 : i === n - 1 ? xs[i] + 10 : xs[i];
+    return `<text class="lbl${x.on || x.now ? " on" : ""}" x="${ax}" y="${top ? ys[i] - 18 : ys[i] + 30}" text-anchor="${anchor}">${esc(x.label)}</text>`;
+  }).join("");
+  const next = fut[0];
+  return {
+    svg: `<svg viewBox="0 0 ${W} 124" role="img" aria-label="在一起的路線圖：${nodes.map(x => x.label).join("、")}">
+      <path d="${all}" fill="none" stroke="#3B3168" stroke-width="6" stroke-linecap="round"/>
+      <path d="${done}" fill="none" stroke="#FFD45E" stroke-width="5" stroke-linecap="round" stroke-dasharray="3 9"/>${dots}${labels}</svg>`,
+    next: next ? (next.date === today ? `今天就是 <b>${esc(next.label)}</b>！` : `下一站 <b>${esc(next.label)}</b>（${slash(next.date)}）・還有 ${diffDays(today, next.date)} 天`) : "",
+  };
+}
 function renderDates() {
   const today = state.datesToday || taipeiToday();
   const start = state.dates.find(d => d.kind === "start");
   if (start && start.date <= today) {
-    const n = diffDays(start.date, today) + 1;
-    $("dDays").innerHTML = `<div class="days"><span class="pigs">${pig(state.me, "sparkle", 52)}${pig(state.partner, "happy", 44)}</span>
-      <div><div class="t">我們在一起第</div><div><span class="n">${n.toLocaleString("en-US")}</span> <span class="t">天</span></div><div class="small muted">從 ${+start.date.slice(0, 4)} 年 ${+start.date.slice(5, 7)} 月 ${+start.date.slice(8)} 日開始</div></div></div>`;
+    const n = diffDays(start.date, today) + 1, tr = trailSvg(start.date, today);
+    const tick = state.daysShown !== n && !reduced(); state.daysShown = n;
+    $("dDays").innerHTML = `<div class="dhead"><span class="pigs">${pig(state.me, "sparkle", 52)}${pig(state.partner, "happy", 44)}</span>
+      <div><div class="t">我們在一起第</div><div class="flipnum" aria-label="${n} 天">${String(n).split("").map((c, i) => `<span${tick ? ` class="tick" style="--dl:${i * .08}s"` : ""} aria-hidden="true">${c}</span>`).join("")}<em aria-hidden="true">天</em></div>
+      <div class="small muted">從 ${+start.date.slice(0, 4)} 年 ${+start.date.slice(5, 7)} 月 ${+start.date.slice(8)} 日開始</div></div></div>
+      <div class="trail">${tr.svg}</div>${tr.next ? `<p class="small muted dnext">${tr.next}</p>` : ""}`;
   } else {
-    $("dDays").innerHTML = `<p class="small muted">新增一個「在一起的日子」，這裡就會顯示在一起第幾天。</p>`;
+    $("dDays").innerHTML = `<p class="small muted">新增一個「在一起的日子」，這裡就會顯示在一起第幾天和我們的路線圖。</p>`;
   }
   // 紀念日當天整頁換成金色
   const special = state.dates.find(d => nextOf(d, today).days === 0);
@@ -721,14 +950,17 @@ function renderDates() {
     : start && start.date <= today ? `在一起第 <b>${(diffDays(start.date, today) + 1).toLocaleString("en-US")}</b> 天` : "";
   const rows = state.dates.map(d => ({ d, nx: nextOf(d, today) }))
     .sort((a, b) => (a.nx.days < 0) - (b.nx.days < 0) || (a.nx.days < 0 ? b.nx.days - a.nx.days : a.nx.days - b.nx.days));
+  // 撕頁日曆：每張是一個紀念日，大數字是還有幾天；生日粉紅、週年和在一起金色、其他藍色
   $("dList").innerHTML = rows.length ? rows.map(({ d, nx }) => {
     let sub = KIND_TEXT[d.kind];
-    if (d.yearly && nx.years > 0) sub = d.kind === "birthday" ? `${nx.years} 歲生日` : `${nx.years} 週年`;
-    const when = nx.days === 0 ? `<span>就是今天</span>` : nx.days > 0 ? `<span>還有 ${nx.days} 天</span>` : `<span>${-nx.days} 天前</span>`;
-    return `<li class="${nx.days === 0 ? "today" : nx.days > 0 && nx.days <= 7 ? "soon" : ""}" data-id="${d.id}" style="cursor:pointer">
-      <div class="main"><b>${esc(d.title)}</b><span>${esc(dayText(nx.date))}${sub ? "・" + esc(sub) : ""}${d.yearly ? "" : "・不重複"}</span></div>
-      <div class="cd">${when}<small>${esc(d.date)}</small></div></li>`;
-  }).join("") : `<li class="empty" style="border:0">還沒有紀念日</li>`;
+    if (d.yearly && nx.years > 0) sub = d.kind === "birthday" ? `${nx.years} 歲` : `${nx.years} 週年`;
+    const big = nx.days === 0 ? `<b class="word">今天</b>` : `<b>${Math.abs(nx.days).toLocaleString("en-US")}</b>`;
+    const unit = nx.days === 0 ? "" : nx.days > 0 ? "天後" : "天前";
+    const cls = nx.days === 0 ? "today" : nx.days < 0 ? "past" : nx.days <= 7 ? "soon" : "";
+    return `<button type="button" class="tear ${cls}" data-id="${d.id}" style="--c:${KIND_COLOR[d.kind] || "var(--sad)"}"
+      aria-label="${esc(d.title)}，${esc(dayText(nx.date))}${nx.days === 0 ? "，就是今天" : nx.days > 0 ? `，還有 ${nx.days} 天` : `，${-nx.days} 天前`}${sub ? "，" + esc(sub) : ""}。點一下編輯">
+      <small class="nm">${esc(d.title)}</small>${big}<small>${unit || "&nbsp;"}</small><small>${slash(nx.date)}${sub ? "・" + esc(sub) : ""}</small></button>`;
+  }).join("") : `<p class="empty">還沒有紀念日</p>`;
 }
 $("dList").onclick = e => { const li = e.target.closest("[data-id]"); if (li) openDateForm(state.dates.find(d => d.id === +li.dataset.id)); };
 $("dAdd").onclick = () => openDateForm(null);
@@ -798,19 +1030,40 @@ $("pSend").onclick = async () => {
     const r = await call("/api/together/photos", { method: "POST", body: { ...state.upload, caption: $("pCap").value, taken_on: $("pDate").value } });
     state.photos.unshift(r.photo);
     state.photos.sort((a, b) => b.taken_on.localeCompare(a.taken_on) || b.id - a.id);
-    state.upload = null; $("pUpl").hidden = true; renderWall(); toast("放上去了");
+    state.upload = null; $("pUpl").hidden = true; state.devId = r.photo.id; renderWall(); toast("夾上去了，等它顯影");
   } catch (e) { toast(e.message); }
-  $("pSend").disabled = false; $("pSend").textContent = "放上照片牆";
+  $("pSend").disabled = false; $("pSend").textContent = "夾上繩子";
 };
 
 // 拍照那天剛好是紀念日（同月同日；不重複的要同一天）的照片是金色核心記憶
 function isSpecial(day) {
   return state.dates.some(d => d.yearly ? d.date.slice(5) === day.slice(5) && day >= d.date : d.date === day);
 }
+// 拍立得：每張照片固定一個小角度（照 id 算，重新整理也不會亂跳）；一個月一條曬衣繩
+const polRot = id => ((id * 37) % 9) - 4;
+function polHtml(p, cap, extra = "") {
+  return `<button type="button" class="pol${isSpecial(p.taken_on) ? " gold" : ""}${extra}" data-id="${p.id}" style="--r:${polRot(p.id)}deg" aria-label="${esc(p.caption || p.taken_on)}">
+    <span class="img"><img loading="lazy" src="${photoUrl(p.thumb)}" alt=""></span><span class="cap">${cap}</span></button>`;
+}
 function renderWall() {
-  $("wall").innerHTML = state.photos.length ? state.photos.map(p =>
-    `<button type="button" data-id="${p.id}" class="${isSpecial(p.taken_on) ? "gold" : ""}" aria-label="${esc(p.caption || p.taken_on)}"><span class="ball"><img loading="lazy" src="${photoUrl(p.thumb)}" alt=""></span><span>${esc(p.taken_on.slice(5).replace("-", "/"))}${p.caption ? " " + esc(p.caption) : ""}</span></button>`
-  ).join("") : `<p class="empty" style="grid-column:1/-1">還沒有照片，上傳第一張吧</p>`;
+  if (!state.photos.length) {
+    $("wall").innerHTML = `<p class="empty">還沒有照片，上傳第一張夾上繩子吧</p>`;
+  } else {
+    const groups = [];
+    for (const p of state.photos) {
+      const k = p.taken_on.slice(0, 7);
+      let g = groups[groups.length - 1];
+      if (!g || g.k !== k) groups.push(g = { k, items: [] });
+      g.items.push(p);
+    }
+    $("wall").innerHTML = groups.map(g => `<div class="line"><p class="month">${+g.k.slice(0, 4)} 年 ${+g.k.slice(5)} 月${g.items.length > 2 ? `<small>${g.items.length} 張・左右滑</small>` : ""}</p><div class="pols">${
+      g.items.map(p => polHtml(p, `${esc(slash(p.taken_on))}${p.caption ? " " + esc(p.caption) : ""}`, p.id === state.devId ? " dev" : "")).join("")}</div></div>`).join("");
+    // 剛上傳的那張：先是暗的，慢慢顯影
+    if (state.devId) {
+      const id = state.devId; state.devId = null;
+      requestAnimationFrame(() => setTimeout(() => $("wall").querySelector(`[data-id="${id}"]`)?.classList.remove("dev"), 120));
+    }
+  }
   $("pMoreBox").hidden = state.photosDone;
 }
 async function loadPhotos(more = false) {
@@ -858,48 +1111,93 @@ function renderOtd() {
   if (!items.length) return;
   const years = [...new Set(items.map(p => +state.datesToday.slice(0, 4) - +p.taken_on.slice(0, 4)))];
   el.innerHTML = `<div class="lead"><b>往年今天</b><span class="small muted">${years.map(y => y === 1 ? "去年" : y === 2 ? "前年" : `${y} 年前`).join("、")}的今天</span></div>` +
-    items.map(p => `<button type="button" data-id="${p.id}" aria-label="${esc(p.taken_on + " " + (p.caption || ""))}"><span class="ball"><img src="${photoUrl(p.thumb)}" alt=""></span><span>${p.taken_on.slice(0, 4)}${p.caption ? " " + esc(p.caption) : ""}</span></button>`).join("");
+    items.map(p => polHtml(p, `${p.taken_on.slice(0, 4)}${p.caption ? " " + esc(p.caption) : ""}`)).join("");
 }
 $("otd").onclick = e => { const b = e.target.closest("[data-id]"); if (b) openPhoto(state.otd.find(p => p.id === +b.dataset.id)); };
 async function loadOtd() { state.otd = (await call("/api/together/photos/onthisday")).items; renderOtd(); }
 
 // ---------- 想你 ----------
+// 玻璃愛心：點一下是一顆，按住集氣，越久越大（約 1.5 秒最大，1～5）。放開時愛心飛出去。
 const hm = iso => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(iso));
+const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 21 3.5 12.5A5 5 0 0 1 12 5.5a5 5 0 0 1 8.5 7z"/></svg>';
+const heartRow = (sizes, cls = "") => sizes.map(s => `<i class="${cls}" style="--s:${10 + Math.max(1, Math.min(5, s)) * 3}px">${HEART}</i>`).join("");
 function renderPing() {
   const p = state.ping, pa = state.partner, el = $("ping");
-  if (!p || !pa) { el.hidden = true; return; }
+  if (!p || !pa) { el.hidden = true; updateSeg(); return; }
   el.hidden = false;
   const sent = p.today[state.me.id] || 0, got = p.today[pa.id] || 0;
+  const mine = p.sizes?.[state.me.id] || Array(sent).fill(1);
   const fresh = state.pingFresh;
   el.classList.toggle("got", !!fresh);
-  el.innerHTML = `<button class="heart" type="button" id="pingBtn" aria-label="送一顆想你給${esc(pa.name)}">♥</button>
-    <div class="txt">${fresh ? `<b>${esc(pa.name)}想你了 ♥</b><span class="small muted">${fresh.n > 1 ? `送了 ${fresh.n} 顆，` : ""}最後一次 ${hm(fresh.last)}。按愛心回一顆</span>`
-      : `<b>想${esc(pa.name)}的時候按一下</b><span class="small muted">${esc(pa.name)}的首頁會亮起來。今天你送了 ${sent} 顆${got ? `，${esc(pa.name)}送了 ${got} 顆` : ""}${sent && p.partner_seen ? `・${hm(p.partner_seen)} 看到了` : ""}</span>`}</div>`;
-  $("pingBtn").onclick = async () => {
-    const b = $("pingBtn"); b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
-    try { state.ping = await call("/api/together/pings", { method: "POST" }); state.pingFresh = null; renderPing(); toast(`送給${pa.name}了 ♥`); }
-    catch (e) { toast(e.message); }
-  };
+  el.innerHTML = `<button class="gheart" type="button" id="pingBtn" aria-label="送想你給${esc(pa.name)}，按住越久愛心越大">${HEART}</button>
+    <div class="txt">${fresh ? `<b>${esc(pa.name)}${fresh.size >= 4 ? "送了一顆好大的想你" : "想你了"} ♥</b><span class="small muted">${fresh.n > 1 ? `送了 ${fresh.n} 顆，` : ""}最後一次 ${hm(fresh.last)}。按愛心回一顆</span>`
+      : `<b>想${esc(pa.name)}的時候按一下</b><span class="small muted">按住越久，心越大。今天你送了 ${sent} 顆${got ? `，${esc(pa.name)}送了 ${got} 顆` : ""}${sent && p.partner_seen ? `・${hm(p.partner_seen)} 看到了` : ""}</span>`}
+      ${mine.length ? `<div class="sent" aria-label="今天送出的想你">${heartRow(mine)}</div>` : ""}</div>`;
+  bindHeart($("pingBtn"));
+  updateSeg();
+}
+function bindHeart(b) {
+  let t0 = 0, raf = 0, on = false;
+  const k = () => Math.min(1, (performance.now() - t0) / 1500);
+  const tick = () => { b.style.setProperty("--k", k().toFixed(3)); raf = requestAnimationFrame(tick); };
+  const reset = () => { on = false; cancelAnimationFrame(raf); b.style.setProperty("--k", 0); };
+  b.addEventListener("pointerdown", e => {
+    if (on || b.disabled || e.button > 0) return;
+    on = true; t0 = performance.now();
+    try { b.setPointerCapture(e.pointerId); } catch (err) {}
+    tick();
+  });
+  b.addEventListener("pointerup", () => { if (!on) return; const size = 1 + Math.round(k() * 4); reset(); sendPing(size, b); });
+  b.addEventListener("pointercancel", reset);
+  b.addEventListener("contextmenu", e => e.preventDefault());
+  b.addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && !e.repeat) { e.preventDefault(); sendPing(1, b); } });
+}
+async function sendPing(size, b) {
+  const pa = state.partner;
+  if (!reduced()) {
+    const r = b.getBoundingClientRect();
+    for (let i = 0; i < size + 1; i++) {
+      const f = document.createElement("span");
+      f.className = "flyer"; f.innerHTML = HEART;
+      const fs = 14 + size * 5;
+      f.style.cssText = `--fs:${fs}px;left:${r.left + r.width / 2 - fs / 2}px;top:${r.top + 6}px;--tx:${((Math.random() - .5) * 140).toFixed(0)}px;--rr:${((Math.random() - .5) * 60).toFixed(0)}deg;animation-delay:${i * .08}s`;
+      document.body.appendChild(f);
+      setTimeout(() => f.remove(), 1600);
+    }
+  }
+  b.disabled = true;
+  try {
+    state.ping = await call("/api/together/pings", { method: "POST", body: { size } });
+    state.pingFresh = null; renderPing();
+    toast(size >= 4 ? `送了一顆好大的想你給${pa.name} ♥` : `送給${pa.name}了 ♥`);
+  } catch (e) { toast(e.message); b.disabled = false; }
 }
 async function loadPing() {
   const p = await call("/api/together/pings");
   // 有沒看過的愛心：這次打開頁面先顯示，同時標成看過（首頁就會熄掉）
-  if (p.unseen) { state.pingFresh = { n: p.unseen, last: p.last }; state.ping = await call("/api/together/pings/seen", { method: "POST" }); }
+  if (p.unseen) { state.pingFresh = { n: p.unseen, last: p.last, size: p.unseen_size || 1 }; state.ping = await call("/api/together/pings/seen", { method: "POST" }); }
   else state.ping = p;
   renderPing();
 }
 
 // ---------- 猜猜對方 ----------
+// 揭曉後是兩組翻牌：「對方說／你猜」和「你說／對方猜」，點一下翻開；猜中的蓋上「猜中！」
 const wk = s => `${+s.slice(5, 7)}/${+s.slice(8)}`;
+state.lmFlip = new Set();
+function fcard(key, label, text, stamp = "") {
+  const f = state.lmFlip.has(key);
+  return `<button type="button" class="fcard${f ? " flip" : ""}" data-flip="${key}" aria-pressed="${f}" aria-label="${esc(label)}：${f ? esc(text) : "點一下翻開"}">
+    <span class="back" aria-hidden="true"><b>?</b><small>${esc(label)}</small></span><span class="face" aria-hidden="true"><small>${esc(label)}</small><span class="tx">${esc(text)}</span>${stamp}</span></button>`;
+}
+const lmStamp = r => r === true ? `<span class="res ok">猜中！</span>` : r === false ? `<span class="res no">差一點</span>` : "";
 function lmPair(it, judge) {
-  const pa = state.partner, m = it.mine, t = it.partner;
-  const mark = r => r === true ? `<span class="ok"><i class="orb gold" style="--s:16px;vertical-align:-3px"></i> 猜對了</span>` : r === false ? `<span class="muted">沒猜中</span>` : "";
-  return `<div class="pair">
-    <div class="card"><b>${esc(pa.name)}的答案</b><p>${esc(t.answer)}</p><div class="g">你猜：${esc(m.guess)}</div>
-      <div class="verdict">${m.right == null ? `<span class="small muted">等${esc(pa.name)}判定</span>` : mark(m.right)}</div></div>
-    <div class="card"><b>你的答案</b><p>${esc(m.answer)}</p><div class="g">${esc(pa.name)}猜：${esc(t.guess)}</div>
-      <div class="verdict">${t.right != null ? mark(t.right) : ""}${judge && t.right == null ? `<span class="small muted">${esc(pa.name)}猜得對嗎？</span><button class="btn sm" type="button" data-judge="1" data-w="${it.week}">猜對了</button><button class="btn ghost sm" type="button" data-judge="0" data-w="${it.week}">不太對</button>` : ""}</div></div>
-  </div>`;
+  const pa = state.partner, m = it.mine, t = it.partner, w = it.week;
+  return `<div class="lmrow"><p class="lmcap">${esc(pa.name)}的答案，和你猜的</p><div class="lmcards">
+      ${fcard(w + ":a", `${pa.name}說`, t.answer)}${fcard(w + ":b", "你猜", m.guess, m.right == null ? `<span class="res wait">等${esc(pa.name)}判定</span>` : lmStamp(m.right))}</div></div>
+    <div class="lmrow"><p class="lmcap">你的答案，和${esc(pa.name)}猜的</p><div class="lmcards">
+      ${fcard(w + ":c", "你說", m.answer)}${fcard(w + ":d", `${pa.name}猜`, t.guess, lmStamp(t.right))}</div>
+      ${judge && t.right == null ? `<div class="verdict"><span class="small muted">${esc(pa.name)}猜得對嗎？</span><button class="btn sm" type="button" data-judge="1" data-w="${w}">猜中了</button><button class="btn ghost sm" type="button" data-judge="0" data-w="${w}">差一點</button></div>` : ""}</div>
+    <p class="lmall"><button class="link" type="button" data-flipall="${w}">全部翻開</button></p>`;
 }
 function renderLovemap() {
   const d = state.lm, pa = state.partner, el = $("lmBody");
@@ -911,19 +1209,23 @@ function renderLovemap() {
     html += `<label for="lmA">你自己的答案</label><textarea id="lmA" maxlength="300">${esc(c.mine?.answer || "")}</textarea>
       <label for="lmG">猜猜${esc(pa.name)}會怎麼答</label><textarea id="lmG" maxlength="300">${esc(c.mine?.guess || "")}</textarea>
       <div class="qacts">${state.lmEdit ? `<button class="btn ghost sm" type="button" id="lmCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="lmSend">送出</button></div>
-      <p class="small muted">${c.partner_done ? `${esc(pa.name)}已經寫好了，你送出就揭曉` : "兩個人都寫完才會揭曉"}</p>`;
+      <p class="small muted">${c.partner_done ? `${esc(pa.name)}已經寫好了，你送出就翻牌` : "兩個人都寫完才會翻牌"}</p>`;
   } else if (!c.partner) {
-    html += `<p class="small muted">你寫好了，等${esc(pa.name)}寫完就揭曉。</p><div class="qacts"><button class="link" type="button" id="lmEdit">修改</button></div>`;
+    html += `<div class="lmcards" aria-hidden="true">${["你說", "你猜"].map(l => `<span class="fcard"><span class="back"><b>?</b><small>${l}</small></span></span>`).join("")}</div>
+      <p class="small muted" style="margin-top:8px">你寫好了，等${esc(pa.name)}寫完就翻牌。</p><div class="qacts"><button class="link" type="button" id="lmEdit">修改</button></div>`;
   } else {
     html += lmPair(c, true);
   }
-  const past = d.past.filter(it => it.mine && it.partner);
+  // 默契紀錄：最近 12 週，兩個都猜中是金色，猜中一個是半顆
+  const past = d.past.filter(it => it.mine && it.partner).slice(0, 12);
   if (past.length) {
     const open = past.find(it => it.week === state.lmOpen);
-    html += `<div class="shelf2"><span class="small muted">猜對的記憶球</span>${past.map(it => {
-      const n = (it.mine.right ? 1 : 0) + (it.partner.right ? 1 : 0);
-      return `<button type="button" class="link" data-w="${it.week}" style="text-decoration:none" aria-label="${wk(it.week)} 那週，猜對 ${n} 個"><i class="orb${n === 2 ? " gold" : n === 1 ? "" : " empty"}"${n === 1 ? ' style="--c:var(--sad)"' : ""}></i></button>`;
-    }).join("")}</div>${open ? `<div class="qopen"><span class="small muted">${wk(open.week)} 那週</span><p class="q">${esc(open.question)}</p>${lmPair(open, open.partner.right == null)}</div>` : ""}`;
+    const score = it => (it.mine.right ? 1 : 0) + (it.partner.right ? 1 : 0);
+    const gold = past.filter(it => score(it) === 2).length;
+    html += `<div class="sync"><span class="small muted">默契紀錄・最近 ${past.length} 週有 ${gold} 週兩個都猜中</span><div class="dots2">${past.slice().reverse().map(it => {
+      const n = score(it);
+      return `<button type="button" data-w="${it.week}" class="${n === 2 ? "on" : n === 1 ? "half" : ""}" aria-pressed="${it.week === state.lmOpen}" aria-label="${wk(it.week)} 那週，猜中 ${n} 個"></button>`;
+    }).join("")}</div></div>${open ? `<div class="qopen"><span class="small muted">${wk(open.week)} 那週</span><p class="q">${esc(open.question)}</p>${lmPair(open, open.partner.right == null)}</div>` : ""}`;
   }
   el.innerHTML = html;
   $("lmSend") && ($("lmSend").onclick = async () => {
@@ -931,25 +1233,48 @@ function renderLovemap() {
     if (!answer || !guess) { toast("自己的答案和猜的答案都要寫"); return; }
     $("lmSend").disabled = true;
     try { state.lm = await call("/api/together/lovemap", { method: "PUT", body: { answer, guess } }); state.lmEdit = false; renderLovemap();
-      toast(state.lm.current.partner ? "揭曉！看看你猜對沒" : "送出了"); }
+      toast(state.lm.current.partner ? "翻牌！看看你猜中沒" : "送出了"); }
     catch (e) { toast(e.message); $("lmSend").disabled = false; }
   });
   $("lmEdit") && ($("lmEdit").onclick = () => { state.lmEdit = true; renderLovemap(); });
   $("lmCancel") && ($("lmCancel").onclick = () => { state.lmEdit = false; renderLovemap(); });
+  updateSeg();
 }
 $("lmBody").addEventListener("click", async e => {
+  const f = e.target.closest("[data-flip]");
+  if (f) {
+    const k = f.dataset.flip, on = !state.lmFlip.has(k);
+    on ? state.lmFlip.add(k) : state.lmFlip.delete(k);
+    f.classList.toggle("flip", on); f.setAttribute("aria-pressed", String(on));
+    const lab = f.querySelector(".back small").textContent;
+    f.setAttribute("aria-label", `${lab}：${on ? f.querySelector(".tx").textContent : "點一下翻開"}`);
+    return;
+  }
+  const fa = e.target.closest("[data-flipall]");
+  if (fa) {
+    const box = fa.closest(".qopen") || $("lmBody");
+    box.querySelectorAll(`.fcard[data-flip^="${fa.dataset.flipall}:"]:not(.flip)`).forEach((c, i) => setTimeout(() => c.click(), reduced() ? 0 : i * 140));
+    return;
+  }
   const j = e.target.closest("[data-judge]");
   if (j) {
-    try { state.lm = await call("/api/together/lovemap/judge", { method: "PUT", body: { week: j.dataset.w, right: j.dataset.judge === "1" } }); renderLovemap(); }
+    try { state.lm = await call("/api/together/lovemap/judge", { method: "PUT", body: { week: j.dataset.w, right: j.dataset.judge === "1" } }); state.lmFlip.add(j.dataset.w + ":d"); renderLovemap(); }
     catch (err) { toast(err.message); }
     return;
   }
-  const w = e.target.closest(".shelf2 [data-w]");
+  const w = e.target.closest(".sync [data-w]");
   if (w) { state.lmOpen = state.lmOpen === w.dataset.w ? null : w.dataset.w; renderLovemap(); }
 });
 async function loadLovemap() { state.lm = await call("/api/together/lovemap"); renderLovemap(); }
 
 // ---------- 每週小聊天 ----------
+// 一題一張卡疊起來，寫完一題換下一張；草稿存在這台裝置上，關掉再開還在。
+// 兩個人都寫完，變成對話泡泡（藍色那位在左、粉紅那位在右）。
+const ckKey = w => `fivejsCkDraft:${w}`;
+function ckDraft(target) {
+  try { const v = JSON.parse(LS.get(ckKey(target.week)) || "null"); if (Array.isArray(v)) return v; } catch (e) {}
+  return (target.mine || []).slice();
+}
 function renderCheckin() {
   const d = state.ck, pa = state.partner, el = $("ckBody");
   if (!d) return;
@@ -958,12 +1283,17 @@ function renderCheckin() {
   const last = d.past[0] && d.past[0].week === addDays(c.week, -7) ? d.past[0] : null;
   const editing = state.ckEdit;  // null／這週／上週的週日
   const target = editing === "last" ? last : c;
-  let html = "";
+  const qs = d.questions;
+  let html = "", draft = null, i = 0;
   if (editing || !c.mine) {
-    const vals = (editing ? target.mine : null) || [];
-    html += `${editing === "last" ? `<p class="small muted">補寫 ${wk(last.week)} 那週</p>` : `<p class="small muted">${isSun ? "今天週日，" : ""}花五分鐘各自寫，兩個人都寫完才互相看到。不用每題都寫。</p>`}
-      ${d.questions.map((q, i) => `<div class="qa"><b>${esc(q)}</b><textarea data-i="${i}" maxlength="500">${esc(vals[i] || "")}</textarea></div>`).join("")}
-      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="ckCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="ckSend">送出</button></div>`;
+    draft = ckDraft(target);
+    i = Math.max(0, Math.min(state.ckI || 0, qs.length - 1));
+    html += `<p class="small muted intro">${editing === "last" ? `補寫 ${wk(last.week)} 那週。` : isSun ? "今天週日，" : ""}花五分鐘各自寫，兩個人都寫完才互相看到。不想寫的題目可以跳過。</p>
+      <div class="stack" id="ckStack">${qs.slice(i, i + 3).map((q, k) => `<div class="qcard"${k ? ' aria-hidden="true"' : ""}>
+        <div class="row"><span class="small muted">第 ${i + k + 1} / ${qs.length} 題</span><span class="dots">${qs.map((_, j) => `<i class="${draft[j] ? "on" : ""}${j === i + k ? " cur" : ""}"></i>`).join("")}</span></div>
+        <b>${esc(q)}</b>${k ? `<div class="fake">${esc(draft[i + k] || "")}</div>` : `<textarea id="ckA" maxlength="500" aria-label="${esc(q)}" placeholder="寫在這裡…">${esc(draft[i] || "")}</textarea>`}</div>`).join("")}</div>
+      <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="ckCancel">取消</button>` : ""}<button class="btn ghost sm" type="button" id="ckPrev"${i ? "" : " disabled"}>上一題</button>${
+        i < qs.length - 1 ? `<button class="btn primary sm" type="button" id="ckNext">下一題</button>` : `<button class="btn primary sm" type="button" id="ckSend">寄出</button>`}</div>`;
   } else if (!c.partner) {
     html += `<p class="small muted">你寫好了${pa ? `，等${esc(pa.name)}寫完就能一起看` : ""}。</p><div class="qacts"><button class="link" type="button" id="ckEdit">修改</button></div>`;
   } else {
@@ -973,28 +1303,44 @@ function renderCheckin() {
   const done = d.past.filter(it => it.mine && it.partner);
   if (done.length) {
     const open = done.find(it => it.week === state.ckOpen);
-    html += `<div class="shelf2" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;border-top:2px dashed var(--line);padding-top:10px;align-items:center">
-      <span class="small muted">以前的小聊天</span>${done.map(it => `<button class="btn ghost sm" type="button" data-w="${it.week}" aria-pressed="${it.week === state.ckOpen}">${wk(it.week)}</button>`).join("")}</div>
+    html += `<div class="shelf2"><span class="small muted">以前的小聊天</span>${done.map(it => `<button class="btn ghost sm" type="button" data-w="${it.week}" aria-pressed="${it.week === state.ckOpen}">${wk(it.week)}</button>`).join("")}</div>
       ${open ? `<div class="qopen">${ckBoth(d, open)}</div>` : ""}`;
   }
   el.innerHTML = html;
-  $("ckSend") && ($("ckSend").onclick = async () => {
-    const answers = [...el.querySelectorAll("textarea[data-i]")].map(t => t.value.trim());
-    if (!answers.some(Boolean)) { toast("至少寫一題"); return; }
-    $("ckSend").disabled = true;
-    try {
-      state.ck = await call("/api/together/checkin", { method: "PUT", body: { answers, week: target.week } });
-      state.ckEdit = null; renderCheckin(); toast(state.ck.current.partner ? "兩個人都寫完了，一起看看" : "送出了");
-    } catch (e) { toast(e.message); $("ckSend").disabled = false; }
-  });
-  $("ckEdit") && ($("ckEdit").onclick = () => { state.ckEdit = "this"; renderCheckin(); });
-  $("ckLast") && ($("ckLast").onclick = () => { state.ckEdit = "last"; renderCheckin(); });
-  $("ckCancel") && ($("ckCancel").onclick = () => { state.ckEdit = null; renderCheckin(); });
+  if (draft) {
+    const save = () => { draft[i] = $("ckA").value; LS.set(ckKey(target.week), JSON.stringify(draft)); };
+    $("ckA").oninput = save;
+    const go = n => {
+      save();
+      const top = $("ckStack").firstElementChild;
+      if (n > 0 && !reduced()) { top.classList.add("gone"); setTimeout(() => { state.ckI = i + n; renderCheckin(); $("ckA")?.focus(); }, 300); }
+      else { state.ckI = i + n; renderCheckin(); $("ckA")?.focus(); }
+    };
+    $("ckPrev").onclick = () => go(-1);
+    $("ckNext") && ($("ckNext").onclick = () => go(1));
+    $("ckSend") && ($("ckSend").onclick = async () => {
+      save();
+      const answers = qs.map((_, j) => (draft[j] || "").trim());
+      if (!answers.some(Boolean)) { toast("至少寫一題"); return; }
+      $("ckSend").disabled = true;
+      try {
+        state.ck = await call("/api/together/checkin", { method: "PUT", body: { answers, week: target.week } });
+        LS.del(ckKey(target.week));
+        state.ckEdit = null; state.ckI = 0; renderCheckin(); toast(state.ck.current.partner ? "兩個人都寫完了，一起看看" : "寄出了");
+      } catch (e) { toast(e.message); $("ckSend").disabled = false; }
+    });
+  }
+  const startEdit = mode => { state.ckEdit = mode; state.ckI = 0; renderCheckin(); };
+  $("ckEdit") && ($("ckEdit").onclick = () => startEdit("this"));
+  $("ckLast") && ($("ckLast").onclick = () => startEdit("last"));
+  $("ckCancel") && ($("ckCancel").onclick = () => { LS.del(ckKey(target.week)); state.ckEdit = null; state.ckI = 0; renderCheckin(); });
+  updateSeg();
 }
 function ckBoth(d, it) {
-  const pa = state.partner;
-  return d.questions.map((q, i) => (it.mine[i] || it.partner[i]) ? `<div class="qa"><b>${esc(q)}</b><div class="both">
-    <div><small>${esc(state.me.name)}</small>${esc(it.mine[i] || "—")}</div><div><small>${esc(pa.name)}</small>${esc(it.partner[i] || "—")}</div></div></div>` : "").join("");
+  const pa = state.partner, side = p => p.theme === "blue" ? "b" : "p";
+  const pair = [[state.me, it.mine], [pa, it.partner]].sort((a, b) => (side(a[0]) === "b" ? 0 : 1) - (side(b[0]) === "b" ? 0 : 1));
+  return `<div class="chat">${d.questions.map((q, i) => (it.mine[i] || it.partner[i]) ? `<div class="cq">${esc(q)}</div>${
+    pair.map(([p, a]) => `<div class="bub ${side(p)}"><small>${esc(p.name)}</small>${a[i] ? esc(a[i]) : '<span class="muted">（這題沒寫）</span>'}</div>`).join("")}` : "").join("")}</div>`;
 }
 $("ckBody").addEventListener("click", e => {
   const w = e.target.closest(".shelf2 [data-w]");
@@ -1005,20 +1351,31 @@ async function loadCheckin() { state.ck = await call("/api/together/checkin"); r
 // ---------- 一起想做的事 ----------
 const money = n => "$" + Math.round(n).toLocaleString("en-US");
 const GOAL_BUCKETS = [["reserve", "預備金"], ["short", "短期 2 年"], ["mid", "中期 6 年"], ["long", "長期 10 年以上"]];
+// 票根：還沒做的排在上面；按「做到了」蓋上郵戳，收進下面的「我們的護照」
+function ticketHtml(b, done) {
+  const p = person(b.created_by), c = p?.theme === "blue" ? "#3E7FD0" : "#D9558E";
+  const meta = [b.cost != null ? `預算 ${money(b.cost)}` : "", b.note, p ? `${p.name}想的` : ""].filter(Boolean);
+  const day = (b.done_on || state.datesToday || taipeiToday()).replaceAll("-", ".");
+  return `<div class="ticket${done ? " done" : ""}" style="--c:${c}">
+    <button class="tk" type="button" data-edit="${b.id}" aria-label="編輯：${esc(b.title)}"><span class="tt">${esc(b.title)}</span>${meta.length ? `<small>${meta.map(esc).join("・")}</small>` : ""}</button>
+    <div class="ink" aria-hidden="true">DONE<br>${day}</div>${done ? "" : `<button type="button" class="go" data-done="${b.id}">做到了</button>`}</div>`;
+}
 function renderBucket() {
   const el = $("bkBody"), todo = state.bucket.filter(b => !b.done_on), done = state.bucket.filter(b => b.done_on);
-  el.innerHTML = (todo.length ? `<ul class="bk">${todo.map(b => `<li data-id="${b.id}">
-      <button class="chk" type="button" data-done="${b.id}" aria-label="完成了：${esc(b.title)}"><i class="orb empty"></i></button>
-      <div class="main" data-edit="${b.id}" style="cursor:pointer"><b>${esc(b.title)}</b><span>${[b.cost != null ? `預算 ${money(b.cost)}` : "", b.note, `${esc(person(b.created_by)?.name || "")}想的`].filter(Boolean).map(esc).join("・")}</span></div></li>`).join("")}</ul>`
-    : `<p class="small muted">想去的餐廳、想去的國家、想一起學的事，都可以放進來。做完就變成金色記憶球。</p>`) +
-    (done.length ? `<div class="bkshelf"><span class="small muted" style="width:100%">一起做到了</span>${done.map(b =>
-      `<button type="button" data-edit="${b.id}" aria-label="${esc(b.title)}，${b.done_on}"><i class="orb gold"></i><span>${esc(b.title)}</span></button>`).join("")}</div>` : "");
+  const total = state.bucket.length;
+  el.innerHTML = (total ? `<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done.length}" aria-label="一起做到的進度"><i style="width:${total ? done.length / total * 100 : 0}%"></i></div>
+      <p class="small muted progt">一起做到了 ${done.length} 件，總共 ${total} 件</p>` : "") +
+    (todo.length ? `<div class="passport">${todo.map(b => ticketHtml(b, false)).join("")}</div>`
+      : `<p class="small muted">想去的餐廳、想去的國家、想一起學的事，都可以放進來。做到了就蓋上郵戳，收進我們的護照。</p>`) +
+    (done.length ? `<div class="pass"><h3>我們的護照</h3><div class="passport">${done.slice().sort((a, b) => b.done_on.localeCompare(a.done_on)).map(b => ticketHtml(b, true)).join("")}</div></div>` : "");
 }
 $("bkBody").onclick = async e => {
   const d = e.target.closest("[data-done]");
   if (d) {
     const b = state.bucket.find(x => x.id === +d.dataset.done);
-    try { await saveBucket(b.id, { ...b, done_on: state.datesToday || taipeiToday() }); toast("收進記憶架了 ✨"); } catch (err) { toast(err.message); }
+    d.closest(".ticket").classList.add("done");
+    await new Promise(r => setTimeout(r, reduced() ? 0 : 900));
+    try { await saveBucket(b.id, { ...b, done_on: state.datesToday || taipeiToday() }); toast("蓋好郵戳，收進護照了 ✨"); } catch (err) { toast(err.message); renderBucket(); }
     return;
   }
   const ed = e.target.closest("[data-edit]");
@@ -1125,7 +1482,7 @@ async function boot() {
     await Promise.all([refresh(), loadDates(), loadPhotos(), loadHistory(), loadLovemap(), loadCheckin(), loadBucket()]);
     loadOtd().catch(() => {}); loadPing().catch(() => {});
   } catch (e) { toast(e.message); }
-  $("booting").hidden = true; $("app").hidden = false; relayoutJars();
+  $("booting").hidden = true; $("app").hidden = false; relayoutJars(); markZone();
   // 對方回答或打卡後：每分鐘、或回到這個分頁時更新
   setInterval(() => { if (!document.hidden) refresh().catch(() => {}); }, 60000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh().catch(() => {}); });

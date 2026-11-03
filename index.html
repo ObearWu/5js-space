@@ -53,7 +53,8 @@ body.locked .tabbar{display:none}
 .pingbar .t b{display:block;font-family:var(--f-round);font-weight:400;font-size:1.05rem}
 .pingbar .heart{border:0;cursor:pointer;width:46px;height:46px;border-radius:50%;font-size:1.3rem;color:#fff;flex:none;
   background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.6) 0 8%,transparent 30%),var(--emb);box-shadow:0 0 16px color-mix(in srgb,var(--emb) 55%,transparent)}
-.pingbar .heart:active{transform:scale(.9)}
+.pingbar .heart{transform:scale(var(--hs,1));transition:transform .3s}
+.pingbar .heart:active{transform:scale(calc(var(--hs,1) * .9))}
 .pingbar.got{border-color:var(--emb);box-shadow:0 0 30px color-mix(in srgb,var(--emb) 40%,transparent),0 10px 30px var(--shadow)}
 .pingbar.got .heart{animation:pulse 1.8s ease-in-out infinite}
 
@@ -312,8 +313,10 @@ function renderPing(p) {
   if (!pa || !p) { el.hidden = true; return; }
   el.hidden = false;
   el.classList.toggle("got", p.unseen > 0);
+  // 對方按住越久送來的心越大（1～5），首頁的愛心也跟著變大
+  el.style.setProperty("--hs", p.unseen ? (1 + (Math.min(5, p.unseen_size || 1) - 1) * .12).toFixed(2) : 1);
   const sent = p.today[ME.user.id] || 0;
-  el.innerHTML = `<div class="t">${p.unseen ? `<b>${esc(pa.name)}想你了 ♥</b><span class="muted">${p.unseen > 1 ? `${p.unseen} 顆，` : ""}${hm(p.last)}。按愛心回一顆</span>`
+  el.innerHTML = `<div class="t">${p.unseen ? `<b>${esc(pa.name)}${(p.unseen_size || 1) >= 4 ? "送來一顆好大的想你" : "想你了"} ♥</b><span class="muted">${p.unseen > 1 ? `${p.unseen} 顆，` : ""}${hm(p.last)}。按愛心回一顆</span>`
     : `<b>想${esc(pa.name)}了嗎？</b><span class="muted">${sent ? `今天送了 ${sent} 顆${p.partner_seen ? `・${hm(p.partner_seen)} 看到了` : ""}` : `按一下，${esc(pa.name)}的首頁就會亮起來`}</span>`}</div>
     <button class="heart" type="button" id="pingBtn" aria-label="送一顆想你給${esc(pa.name)}">♥</button>`;
   $("pingBtn").onclick = async () => {

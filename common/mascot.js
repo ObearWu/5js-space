@@ -1,6 +1,6 @@
 /*
  * 吉祥物：藍色棒棒糖（大豬）／粉紅色棒棒糖（小豬），取自兩人手作的簇絨地毯。
- * 圖案沿用舊的「大小豬健康食記」，各功能頁都用 FiveJS.lollipop() 畫。
+ * 圖案沿用舊的「大小豬健康食記」，各功能頁都用 FiveJS.lollipop() 畫；每日一問的封蠟是 FiveJS.waxSeal()。
  * palette：'blue' | 'pink'；mood：'happy' | 'wave' | 'sleep' | 'hungry' | 'full' | 'sparkle' | 'over'
  */
 (() => {
@@ -36,5 +36,28 @@
       </g>${extra}</g></svg>`;
   }
 
-  window.FiveJS = Object.assign(window.FiveJS || {}, { lollipop });
+  // 棒棒糖封蠟（每日一問的信封）：照兩支棒棒糖娃娃，白色外圈、彩色漩渦、漩渦上的白色縫線，
+  // 蠟塊下面露出棒子和粉紅蝴蝶結。大豬（blue）粉藍、小豬（pink）粉紅。
+  function waxSeal(palette = "pink", size = 48) {
+    const C = palette === "blue" ? { wax: "#8CC8EA", hi: "#C4E6F7", lo: "#5E9FC7", deep: "#477FA6" } : { wax: "#F29BBE", hi: "#FAD0E1", lo: "#D4709A", deep: "#B0527C" };
+    let d = "";
+    for (let i = 0; i <= 72; i++) {
+      const a = i / 72 * Math.PI * 2, r = 44 + 1.6 * Math.sin(a * 7) + 1.1 * Math.sin(a * 11 + 1) + (i === 20 || i === 21 ? 3 : 0);
+      d += (i ? "L" : "M") + (50 + r * Math.cos(a)).toFixed(1) + " " + (50 + r * Math.sin(a)).toFixed(1);
+    }
+    const sp = "M50 50a3 3 0 0 1 6 0a6 6 0 0 1-12 0a9 9 0 0 1 18 0a12 12 0 0 1-24 0a15 15 0 0 1 30 0a18 18 0 0 1-36 0";
+    return `<svg class="wax-seal" width="${size}" height="${Math.round(size * 1.18)}" viewBox="0 0 100 118" aria-hidden="true">
+      <rect x="46" y="86" width="8" height="28" rx="4" fill="#FBF6EE" stroke="#D9CBB8" stroke-width="1.2"/>
+      <path d="${d}Z" fill="${C.wax}" stroke="${C.lo}" stroke-width="1.5"/>
+      <g transform="translate(50 101)"><path d="M0 0l-13-7q-3 7 0 14z M0 0l13-7q3 7 0 14z" fill="#F7A9C6" stroke="#D9588A" stroke-width="1.3" stroke-linejoin="round"/><circle r="3.6" fill="#F7A9C6" stroke="#D9588A" stroke-width="1.3"/></g>
+      <circle cx="50" cy="50" r="35" fill="none" stroke="${C.lo}" stroke-width="2" opacity=".55"/>
+      <circle cx="50" cy="50" r="31" fill="#FDFBF8" stroke="${C.hi}" stroke-width="1.5"/>
+      <circle cx="50" cy="50" r="25" fill="${C.wax}"/>
+      <path d="${sp}" transform="translate(-3 0)" fill="none" stroke="${C.deep}" stroke-width="3.6" stroke-linecap="round" opacity=".55"/>
+      <path d="${sp}" transform="translate(-3 -.8)" fill="none" stroke="${C.hi}" stroke-width="3" stroke-linecap="round"/>
+      <path d="${sp}" transform="translate(-3 -.8)" fill="none" stroke="#fff" stroke-width="1.1" stroke-dasharray="2 2.6" stroke-linecap="round"/>
+      <ellipse cx="34" cy="30" rx="9" ry="4" transform="rotate(-35 34 30)" fill="#fff" opacity=".45"/></svg>`;
+  }
+
+  window.FiveJS = Object.assign(window.FiveJS || {}, { lollipop, waxSeal });
 })();
