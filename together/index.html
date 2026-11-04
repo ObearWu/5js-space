@@ -476,6 +476,13 @@ button.c{border:0;padding:0;background:none;cursor:pointer;width:100%}
 (() => {
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// 每日一問、每週小聊天的題目：「你」換成讀題的人、「我」「對方」換成另一個人，「我們」不動（大豬＝5.J、小豬＝5.S）
+const NICK = { blue: "5.J", pink: "5.S" };
+function qText(t) {
+  const me = NICK[state.me?.theme], pa = NICK[state.partner?.theme];
+  if (!me || !pa || me === pa) return t;
+  return String(t ?? "").replace(/我們/g, "\u0000").replace(/對方/g, pa).replace(/你/g, me).replace(/我/g, pa).replace(/\u0000/g, "我們");
+}
 const taipeiToday = () => new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Taipei" }).format(new Date());
 const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
 const parse = s => { const [y, m, d] = s.split("-").map(Number); return new Date(Date.UTC(y, m - 1, d)); };
@@ -566,7 +573,7 @@ function renderQuestion(editing = false) {
   const writing = !q.mine || editing, both = !writing && q.partner != null;
   const OPENED = "fivejsQOpened", animate = both && !reduced() && LS.get(OPENED) !== q.date;
   if (both) LS.set(OPENED, q.date);
-  let html = `<p class="q">${esc(q.question)}</p>`;
+  let html = `<p class="q">${esc(qText(q.question))}</p>`;
   if (writing) {
     html += `<div class="paper"><textarea id="qInput" maxlength="500" aria-label="寫下你的答案" placeholder="${pa ? `寫給${esc(pa.name)}…` : "寫下你的答案…"}">${esc(q.mine || "")}</textarea></div>
       <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="qCancel">取消</button>` : ""}<button class="btn primary sm" type="button" id="qSend">${editing ? "重新寄出" : "寄出"}</button></div>`;
@@ -631,9 +638,9 @@ function renderHistory() {
     <div class="stamps">${items.map(it => {
       const d = parse(it.date);
       return `<button type="button" class="stamp${both(it) ? "" : " half"}${state.histNew.includes(it.date) ? " new" : ""}" style="--c:${stampColor(it.date)}" data-d="${it.date}" aria-pressed="${it.date === state.histOpen}"
-        aria-label="${esc(dayText(it.date))}：${esc(it.question)}${both(it) ? "" : "（只有一個人寄出）"}"><span>${d.getUTCMonth() + 1}/${d.getUTCDate()}</span></button>`;
+        aria-label="${esc(dayText(it.date))}：${esc(qText(it.question))}${both(it) ? "" : "（只有一個人寄出）"}"><span>${d.getUTCMonth() + 1}/${d.getUTCDate()}</span></button>`;
     }).join("")}</div>
-    ${open ? `<div class="qopen"><span class="small muted">${esc(dayText(open.date))}</span><p class="q">${esc(open.question)}</p>${
+    ${open ? `<div class="qopen"><span class="small muted">${esc(dayText(open.date))}</span><p class="q">${esc(qText(open.question))}</p>${
       open.mine != null ? (open.partner != null ? lettersHtml(open) : answersHtml(open)) : `<p class="small muted">這天你沒有寄出${open.partner_answered ? "，所以看不到對方的信" : ""}。</p>`}</div>` : ""}
     ${state.histMore ? `<p class="more" style="text-align:center;margin-top:10px"><button class="link" type="button">再往前翻</button></p>` : ""}`;
   el.querySelectorAll(".stamps button").forEach(b => b.onclick = () => {
@@ -1291,7 +1298,7 @@ function renderCheckin() {
     html += `<p class="small muted intro">${editing === "last" ? `補寫 ${wk(last.week)} 那週。` : isSun ? "今天週日，" : ""}花五分鐘各自寫，兩個人都寫完才互相看到。不想寫的題目可以跳過。</p>
       <div class="stack" id="ckStack">${qs.slice(i, i + 3).map((q, k) => `<div class="qcard"${k ? ' aria-hidden="true"' : ""}>
         <div class="row"><span class="small muted">第 ${i + k + 1} / ${qs.length} 題</span><span class="dots">${qs.map((_, j) => `<i class="${draft[j] ? "on" : ""}${j === i + k ? " cur" : ""}"></i>`).join("")}</span></div>
-        <b>${esc(q)}</b>${k ? `<div class="fake">${esc(draft[i + k] || "")}</div>` : `<textarea id="ckA" maxlength="500" aria-label="${esc(q)}" placeholder="寫在這裡…">${esc(draft[i] || "")}</textarea>`}</div>`).join("")}</div>
+        <b>${esc(qText(q))}</b>${k ? `<div class="fake">${esc(draft[i + k] || "")}</div>` : `<textarea id="ckA" maxlength="500" aria-label="${esc(qText(q))}" placeholder="寫在這裡…">${esc(draft[i] || "")}</textarea>`}</div>`).join("")}</div>
       <div class="qacts">${editing ? `<button class="btn ghost sm" type="button" id="ckCancel">取消</button>` : ""}<button class="btn ghost sm" type="button" id="ckPrev"${i ? "" : " disabled"}>上一題</button>${
         i < qs.length - 1 ? `<button class="btn primary sm" type="button" id="ckNext">下一題</button>` : `<button class="btn primary sm" type="button" id="ckSend">寄出</button>`}</div>`;
   } else if (!c.partner) {
@@ -1339,7 +1346,7 @@ function renderCheckin() {
 function ckBoth(d, it) {
   const pa = state.partner, side = p => p.theme === "blue" ? "b" : "p";
   const pair = [[state.me, it.mine], [pa, it.partner]].sort((a, b) => (side(a[0]) === "b" ? 0 : 1) - (side(b[0]) === "b" ? 0 : 1));
-  return `<div class="chat">${d.questions.map((q, i) => (it.mine[i] || it.partner[i]) ? `<div class="cq">${esc(q)}</div>${
+  return `<div class="chat">${d.questions.map((q, i) => (it.mine[i] || it.partner[i]) ? `<div class="cq">${esc(qText(q))}</div>${
     pair.map(([p, a]) => `<div class="bub ${side(p)}"><small>${esc(p.name)}</small>${a[i] ? esc(a[i]) : '<span class="muted">（這題沒寫）</span>'}</div>`).join("")}` : "").join("")}</div>`;
 }
 $("ckBody").addEventListener("click", e => {
